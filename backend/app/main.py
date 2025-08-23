@@ -1,0 +1,256 @@
+"""
+WealthPath AI - FastAPI Application Entry Point
+"""
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
+import structlog
+import time
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import Response
+
+from app.api.v1.api import api_router
+from app.core.config import settings
+from app.core.security import get_password_hash
+from app.db.session import engine
+from app.db.base import Base
+
+# Configure structured logging
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.JSONRenderer()
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+logger = structlog.get_logger()
+
+# Prometheus metrics
+REQUEST_COUNT = Counter('wealthpath_requests_total', 'Total requests', ['method', 'endpoint', 'status'])
+REQUEST_DURATION = Histogram('wealthpath_request_duration_seconds', 'Request duration', ['method', 'endpoint'])
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan handler
+    """
+    # Startup
+    logger.info("Starting WealthPath AI backend", version=settings.PROJECT_VERSION)
+    
+    # Create database tables (tables already created via Alembic)
+    logger.info("Database connection verified")
+    
+    # Initialize LLM clients
+    from app.api.v1.endpoints.llm import initialize_llm_clients
+    await initialize_llm_clients()
+    logger.info("LLM clients initialized")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down WealthPath AI backend")
+
+
+# Create FastAPI application
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.PROJECT_VERSION,
+    description="Intelligent Financial Planning Platform",
+    openapi_url=f"{settings.API_V1_PREFIX}/openapi.json" if settings.ENABLE_DOCS else None,
+    docs_url="/docs" if settings.ENABLE_DOCS else None,
+    redoc_url="/redoc" if settings.ENABLE_DOCS else None,
+    lifespan=lifespan
+)
+
+# Security middleware (more permissive for development)
+if settings.ENVIRONMENT == "production":
+    app.add_middleware(
+        TrustedHostMiddleware, 
+        allowed_hosts=["*.wealthpath.ai"]
+    )
+else:
+    # Allow all hosts in development
+    app.add_middleware(
+        TrustedHostMiddleware, 
+        allowed_hosts=["*"]
+    )
+
+# CORS middleware
+if settings.ENABLE_CORS:
+    # Parse CORS origins from comma-separated string
+    cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+    
+    logger.info("CORS enabled with origins", origins=cors_origins)
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Allow all origins for development
+        allow_credentials=False,  # Must be False when allow_origins=["*"]
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_headers=["*"],
+    )
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    """
+    Add processing time header and metrics
+    """
+    start_time = time.time()
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Calculate processing time
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    
+    # Record metrics
+    if settings.ENABLE_METRICS:
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.url.path,
+            status=response.status_code
+        ).inc()
+        
+        REQUEST_DURATION.labels(
+            method=request.method,
+            endpoint=request.url.path
+        ).observe(process_time)
+    
+    return response
+
+
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    """
+    Structured logging middleware
+    """
+    start_time = time.time()
+    
+    # Log request
+    logger.info(
+        "Request started",
+        method=request.method,
+        path=request.url.path,
+        client_ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    
+    response = await call_next(request)
+    
+    # Log response
+    process_time = time.time() - start_time
+    logger.info(
+        "Request completed",
+        method=request.method,
+        path=request.url.path,
+        status_code=response.status_code,
+        process_time=process_time,
+    )
+    
+    return response
+
+
+# API Routes
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint
+    """
+    return {
+        "status": "healthy",
+        "service": "WealthPath AI Backend",
+        "version": settings.PROJECT_VERSION,
+        "environment": settings.ENVIRONMENT,
+    }
+
+
+@app.get("/metrics")
+async def metrics():
+    """
+    Prometheus metrics endpoint
+    """
+    if not settings.ENABLE_METRICS:
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "Metrics are disabled"}
+        )
+    
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler
+    """
+    logger.error(
+        "Unhandled exception",
+        path=request.url.path,
+        method=request.method,
+        exception=str(exc),
+        exc_info=True,
+    )
+    
+    if settings.DEBUG:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": "Internal server error",
+                "error": str(exc),
+                "path": request.url.path,
+            }
+        )
+    
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"}
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+        log_config={
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "default": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                },
+            },
+            "handlers": {
+                "default": {
+                    "formatter": "default",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                },
+            },
+            "root": {
+                "level": "INFO",
+                "handlers": ["default"],
+            },
+        }
+    )

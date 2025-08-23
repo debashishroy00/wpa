@@ -1,0 +1,169 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14
+    container_name: wpa-postgres
+    environment:
+      POSTGRES_DB: wealthpath_db
+      POSTGRES_USER: wealthpath_user
+      POSTGRES_PASSWORD: wealthpath_dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - wpa-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wealthpath_user -d wealthpath_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: wpa-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./infrastructure/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - wpa-network
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: wpa-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://wealthpath_user:wealthpath_dev_password@postgres:5432/wealthpath_db
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=dev-secret-key-change-in-production
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=15
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://localhost:3001,http://127.0.0.1:3001,http://localhost:3002,http://127.0.0.1:3002,http://localhost:3003,http://127.0.0.1:3003,http://localhost:3004,http://127.0.0.1:3004,http://localhost:3005,http://127.0.0.1:3005,http://localhost:3006,http://127.0.0.1:3006
+      # Multi-LLM Integration Environment Variables
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - LLM_DEFAULT_PROVIDER=${LLM_DEFAULT_PROVIDER:-openai}
+      - LLM_DEFAULT_TIER=${LLM_DEFAULT_TIER:-dev}
+      - LLM_CACHE_ENABLED=${LLM_CACHE_ENABLED:-true}
+      - LLM_CACHE_TTL_HOURS=${LLM_CACHE_TTL_HOURS:-24}
+      - LLM_MAX_COST_PER_REQUEST=${LLM_MAX_COST_PER_REQUEST:-1.00}
+      - KNOWLEDGE_BASE_PATH=/app/knowledge_base
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+    volumes:
+      - ./backend:/app
+      - ./knowledge_base:/app/knowledge_base  # Mount knowledge base directory
+      - /app/venv  # Exclude venv from volume mount
+    networks:
+      - wpa-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Command is now defined in Dockerfile.dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # React Frontend (Development)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: wpa-frontend
+    ports:
+      - "3004:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_ENVIRONMENT=development
+      - CHOKIDAR_USEPOLLING=true  # For Windows file watching
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Exclude node_modules from volume mount
+    networks:
+      - wpa-network
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0 --port 3000
+    stdin_open: true  # Keep STDIN open for Vite HMR
+    tty: true
+
+  # Prometheus Monitoring (Optional for development)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: wpa-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - wpa-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (Optional for development)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: wpa-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - wpa-network
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  wpa-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

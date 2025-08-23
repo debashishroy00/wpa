@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: wealthpath-backend
+    runtime: python3
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      # YOUR API keys for ALL users (MVP testing)
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false  
+      - key: ENVIRONMENT
+        value: production
+      - key: ADMIN_EMAIL
+        value: debashishroy@gmail.com
+      # MVP settings
+      - key: MVP_MODE
+        value: true
+      - key: LLM_DEFAULT_PROVIDER
+        value: gemini
+    healthCheckPath: /health

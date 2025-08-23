@@ -1,0 +1,24 @@
+# Multi-LLM Integration Requirements
+# Add these to your existing requirements.txt
+
+# OpenAI Integration
+openai>=1.0.0
+
+# Google Gemini Integration
+google-generativeai>=0.3.2
+
+# Anthropic Claude Integration
+anthropic>=0.8.0
+
+# RAG and Vector Search
+sentence-transformers>=2.2.2
+faiss-cpu>=1.7.4  # Use faiss-gpu if GPU is available
+torch>=2.0.0  # Required by sentence-transformers
+
+# Enhanced validation and utilities
+numpy>=1.24.0
+scikit-learn>=1.3.0  # For additional ML utilities
+
+# Optional: Async HTTP client for better performance
+httpx>=0.25.0
+aiofiles>=23.0.0
