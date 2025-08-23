@@ -51,7 +51,7 @@ def upgrade() -> None:
     
     # Create a partial unique index that only applies to active records
     op.execute("""
-        CREATE UNIQUE INDEX CONCURRENTLY idx_unique_active_accounts 
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_active_accounts 
         ON financial_entries (user_id, category, LOWER(TRIM(description))) 
         WHERE is_active = true AND category = 'assets';
     """)
