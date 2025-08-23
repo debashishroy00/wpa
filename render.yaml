@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: ./build.sh
+    startCommand: python start.py
     envVars:
       - key: DATABASE_URL
         sync: false
