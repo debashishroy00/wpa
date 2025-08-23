@@ -1,10 +1,11 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc"]
+nixPkgs = ["python311", "python311Packages.pip", "gcc"]
 
 [phases.install]
 cmds = [
-    "pip install --no-cache-dir torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu",
-    "pip install --no-cache-dir -r requirements.txt"
+    "python -m pip install --upgrade pip",
+    "python -m pip install --no-cache-dir torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu",
+    "python -m pip install --no-cache-dir -r requirements.txt"
 ]
 
 [start]
