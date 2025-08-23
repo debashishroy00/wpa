@@ -22,14 +22,8 @@ class SecureVectorDBService:
     """
     
     def __init__(self):
-        # Initialize ChromaDB with persistent storage
-        self.client = chromadb.PersistentClient(
-            path="/app/vector_db_secure",
-            settings=Settings(
-                anonymized_telemetry=False,
-                allow_reset=True
-            )
-        )
+        # Initialize ChromaDB with in-memory storage (no file permissions needed)
+        self.client = chromadb.Client()
         
         # Initialize embedding model
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
