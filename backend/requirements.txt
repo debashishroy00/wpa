@@ -1,9 +1,5 @@
 # WealthPath AI Backend Dependencies
 
-# CPU-only PyTorch index for faster builds
---index-url https://download.pytorch.org/whl/cpu
-torch==2.0.1
-
 # Core FastAPI Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -68,7 +64,10 @@ flake8==6.1.0
 isort==5.12.0
 mypy==1.7.1
 
-# Vector Database & Embeddings  
+# Vector Database & Embeddings
+# CPU-only PyTorch for smaller builds (Linux only for Railway)
+torch==2.0.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.15.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
 chromadb==0.4.15
 sentence-transformers==2.2.2
 huggingface-hub==0.17.3
