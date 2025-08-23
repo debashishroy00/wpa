@@ -49,10 +49,10 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
           id={selectId}
           ref={ref}
           className={clsx(
-            'block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm transition-colors appearance-none',
-            'focus:border-blue-400 focus:ring-blue-400 focus:ring-1',
+            'block w-full rounded-md border-gray-300 bg-white text-gray-900 shadow-sm transition-colors appearance-none',
+            'focus:border-blue-500 focus:ring-blue-500 focus:ring-2',
             'pr-10 py-2 pl-3',
-            error && 'border-red-400 focus:border-red-400 focus:ring-red-400',
+            error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
             'disabled:bg-gray-600 disabled:text-gray-400',
             className
           )}
