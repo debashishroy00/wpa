@@ -1,3 +1,5 @@
+# WealthPath AI Backend - Docker Ignore
+
 # Python
 __pycache__/
 *.py[cod]
@@ -6,11 +8,32 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+
+# Virtual Environment
 venv/
 env/
 ENV/
 .venv/
 .env/
+.env.local
+.env.test
+.env.development
+
+# Development & Testing
+tests/
+pytest.ini
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Code Quality Tools  
+.flake8
+.black
+.isort.cfg
+mypy.ini
+.mypy_cache/
 
 # IDE
 .vscode/
@@ -27,11 +50,16 @@ Thumbs.db
 *.log
 logs/
 
-# Testing
-.coverage
-.pytest_cache/
-htmlcov/
-.tox/
+# Version Control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+*.md
 
 # Build artifacts
 dist/
@@ -41,3 +69,23 @@ build/
 # Temporary files
 *.tmp
 *.temp
+tmp/
+temp/
+
+# Database Files (development only)
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector Database (using in-memory)
+vector_db/
+vector_db_secure/
+chroma_data/
+
+# Development Scripts
+scripts/dev/
+scripts/test/
+
+# Jupyter Notebooks
+*.ipynb
+.ipynb_checkpoints/
