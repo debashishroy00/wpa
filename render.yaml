@@ -4,8 +4,8 @@ services:
     runtime: python3
     plan: free
     rootDir: backend
-    buildCommand: ./build.sh
-    startCommand: ./scripts/startup.sh
+    buildCommand: pip install -r requirements.txt
+    startCommand: ./build.sh
     envVars:
       - key: DATABASE_URL
         sync: false
