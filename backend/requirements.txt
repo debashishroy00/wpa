@@ -1,5 +1,9 @@
 # WealthPath AI Backend Dependencies
 
+# CPU-only PyTorch index for faster builds
+--index-url https://download.pytorch.org/whl/cpu
+torch==2.0.1
+
 # Core FastAPI Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
@@ -69,7 +73,6 @@ chromadb==0.4.15
 sentence-transformers==2.2.2
 huggingface-hub==0.17.3
 transformers==4.30.2
-# torch==2.0.1  # Installed via nixpacks.toml with CPU-only version for smaller build
 tiktoken==0.5.2
 
 # Utilities
