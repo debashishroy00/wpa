@@ -17,14 +17,8 @@ logger = structlog.get_logger()
 
 class FinancialVectorDB:
     def __init__(self):
-        # Initialize ChromaDB with persistent storage
-        self.client = chromadb.PersistentClient(
-            path="/app/vector_db",
-            settings=Settings(
-                anonymized_telemetry=False,
-                allow_reset=True
-            )
-        )
+        # Initialize ChromaDB with in-memory storage (no file permissions needed)
+        self.client = chromadb.Client()
         
         # Initialize embedding model (all-MiniLM-L6-v2 is fast and accurate)
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
