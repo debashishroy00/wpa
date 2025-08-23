@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python311", "gcc"]
+
+[phases.install]
+cmds = [
+    "pip install --no-cache-dir torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu",
+    "pip install --no-cache-dir -r requirements.txt"
+]
+
+[start]
+cmd = "gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8080}"
