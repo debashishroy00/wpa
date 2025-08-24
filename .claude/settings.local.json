@@ -91,7 +91,8 @@
       "Bash(./venv/Scripts/python.exe test_complete_system.py:*)",
       "Bash(./venv/bin/pip list)",
       "Bash(timeout 10s docker run -p 8000:8000 wpa-final-test)",
-      "Bash(timeout 10s docker run -p 8001:8000 wpa-final-clean)"
+      "Bash(timeout 10s docker run -p 8001:8000 wpa-final-clean)",
+      "Bash(time curl:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

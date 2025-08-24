@@ -76,18 +76,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Security middleware (more permissive for development)
-if settings.ENVIRONMENT == "production":
-    app.add_middleware(
-        TrustedHostMiddleware, 
-        allowed_hosts=["*.wealthpath.ai"]
-    )
-else:
-    # Allow all hosts in development
-    app.add_middleware(
-        TrustedHostMiddleware, 
-        allowed_hosts=["*"]
-    )
+# Fix Invalid Host Header Error - Allow all hosts for deployment compatibility
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]  # Allow all hosts (fixes Render/Railway host header issues)
+)
 
 # CORS middleware
 if settings.ENABLE_CORS:
@@ -166,20 +159,24 @@ async def logging_middleware(request: Request, call_next):
     return response
 
 
-# API Routes
-app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+# Critical health endpoints FIRST (for Railway/Render deployment)
+@app.get("/")
+async def root():
+    """Root endpoint - Railway/Render health check backup"""
+    return {"message": "WealthPath AI Backend is running", "status": "healthy"}
 
 
 @app.get("/health")
 async def health_check():
-    """
-    Memory-efficient health check endpoint
-    """
+    """Fast health check for Railway/Render - NO dependencies, NO database calls"""
     from datetime import datetime
-    return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+# API Routes
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
 
 
 @app.get("/metrics")
