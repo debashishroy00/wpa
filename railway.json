@@ -1,0 +1,21 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "backend/Dockerfile.deploy"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "memoryLimitMB": 512,
+    "environmentVariables": {
+      "PORT": "8000",
+      "PYTHONOPTIMIZE": "2",
+      "MALLOC_ARENA_MAX": "2",
+      "CHROMA_PERSIST_DIRECTORY": "/tmp/vector_db",
+      "MEMORY_LIMIT": "512MB"
+    }
+  }
+}

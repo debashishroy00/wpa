@@ -1,91 +1,92 @@
-# WealthPath AI Backend - Docker Ignore
+# AGGRESSIVE .dockerignore for size optimization
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.pyc
-*.pyo
-*.pyd
-.Python
+# Python cache and compiled files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/*.so
 
-# Virtual Environment
+# Virtual environments
 venv/
 env/
 ENV/
 .venv/
-.env/
-.env.local
-.env.test
-.env.development
 
-# Development & Testing
-tests/
-pytest.ini
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-.tox/
-
-# Code Quality Tools  
-.flake8
-.black
-.isort.cfg
-mypy.ini
-.mypy_cache/
-
-# IDE
+# Development files
+.git/
+.github/
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# Documentation
+docs/
+*.md
+README*
+CHANGELOG*
+
+# Test files
+tests/
+test/
+*_test.py
+test_*.py
+
+# Logs and databases
+*.log
+*.db
+*.sqlite
+
+# Environment files
+.env*
+!.env.example
+
+# Model cache (HUGE space saver)
+.cache/
+models/
+*.pkl
+*.h5
+*.bin
+*.safetensors
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
-
-# Version Control
-.git/
-.gitignore
-.gitattributes
-
-# Documentation
-README.md
-CHANGELOG.md
-docs/
-*.md
-
-# Build artifacts
-dist/
-build/
-*.egg-info/
-
-# Temporary files
-*.tmp
-*.temp
-tmp/
-temp/
-
-# Database Files (development only)
-*.db
-*.sqlite
-*.sqlite3
-
-# Vector Database (using in-memory)
-vector_db/
-vector_db_secure/
-chroma_data/
-
-# Development Scripts
-scripts/dev/
-scripts/test/
-
-# Jupyter Notebooks
+# Jupyter notebooks
 *.ipynb
 .ipynb_checkpoints/
+
+# Coverage and testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# MyPy
+.mypy_cache/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# ChromaDB data (will be created at runtime)
+chroma_db/
+vector_db/
+
+# Large development scripts
+comprehensive_recovery.py
+clear_auth.html

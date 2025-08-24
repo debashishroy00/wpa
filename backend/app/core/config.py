@@ -97,6 +97,47 @@ class Settings(BaseSettings):
     
     # Feature Flags
     ENABLE_DOCS: bool = True
+    
+    # Hybrid Embedding System Configuration
+    USE_HYBRID_EMBEDDINGS: bool = False
+    EMBEDDING_ENABLE_CACHING: bool = True
+    EMBEDDING_ENABLE_ROUTING: bool = True
+    EMBEDDING_ENABLE_MONITORING: bool = True
+    EMBEDDING_SHADOW_MODE: bool = False
+    EMBEDDING_ENABLE_OPENAI: bool = True
+    EMBEDDING_ENABLE_LOCAL: bool = True
+    EMBEDDING_QUALITY_COMPARISON: bool = False
+    
+    # Embedding Cache Configuration
+    EMBEDDING_L1_CACHE_SIZE: int = 1000
+    EMBEDDING_L2_CACHE_TTL_API: int = 7 * 24 * 3600  # 7 days
+    EMBEDDING_L2_CACHE_TTL_LOCAL: int = 24 * 3600    # 24 hours
+    
+    # Embedding Routing Configuration
+    EMBEDDING_DAILY_API_BUDGET_USD: float = 10.0
+    EMBEDDING_COST_PER_REQUEST_THRESHOLD: float = 0.01
+    EMBEDDING_REALTIME_LATENCY_THRESHOLD_MS: float = 1000
+    EMBEDDING_BATCH_SIZE_THRESHOLD: int = 100
+    EMBEDDING_API_ERROR_RATE_THRESHOLD: float = 0.1
+    EMBEDDING_API_LATENCY_THRESHOLD_MS: float = 5000
+    
+    # OpenAI Embedding Configuration
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    OPENAI_EMBEDDING_MAX_RETRIES: int = 3
+    OPENAI_EMBEDDING_BASE_DELAY: float = 1.0
+    OPENAI_EMBEDDING_MAX_DELAY: float = 60.0
+    OPENAI_EMBEDDING_JITTER: bool = True
+    
+    # Local Embedding Configuration  
+    LOCAL_EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    LOCAL_EMBEDDING_DEVICE: str = "auto"  # "auto", "cpu", or "cuda"
+    LOCAL_EMBEDDING_BATCH_SIZE: int = 32
+    
+    # Circuit Breaker Configuration
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = 3
+    CIRCUIT_BREAKER_SUCCESS_THRESHOLD: int = 2
+    CIRCUIT_BREAKER_TIMEOUT_SECONDS: int = 60
+    CIRCUIT_BREAKER_RESET_TIMEOUT: int = 300
     RELOAD_ON_CHANGE: bool = True
     
     # Validation

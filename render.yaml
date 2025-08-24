@@ -1,12 +1,19 @@
 services:
   - type: web
     name: wealthpath-backend
-    runtime: python3
+    runtime: docker
     plan: free
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: python start.py
+    dockerfilePath: ./backend/Dockerfile.deploy
+    dockerContext: ./backend
     envVars:
+      - key: PORT
+        value: 8000
+      - key: PYTHONOPTIMIZE
+        value: 2
+      - key: MALLOC_ARENA_MAX
+        value: 2
+      - key: CHROMA_PERSIST_DIRECTORY
+        value: /tmp/vector_db
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET_KEY

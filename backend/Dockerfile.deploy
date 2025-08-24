@@ -1,0 +1,68 @@
+# Optimized Dockerfile for Render/Railway Deployment
+# Target: <512MB memory usage
+
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+WORKDIR /app
+COPY requirements-deploy.txt .
+RUN pip install --no-cache-dir --user -r requirements-deploy.txt
+
+# Production stage
+FROM python:3.11-slim
+
+# Set Python optimization flags for lower memory usage
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1 \
+    MALLOC_ARENA_MAX=2 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    # Vector storage settings
+    CHROMA_PERSIST_DIRECTORY=/tmp/vector_db \
+    IS_PERSISTENT=TRUE
+
+WORKDIR /app
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+
+# Create necessary directories with proper permissions
+RUN mkdir -p /tmp/vector_db && \
+    chmod 777 /tmp/vector_db && \
+    mkdir -p /app/logs && \
+    chmod 777 /app/logs
+
+# Copy application code
+COPY . .
+
+# Create startup script
+RUN echo '#!/bin/bash\n\
+export PYTHONOPTIMIZE=2\n\
+export PYTHONUNBUFFERED=1\n\
+export MALLOC_ARENA_MAX=2\n\
+echo "Starting WealthPath AI Backend..."\n\
+echo "Memory limit: ${MEMORY_LIMIT:-512MB}"\n\
+echo "Port: ${PORT:-8000}"\n\
+exec uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port ${PORT:-8000} \
+    --workers 1 \
+    --limit-max-requests 1000 \
+    --limit-concurrency 25' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:${PORT:-8000}/health')" || exit 1
+
+# Run with memory-optimized settings
+CMD ["/app/start.sh"]

@@ -10,8 +10,9 @@ import SystemHealth from '../../components/admin/SystemHealth';
 import AuthenticationMonitor from '../../components/admin/AuthenticationMonitor';
 import DebugTools from '../../components/admin/DebugTools';
 import DataIntegrityPanel from '../../components/admin/DataIntegrityPanel';
+import ShadowModeMonitor from '../../components/admin/ShadowModeMonitor';
 
-type AdminSection = 'users' | 'health' | 'auth' | 'debug' | 'data-integrity';
+type AdminSection = 'users' | 'health' | 'auth' | 'debug' | 'data-integrity' | 'shadow-mode';
 
 interface AdminDashboardProps {
   user?: {
@@ -38,6 +39,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     { id: 'auth' as AdminSection, label: 'Auth Monitor', icon: '🔐', description: 'Authentication tracking' },
     { id: 'debug' as AdminSection, label: 'Debug Tools', icon: '🔧', description: 'System debugging' },
     { id: 'data-integrity' as AdminSection, label: 'Data Integrity', icon: '🛡️', description: 'Data validation' },
+    { id: 'shadow-mode' as AdminSection, label: 'Shadow Mode Testing', icon: '🧪', description: 'LLM response testing' },
   ];
 
   const renderContent = () => {
@@ -52,6 +54,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         return <DebugTools />;
       case 'data-integrity':
         return <DataIntegrityPanel />;
+      case 'shadow-mode':
+        return <ShadowModeMonitor />;
       default:
         return <UserManagement />;
     }

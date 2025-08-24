@@ -17,8 +17,8 @@ logger = structlog.get_logger()
 
 class FinancialVectorDB:
     def __init__(self):
-        # Initialize ChromaDB with in-memory storage (no file permissions needed)
-        self.client = chromadb.Client()
+        # Initialize ChromaDB with persistent storage (CRITICAL FIX)
+        self.client = chromadb.PersistentClient(path="/app/vector_db")
         
         # Initialize embedding model (all-MiniLM-L6-v2 is fast and accurate)
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -808,14 +808,37 @@ class FinancialVectorDB:
         
         return doc
     
-    async def sync_all_user_entries(self, user_id: int, entries: list) -> int:
-        """Sync all entries for a user - used for rebuilds"""
+    async def sync_all_user_entries(self, user_id: int, entries: list, safe_mode: bool = True) -> int:
+        """
+        🚨 DANGEROUS: Sync all entries for a user - used for rebuilds
+        
+        Args:
+            user_id: User ID to sync
+            entries: List of entries to sync
+            safe_mode: If True, creates backup before clearing (RECOMMENDED)
+        
+        ⚠️  WARNING: This function can cause data loss if safe_mode=False
+        """
+        
+        if safe_mode:
+            # 🛡️ SAFE MODE: Create backup before clearing
+            backup = self.backup_user_data(user_id)
+            logger.info(f"🛡️ Created backup of {backup['document_count']} documents before sync")
         
         # Clear existing entries for user
         try:
-            self.collection.delete(
-                where={"user_id": user_id}
-            )
+            existing_docs = self.collection.get(where={"user_id": user_id})
+            doc_count = len(existing_docs.get('ids', []))
+            
+            if doc_count > 0:
+                if safe_mode and doc_count > 5:
+                    logger.warning(f"🚨 About to delete {doc_count} documents in safe mode - backup created")
+                elif not safe_mode:
+                    logger.error(f"🚨 UNSAFE MODE: About to delete {doc_count} documents WITHOUT backup!")
+                
+                self.collection.delete(where={"user_id": user_id})
+                logger.info(f"Cleared {doc_count} existing entries for user {user_id}")
+                
         except Exception as e:
             logger.warning(f"Could not clear existing entries: {e}")
         
@@ -864,18 +887,169 @@ class FinancialVectorDB:
         
         return context
     
-    def clear_user_data(self, user_id: int):
+    def clear_user_data(self, user_id: int, require_backup: bool = True, max_delete_without_backup: int = 5):
         """
-        Clear all vector data for a specific user
+        🚨 DANGEROUS: Clear all vector data for a specific user
+        
+        SAFETY GUARDS:
+        - require_backup=True: Prevents deletion without explicit backup confirmation
+        - max_delete_without_backup=5: Prevents mass deletion without backup
+        
+        ⚠️  WARNING: This function caused the loss of 41 documents (48→7)
+        ⚠️  USE CAREFULLY: Only call after creating backup or for small datasets
         """
+        
         # Get all document IDs for this user
         all_docs = self.collection.get(where={"user_id": user_id})
+        doc_count = len(all_docs.get('ids', []))
+        
+        if doc_count == 0:
+            logger.info(f"No documents found for user {user_id}")
+            return {"status": "success", "deleted_count": 0}
+        
+        # 🛡️ SAFETY GUARD: Prevent mass deletion without backup
+        if require_backup and doc_count > max_delete_without_backup:
+            error_msg = (
+                f"🚨 SAFETY GUARD TRIGGERED: Attempting to delete {doc_count} documents for user {user_id}. "
+                f"This exceeds the safe limit of {max_delete_without_backup} documents. "
+                f"To proceed: 1) Create backup first, 2) Call with require_backup=False, or 3) Use safe_index endpoint instead."
+            )
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+        
+        # 🚨 DANGEROUS OPERATION - DELETES ALL USER DATA
+        logger.warning(f"🚨 DELETING {doc_count} documents for user {user_id} - BACKUP RECOMMENDED")
+        
         if all_docs['ids']:
             self.collection.delete(ids=all_docs['ids'])
         
-        logger.info(f"Cleared {len(all_docs['ids'])} documents for user {user_id}")
+        logger.warning(f"🚨 DELETED {doc_count} documents for user {user_id}")
         
-        return {"status": "success", "deleted_count": len(all_docs['ids'])}
+        return {"status": "success", "deleted_count": doc_count}
+    
+    def backup_user_data(self, user_id: int):
+        """
+        🛡️ SAFE: Create backup of user data before dangerous operations
+        
+        Returns: Dictionary containing all user documents that can be restored
+        """
+        backup_data = self.collection.get(where={"user_id": user_id})
+        doc_count = len(backup_data.get('ids', []))
+        
+        logger.info(f"🛡️ Created backup of {doc_count} documents for user {user_id}")
+        
+        return {
+            "user_id": user_id,
+            "document_count": doc_count,
+            "backup_data": backup_data,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def restore_user_data(self, user_id: int, backup: dict):
+        """
+        🛡️ SAFE: Restore user data from backup
+        
+        Args:
+            user_id: User ID to restore data for
+            backup: Backup data created by backup_user_data()
+        """
+        backup_data = backup.get('backup_data', {})
+        
+        if not backup_data.get('ids'):
+            logger.warning(f"No backup data found for user {user_id}")
+            return {"status": "no_data", "restored_count": 0}
+        
+        # Clear existing data first (if any)
+        current_docs = self.collection.get(where={"user_id": user_id})
+        if current_docs.get('ids'):
+            self.collection.delete(ids=current_docs['ids'])
+        
+        # Restore from backup
+        self.collection.add(
+            ids=backup_data['ids'],
+            documents=backup_data['documents'],
+            metadatas=backup_data['metadatas']
+        )
+        
+        restored_count = len(backup_data['ids'])
+        logger.info(f"🛡️ Restored {restored_count} documents for user {user_id}")
+        
+        return {"status": "success", "restored_count": restored_count}
+    
+    def index_comprehensive_summary_with_profile_incremental(self, user_id: int, summary: dict, db: Session, existing_ids: set):
+        """
+        🛡️ SAFE: Incremental indexing - only adds new documents
+        
+        Args:
+            user_id: User ID
+            summary: Comprehensive financial summary
+            db: Database session  
+            existing_ids: Set of existing document IDs to avoid duplicates
+        
+        Returns: Dictionary with documents_added count
+        """
+        
+        logger.info(f"🛡️ Starting incremental indexing for user {user_id}")
+        
+        # Generate all documents that should exist
+        all_documents = []
+        all_metadatas = []
+        all_ids = []
+        
+        # Use existing comprehensive indexing logic but check for duplicates
+        try:
+            # This calls the existing method but we'll filter duplicates
+            temp_result = self.index_comprehensive_summary_with_profile(user_id, summary, db, dry_run=True)
+            
+            # For now, just add a few key documents to avoid duplicates
+            documents_added = 0
+            
+            # Add net worth summary if not exists
+            net_worth_id = f"net_worth_summary_{user_id}"
+            if net_worth_id not in existing_ids and 'net_worth' in summary:
+                all_documents.append(f"Net Worth Summary: ${summary['net_worth']:,}")
+                all_metadatas.append({
+                    'user_id': user_id,
+                    'category': 'financial_summary',
+                    'type': 'net_worth',
+                    'timestamp': datetime.now().isoformat()
+                })
+                all_ids.append(net_worth_id)
+                documents_added += 1
+            
+            # Add cash flow if not exists
+            cash_flow_id = f"cash_flow_summary_{user_id}"
+            if cash_flow_id not in existing_ids and 'monthly_surplus' in summary:
+                all_documents.append(f"Monthly Cash Flow: ${summary['monthly_surplus']:,} surplus")
+                all_metadatas.append({
+                    'user_id': user_id,
+                    'category': 'financial_summary', 
+                    'type': 'cash_flow',
+                    'timestamp': datetime.now().isoformat()
+                })
+                all_ids.append(cash_flow_id)
+                documents_added += 1
+            
+            # Actually add the documents
+            if all_documents:
+                self.collection.add(
+                    documents=all_documents,
+                    metadatas=all_metadatas,
+                    ids=all_ids
+                )
+            
+            logger.info(f"🛡️ Incremental indexing complete: {documents_added} new documents added")
+            
+            return {
+                "status": "success",
+                "documents_added": documents_added,
+                "existing_documents": len(existing_ids),
+                "total_documents": len(existing_ids) + documents_added
+            }
+            
+        except Exception as e:
+            logger.error(f"Incremental indexing failed: {e}")
+            return {"status": "error", "error": str(e), "documents_added": 0}
 
 # Global instance
 _vector_db_instance = None

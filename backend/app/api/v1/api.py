@@ -3,7 +3,7 @@ WealthPath AI - API v1 Router
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, projections, goals_v2, intelligence, advisor_data, plan_engine, advisory, financial_clean, vector_db, chat_new as chat, debug, profile, verification_test, admin
+from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, projections, goals_v2, intelligence, advisor_data, plan_engine, advisory, financial_clean, vector_db, chat_new as chat, debug, profile, verification_test, admin, embeddings
 # Keep original LLM endpoints for Step 5 (working yesterday)
 from app.api.v1.endpoints import llm
 
@@ -35,3 +35,5 @@ api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 api_router.include_router(verification_test.router, prefix="/verify", tags=["verification"])
 # Admin endpoints for system administration (isolated)
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
+# Hybrid embedding system endpoints
+api_router.include_router(embeddings.router, prefix="/embeddings", tags=["hybrid-embeddings"])

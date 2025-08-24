@@ -173,13 +173,12 @@ app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint
+    Memory-efficient health check endpoint
     """
+    from datetime import datetime
     return {
         "status": "healthy",
-        "service": "WealthPath AI Backend",
-        "version": settings.PROJECT_VERSION,
-        "environment": settings.ENVIRONMENT,
+        "timestamp": datetime.utcnow().isoformat()
     }
 
 

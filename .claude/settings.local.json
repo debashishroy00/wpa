@@ -79,7 +79,11 @@
       "Bash(/mnt/c/projects/wpa/test_raw_response.sh:*)",
       "Bash(./test_user3_access.sh:*)",
       "Bash(sudo service:*)",
-      "Bash(service docker:*)"
+      "Bash(service docker:*)",
+      "Bash(sqlite3:*)",
+      "Bash(lsof:*)",
+      "Bash(./venv/bin/pip install fastapi uvicorn)",
+      "Bash(./venv/Scripts/python.exe -c \"from app.main import app; print(''✅ App imports successfully'')\")"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

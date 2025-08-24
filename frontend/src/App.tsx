@@ -142,8 +142,6 @@ function App() {
   const showProjections = () => setCurrentView('projections')
   
   const handleLogin = (loginData: any) => {
-    console.log('🔧 App handleLogin called with:', loginData)
-    
     // If loginData contains tokens, use auth store login
     if (loginData.tokens && loginData.user) {
       login(loginData.tokens, loginData.user)
@@ -153,6 +151,12 @@ function App() {
       const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}')
       if (tokens.access_token) {
         login(tokens, loginData.user || loginData)
+      }
+    } else {
+      // Fallback: treat entire loginData as user data
+      const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}')
+      if (tokens.access_token) {
+        login(tokens, loginData)
       }
     }
     
@@ -387,31 +391,30 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ onBack, user, onLogout })
               {/* Admin Link - Only visible to admin users */}
               {(() => {
                 const authUser = useAuthStore.getState().user;
-                console.log('🔍 Admin check - Prop user:', user?.email);
-                console.log('🔍 Admin check - Auth store user:', authUser?.email);
                 return isCurrentUserAdmin(authUser || user);
               })() && (
                 <button 
                   onClick={() => setShowAdminDashboard(!showAdminDashboard)}
                   style={{
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    color: '#ef4444',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(34, 197, 94, 0.6)',
                     borderRadius: '6px',
                     padding: '6px 12px',
-                    fontWeight: '500',
+                    fontWeight: '700',
                     cursor: 'pointer',
                     fontSize: '12px',
-                    opacity: 0.7,
+                    opacity: 1,
                     transition: 'opacity 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                   title="Admin Dashboard"
                 >
                   🛡️ Admin
                 </button>
               )}
+              
               <button 
                 onClick={onBack}
                 style={{
