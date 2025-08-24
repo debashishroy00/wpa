@@ -3,7 +3,7 @@ services:
     name: wealthpath-backend
     runtime: docker
     plan: free
-    dockerfilePath: ./backend/Dockerfile.deploy
+    dockerfilePath: ./backend/Dockerfile.render
     dockerContext: ./backend
     envVars:
       - key: PORT

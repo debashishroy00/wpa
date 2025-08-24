@@ -1,0 +1,91 @@
+# RENDER DEPLOYMENT - HARDCODED MINIMAL PACKAGES
+# NO requirements files, NO ML, NO CUDA, NO GPU dependencies
+# Target: <200MB image, <256MB memory
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Explicitly disable CUDA and ML
+ENV PYTHONOPTIMIZE=2 \
+    PYTHONUNBUFFERED=1 \
+    MALLOC_ARENA_MAX=2 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    CUDA_VISIBLE_DEVICES="" \
+    USE_CUDA=0 \
+    DISABLE_VECTOR_DB=true
+
+# Install minimal system dependencies ONLY
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install ONLY the packages we need - hardcoded list
+# NO requirements files to avoid any hidden dependencies
+RUN pip install --no-cache-dir --no-compile \
+    fastapi==0.104.1 \
+    uvicorn==0.24.0 \
+    sqlalchemy==2.0.23 \
+    pydantic==2.5.0 \
+    python-jose[cryptography]==3.3.0 \
+    passlib[bcrypt]==1.7.4 \
+    openai==1.3.0 \
+    redis==5.0.1 \
+    httpx==0.25.2 \
+    psycopg2-binary==2.9.9 \
+    python-multipart==0.0.6 \
+    python-dotenv==1.0.0 \
+    && pip list
+
+# Clean up any accidentally installed packages
+RUN pip uninstall -y \
+    torch tensorflow transformers sentence-transformers \
+    nvidia-cudnn-cu11 nvidia-cuda-runtime-cu11 nvidia-cuda-nvrtc-cu11 \
+    nvidia-cuda-cupti-cu11 nvidia-cublas-cu11 nvidia-cudnn \
+    hnswlib numpy pandas faiss-cpu faiss chromadb \
+    rich structlog anthropic google-generativeai tiktoken \
+    huggingface-hub alembic pydantic-settings \
+    2>/dev/null || true
+
+# Copy only necessary application files
+COPY app app/
+
+# Create startup script inline
+RUN echo '#!/bin/bash\n\
+export PYTHONOPTIMIZE=2\n\
+export PYTHONUNBUFFERED=1\n\
+export MALLOC_ARENA_MAX=2\n\
+export CUDA_VISIBLE_DEVICES=""\n\
+export USE_CUDA=0\n\
+export DISABLE_VECTOR_DB=true\n\
+echo "================================"\n\
+echo "WealthPath AI - RENDER DEPLOY"\n\
+echo "NO ML/CUDA packages"\n\
+echo "Target: <256MB memory"\n\
+echo "================================"\n\
+exec uvicorn app.main:app \
+    --host 0.0.0.0 \
+    --port ${PORT:-8000} \
+    --workers 1 \
+    --limit-max-requests 500 \
+    --limit-concurrency 10 \
+    --no-access-log' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Remove ALL requirements files to prevent any accidental usage
+RUN rm -f /app/requirements*.txt /app/requirements*.py /app/pyproject.toml /app/setup.py
+
+# Create necessary directories
+RUN mkdir -p /tmp/vector_db /app/logs && \
+    chmod 777 /tmp/vector_db /app/logs
+
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:${PORT:-8000}/health')" || exit 1
+
+CMD ["/app/start.sh"]
