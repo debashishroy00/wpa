@@ -17,7 +17,7 @@ import {
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
-import { apiClient } from '../../utils/api';
+import { apiClient } from '../../utils/api-simple';
 
 interface LLMProvider {
   provider_id: string;

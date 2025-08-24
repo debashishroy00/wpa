@@ -2,7 +2,7 @@
  * WealthPath AI - Profile API Utilities
  * API utilities for user profile, family, benefits, and tax information
  */
-import { apiClient } from './api';
+import { apiClient } from './api-simple';
 
 // Profile API endpoints
 export const profileApi = {

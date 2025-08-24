@@ -3,7 +3,7 @@
  * This service handles all admin-specific API calls without affecting existing services
  */
 
-import { apiClient } from '../../utils/api';
+import { apiClient } from '../../utils/api-simple';
 
 interface AdminUser {
   id: number;

@@ -3,7 +3,7 @@
  * React hooks for intelligence analysis API integration
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../utils/api';
+import { apiClient } from '../utils/api-simple';
 
 // Types
 interface IntelligenceAnalysis {

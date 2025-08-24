@@ -2,7 +2,7 @@
  * React hooks for advisor-level data management
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../utils/api';
+import { apiClient } from '../utils/api-simple';
 
 // Types
 export interface AdvisorData {

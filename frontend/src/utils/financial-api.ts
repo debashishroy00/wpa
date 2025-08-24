@@ -1,7 +1,7 @@
 /**
  * WealthPath AI - Financial API Service
  */
-import { apiClient } from './api';
+import { apiClient } from './api-simple';
 import {
   FinancialEntry,
   FinancialEntryCreate,

@@ -1,7 +1,7 @@
 /**
  * WealthPath AI - Goal Management API
  */
-import { apiClient as api } from './api';
+import { apiClient as api } from './api-simple';
 import type { 
   Goal, 
   GoalCreate, 

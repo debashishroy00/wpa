@@ -3,7 +3,7 @@
  * React Query hooks for managing projection data and assumptions
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../utils/api';
+import { apiClient } from '../utils/api-simple';
 import { ProjectionResponse } from '../types/financial';
 
 export interface ProjectionAssumptions {

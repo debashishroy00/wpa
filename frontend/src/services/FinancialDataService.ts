@@ -4,7 +4,7 @@
  * NO FALLBACKS, NO DEMOS, REAL DATA ONLY
  */
 
-import { apiClient } from '../utils/api';
+import { apiClient } from '../utils/api-simple';
 import type { ApiError } from '../types';
 
 // ============================================================================

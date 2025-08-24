@@ -61,11 +61,11 @@ class ApiClient {
         // Only handle 401 errors that haven't been retried yet
         if (error.response?.status === 401 && !originalRequest._retry) {
           
-          // If we don't have a refresh token, just clear tokens and reject
+          // DISABLED: Don't clear tokens on 401 - just pass through error
           if (!this.tokens?.refresh_token) {
-            console.warn('🚫 401 error but no refresh token available, clearing auth');
-            this.clearTokens();
-            return Promise.reject(new Error('Authentication required'));
+            console.log('🚫 401 error but no refresh token available (NOT clearing auth)');
+            // this.clearTokens(); // COMMENTED OUT
+            return Promise.reject(error);
           }
 
           // If we're already refreshing, queue this request
@@ -105,8 +105,8 @@ class ApiClient {
             // Process queue with error
             this.processQueue(refreshError);
             
-            // Clear tokens and redirect
-            this.clearTokens();
+            // DISABLED: Clear tokens and redirect
+            // this.clearTokens(); // COMMENTED OUT
             
             return Promise.reject(new Error('Authentication expired. Please log in again.'));
           } finally {
