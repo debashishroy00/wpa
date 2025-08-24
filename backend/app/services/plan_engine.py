@@ -2,7 +2,7 @@
 Step 4: Deterministic Plan Engine Service
 Core calculation engine with no subjective language
 """
-import numpy as np
+# import numpy as np # DISABLED FOR DEPLOYMENT
 from typing import Dict, List, Tuple, Optional
 from decimal import Decimal
 from datetime import datetime

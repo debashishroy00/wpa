@@ -14,7 +14,12 @@ from ....models.llm_models import (
     AdvisoryContent, RAGQuery, RAGResult, KnowledgeBaseDocument
 )
 from ....services.llm_service import llm_service
-from ....services.rag_service import knowledge_base
+# DEAD_CODE_REMOVED: RAG service replaced with simple vector store
+# from ....services.rag_service import knowledge_base  # DELETED
+from ....services.knowledge_base import KnowledgeBaseService
+
+# Initialize knowledge base service
+knowledge_base = KnowledgeBaseService()
 from ....services.validation_service import number_validator
 from ....services.llm_clients import OpenAIClient, GeminiClient, ClaudeClient
 from ....core.config import settings

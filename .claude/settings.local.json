@@ -83,7 +83,15 @@
       "Bash(sqlite3:*)",
       "Bash(lsof:*)",
       "Bash(./venv/bin/pip install fastapi uvicorn)",
-      "Bash(./venv/Scripts/python.exe -c \"from app.main import app; print(''✅ App imports successfully'')\")"
+      "Bash(./venv/Scripts/python.exe -c \"from app.main import app; print(''✅ App imports successfully'')\")",
+      "Bash(/mnt/c/projects/wpa/verify_no_ml.sh:*)",
+      "Bash(./venv/Scripts/python.exe -c \"import sys; print(''Python:'', sys.executable)\")",
+      "Bash(pip3 install:*)",
+      "Bash(timeout 10s docker run --rm -p 8001:8000 wpa-fixed:latest)",
+      "Bash(./venv/Scripts/python.exe test_complete_system.py:*)",
+      "Bash(./venv/bin/pip list)",
+      "Bash(timeout 10s docker run -p 8000:8000 wpa-final-test)",
+      "Bash(timeout 10s docker run -p 8001:8000 wpa-final-clean)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

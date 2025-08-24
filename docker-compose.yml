@@ -43,9 +43,7 @@ services:
 
   # FastAPI Backend
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+    image: wpa-backend-llm:latest
     container_name: wpa-backend
     ports:
       - "8000:8000"
@@ -70,6 +68,7 @@ services:
       - LLM_MAX_COST_PER_REQUEST=${LLM_MAX_COST_PER_REQUEST:-1.00}
       - KNOWLEDGE_BASE_PATH=/app/knowledge_base
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+      - DISABLE_VECTOR_DB=false
     volumes:
       - ./backend:/app
       - ./knowledge_base:/app/knowledge_base  # Mount knowledge base directory

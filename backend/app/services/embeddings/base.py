@@ -9,7 +9,13 @@ from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 import hashlib
 import time
-import numpy as np
+# import numpy as np # DISABLED FOR DEPLOYMENT
+try:
+    # import numpy as np # DISABLED FOR DEPLOYMENT  
+    raise ImportError("ML packages disabled for deployment")
+except ImportError:
+    from ..ml_fallbacks import NumpyFallback
+    np = NumpyFallback()
 
 class EmbeddingProvider(str, Enum):
     """Supported embedding providers"""
@@ -36,9 +42,9 @@ class EmbeddingResult:
     cached: bool = False
     cache_hit: bool = False
     
-    def to_numpy(self) -> np.ndarray:
-        """Convert embedding to numpy array"""
-        return np.array(self.embedding, dtype=np.float32)
+    def to_numpy(self) -> List[float]:
+        """Convert embedding to list (numpy fallback)"""
+        return self.embedding  # Already a list
     
     def cosine_similarity(self, other: 'EmbeddingResult') -> float:
         """Calculate cosine similarity with another embedding"""
@@ -47,7 +53,11 @@ class EmbeddingResult:
         
         a = self.to_numpy()
         b = other.to_numpy()
-        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+        # Simple cosine similarity without numpy
+        dot_product = sum(x * y for x, y in zip(a, b))
+        norm_a = sum(x * x for x in a) ** 0.5
+        norm_b = sum(x * x for x in b) ** 0.5
+        return float(dot_product / (norm_a * norm_b)) if norm_a > 0 and norm_b > 0 else 0.0
 
 @dataclass
 class EmbeddingConfig:

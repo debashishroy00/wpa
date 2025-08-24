@@ -1,35 +1,45 @@
+# WealthPath AI - Render.com Deployment (396MB Optimized)
 services:
   - type: web
     name: wealthpath-backend
-    runtime: docker
+    env: docker
     plan: free
-    dockerfilePath: ./backend/Dockerfile.render
+    dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     envVars:
       - key: PORT
         value: 8000
       - key: PYTHONOPTIMIZE
         value: 2
+      - key: PYTHONUNBUFFERED
+        value: 1
+      # Optimized memory settings for 256MB target
       - key: MALLOC_ARENA_MAX
         value: 2
-      - key: CHROMA_PERSIST_DIRECTORY
-        value: /tmp/vector_db
+      # Simple vector store (replaces ChromaDB)
+      - key: VECTOR_STORE_PATH
+        value: /tmp/vector_store.json
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
-      # YOUR API keys for ALL users (MVP testing)
+      # API keys for LLM integration
       - key: GEMINI_API_KEY
         sync: false
       - key: OPENAI_API_KEY
-        sync: false  
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
       - key: ENVIRONMENT
         value: production
       - key: ADMIN_EMAIL
         value: debashishroy@gmail.com
-      # MVP settings
-      - key: MVP_MODE
-        value: true
+      # Production settings
       - key: LLM_DEFAULT_PROVIDER
         value: gemini
     healthCheckPath: /health
+    # Optional: Persistent storage for vector store
+    disk:
+      name: vector-storage
+      mountPath: /tmp
+      sizeGB: 1

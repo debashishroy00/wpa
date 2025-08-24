@@ -3,7 +3,7 @@ WealthPath AI - Intelligence Analysis Engine
 Provides comprehensive financial goal analysis, conflict detection, and optimization
 """
 
-import numpy as np
+# import numpy as np # DISABLED FOR DEPLOYMENT
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List, Dict, Optional, Tuple

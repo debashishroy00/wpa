@@ -1,6 +1,15 @@
+# DEPRECATED: Use /render.yaml in project root
+# This file is kept for reference but should not be used
+# The main deployment config is in the project root: /render.yaml
+
 services:
   - type: web
-    name: wealthpath-backend
-    env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python start.py"
+    name: wealthpath-backend-legacy
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: VECTOR_STORE_PATH
+        value: /tmp/vector_store.json
+    healthCheckPath: /health

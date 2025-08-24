@@ -1,14 +1,16 @@
 """
-WealthPath AI - Hybrid Embedding System
-Production-grade embedding architecture with intelligent routing and caching.
+WealthPath AI - Simple Embedding System
+Minimal embedding architecture for simple vector store.
 """
 
 from .base import EmbeddingProvider, EmbeddingResult, EmbeddingConfig
 from .cache import EmbeddingCache, CacheKey
 from .router import EmbeddingRouter
-from .local_provider import LocalEmbeddingProvider
 from .openai_provider import OpenAIEmbeddingProvider
-from .hybrid_service import HybridEmbeddingService
+
+# DEAD_CODE_REMOVED: Local and hybrid providers deleted
+# from .local_provider import LocalEmbeddingProvider  # DELETED
+# from .hybrid_service import HybridEmbeddingService  # DELETED
 
 __all__ = [
     'EmbeddingProvider',
@@ -17,7 +19,5 @@ __all__ = [
     'EmbeddingCache',
     'CacheKey',
     'EmbeddingRouter',
-    'LocalEmbeddingProvider',
-    'OpenAIEmbeddingProvider', 
-    'HybridEmbeddingService'
+    'OpenAIEmbeddingProvider'
 ]

@@ -236,7 +236,9 @@ async def test_compare_providers(
             
             # Calculate similarity if both successful
             if local_result["embedding"] and openai_result["embedding"]:
-                import numpy as np
+# DEAD_CODE_CLEANED: Using fallback instead of numpy
+                from app.services.ml_fallbacks import NumpyFallback
+                np = NumpyFallback()
                 local_vec = np.array(local_result["embedding"])
                 openai_vec = np.array(openai_result["embedding"])
                 

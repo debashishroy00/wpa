@@ -2,8 +2,8 @@
 WealthPath AI - Comprehensive Financial Projection Service
 Multi-factor projection engine with Monte Carlo simulation and sensitivity analysis
 """
-import numpy as np
-import pandas as pd
+# import numpy as np # DISABLED FOR DEPLOYMENT
+# import pandas as pd # DISABLED FOR DEPLOYMENT
 from typing import Dict, List, Tuple, Optional
 from decimal import Decimal
 from datetime import datetime, timezone

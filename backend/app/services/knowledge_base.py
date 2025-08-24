@@ -1,25 +1,17 @@
 """
 Knowledge Base Service for Step 5 RAG System
-Vector embeddings and semantic search for financial advice
+Simple vector store with JSON persistence - No ML dependencies
 """
 import os
 import json
 import hashlib
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
-import numpy as np
 from dataclasses import dataclass
 from datetime import datetime
 
-# Vector embedding imports (will need to install)
-try:
-    from sentence_transformers import SentenceTransformer
-    import faiss
-    import pickle
-except ImportError:
-    # Fallback for development
-    SentenceTransformer = None
-    faiss = None
+from .simple_vector_store import get_vector_store, SimpleDocument
+from .smart_context_selector import get_context_selector
 
 
 @dataclass
@@ -33,7 +25,7 @@ class KBDocument:
     file_path: str
     last_updated: str
     tags: List[str]
-    embedding: Optional[np.ndarray] = None
+    embedding: Optional[List[float]] = None
 
 
 @dataclass
@@ -45,62 +37,29 @@ class SearchResult:
 
 
 class KnowledgeBaseService:
-    """Vector-based knowledge base for financial advisory content"""
+    """Simple knowledge base using JSON vector store"""
     
     def __init__(self, kb_path: str = None):
-        self.kb_path = kb_path or "/mnt/c/projects/wpa/backend/knowledge_base"
-        self.model_name = "all-MiniLM-L6-v2"  # Fast, good quality embeddings
-        self.embeddings_cache_path = os.path.join(self.kb_path, ".embeddings_cache")
-        self.index_path = os.path.join(self.kb_path, ".faiss_index")
-        
-        self.model = None
-        self.documents: List[KBDocument] = []
-        self.index = None
+        self.kb_path = kb_path or "/mnt/c/projects/wpa/backend/knowledge_base" 
+        self.vector_store = get_vector_store()
+        self.context_selector = get_context_selector()
         self.document_map: Dict[str, KBDocument] = {}
         
-        # Initialize if dependencies available
-        if SentenceTransformer:
-            self._initialize_model()
-            self._load_or_build_index()
+        # Load documents from file system if needed
+        self._load_documents_from_filesystem()
     
-    def _initialize_model(self):
-        """Initialize sentence transformer model"""
-        try:
-            self.model = SentenceTransformer(self.model_name)
-        except Exception as e:
-            print(f"Warning: Could not initialize embedding model: {e}")
-            self.model = None
-    
-    def _load_or_build_index(self):
-        """Load existing index or build new one from KB files"""
-        if os.path.exists(self.embeddings_cache_path) and os.path.exists(self.index_path):
-            self._load_index()
-        else:
-            self._build_index()
-    
-    def _load_index(self):
-        """Load pre-built FAISS index and document cache"""
-        try:
-            if faiss:
-                self.index = faiss.read_index(self.index_path)
-            
-            with open(self.embeddings_cache_path, 'rb') as f:
-                cache_data = pickle.load(f)
-                self.documents = cache_data['documents']
-                self.document_map = {doc.id: doc for doc in self.documents}
-            
-            print(f"Loaded knowledge base with {len(self.documents)} documents")
-        except Exception as e:
-            print(f"Error loading index, rebuilding: {e}")
-            self._build_index()
-    
-    def _build_index(self):
-        """Build FAISS index from knowledge base files"""
-        if not self.model:
-            print("Warning: No embedding model available, using fallback")
+    def _load_documents_from_filesystem(self):
+        """Load documents from filesystem into vector store if needed"""
+        if self.vector_store.count_documents() > 0:
+            print(f"Vector store already has {self.vector_store.count_documents()} documents")
+            self._update_document_map()
             return
         
-        print("Building knowledge base index...")
+        if not os.path.exists(self.kb_path):
+            print(f"Warning: Knowledge base path {self.kb_path} does not exist")
+            return
+        
+        print("Loading documents from filesystem...")
         
         # Scan knowledge base directory
         kb_files = []
@@ -110,41 +69,42 @@ class KnowledgeBaseService:
                     kb_files.append(os.path.join(root, file))
         
         # Process each file
-        embeddings = []
         for file_path in kb_files:
-            document = self._process_kb_file(file_path)
-            if document:
-                self.documents.append(document)
-                self.document_map[document.id] = document
-                
-                # Generate embedding
-                if self.model:
-                    embedding = self.model.encode(document.content)
-                    document.embedding = embedding
-                    embeddings.append(embedding)
+            kb_document = self._process_kb_file(file_path)
+            if kb_document:
+                # Add to vector store
+                self.vector_store.add_document(
+                    content=kb_document.content,
+                    doc_id=kb_document.id,
+                    embedding=kb_document.embedding,
+                    metadata={
+                        "title": kb_document.title,
+                        "category": kb_document.category,
+                        "kb_id": kb_document.kb_id,
+                        "file_path": kb_document.file_path,
+                        "last_updated": kb_document.last_updated,
+                        "tags": kb_document.tags
+                    }
+                )
+                self.document_map[kb_document.id] = kb_document
         
-        # Build FAISS index
-        if embeddings and faiss:
-            embeddings_matrix = np.array(embeddings).astype('float32')
-            dimension = embeddings_matrix.shape[1]
-            
-            # Use flat index for simplicity (can upgrade to IVF for large datasets)
-            self.index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
-            
-            # Normalize for cosine similarity
-            faiss.normalize_L2(embeddings_matrix)
-            self.index.add(embeddings_matrix)
-            
-            # Save index and cache
-            faiss.write_index(self.index, self.index_path)
-            
-            with open(self.embeddings_cache_path, 'wb') as f:
-                pickle.dump({
-                    'documents': self.documents,
-                    'model_name': self.model_name
-                }, f)
-        
-        print(f"Built index with {len(self.documents)} documents")
+        print(f"Loaded {len(kb_files)} documents into vector store")
+    
+    def _update_document_map(self):
+        """Update document map from vector store"""
+        for doc_id, simple_doc in self.vector_store.get_all_documents().items():
+            kb_doc = KBDocument(
+                id=doc_id,
+                title=simple_doc.metadata.get("title", "Untitled"),
+                content=simple_doc.content,
+                category=simple_doc.metadata.get("category", "general"),
+                kb_id=simple_doc.metadata.get("kb_id", doc_id[:8]),
+                file_path=simple_doc.metadata.get("file_path", ""),
+                last_updated=simple_doc.metadata.get("last_updated", simple_doc.created_at[:10]),
+                tags=simple_doc.metadata.get("tags", []),
+                embedding=simple_doc.embedding
+            )
+            self.document_map[doc_id] = kb_doc
     
     def _process_kb_file(self, file_path: str) -> Optional[KBDocument]:
         """Process a knowledge base markdown file"""
@@ -208,83 +168,66 @@ class KnowledgeBaseService:
         top_k: int = 5,
         min_score: float = 0.1
     ) -> List[SearchResult]:
-        """Search knowledge base with semantic similarity"""
+        """Search knowledge base using simple vector store and smart context selection"""
         
-        if not self.model or not self.index:
-            # Fallback to keyword search
-            return self._fallback_search(query, filters, top_k)
+        # Get smart filtering recommendations
+        filter_recommendations = self.context_selector.get_relevant_document_filters(query)
         
         try:
-            # Encode query
-            query_embedding = self.model.encode([query])
-            query_embedding = query_embedding.astype('float32')
-            faiss.normalize_L2(query_embedding)
-            
-            # Search index
-            scores, indices = self.index.search(query_embedding, min(top_k * 2, len(self.documents)))
+            # First try text search
+            text_results = self.vector_store.search(query, limit=top_k * 2)
             
             results = []
-            for score, idx in zip(scores[0], indices[0]):
-                if idx == -1 or score < min_score:
+            for doc_id, score, simple_doc in text_results:
+                if score < min_score:
                     continue
                 
-                document = self.documents[idx]
+                # Convert to KB document
+                kb_doc = self._simple_doc_to_kb_doc(simple_doc)
                 
                 # Apply filters
-                if self._matches_filters(document, filters):
+                if self._matches_filters(kb_doc, filters):
+                    # Boost score if matches smart context recommendations
+                    if self._matches_smart_context(kb_doc, filter_recommendations):
+                        score = min(1.0, score * 1.3)  # 30% boost for relevant categories
+                    
                     results.append(SearchResult(
-                        document=document,
-                        score=float(score),
-                        relevance_explanation=self._explain_relevance(query, document, score)
+                        document=kb_doc,
+                        score=score,
+                        relevance_explanation=self._explain_relevance(query, kb_doc, score)
                     ))
+            
+            # If we have embeddings available, also try embedding search
+            if hasattr(self, 'embeddings_available') and self.embeddings_available:
+                # This would require OpenAI embeddings - implement later if needed
+                pass
             
             return results[:top_k]
             
         except Exception as e:
             print(f"Search error: {e}")
-            return self._fallback_search(query, filters, top_k)
+            return []
     
-    def _fallback_search(
-        self,
-        query: str,
-        filters: Optional[Dict[str, Any]] = None,
-        top_k: int = 5
-    ) -> List[SearchResult]:
-        """Fallback keyword-based search when embeddings unavailable"""
-        query_terms = query.lower().split()
-        results = []
+    def _simple_doc_to_kb_doc(self, simple_doc: SimpleDocument) -> KBDocument:
+        """Convert SimpleDocument to KBDocument"""
+        return KBDocument(
+            id=simple_doc.doc_id,
+            title=simple_doc.metadata.get("title", "Untitled"),
+            content=simple_doc.content,
+            category=simple_doc.metadata.get("category", "general"),
+            kb_id=simple_doc.metadata.get("kb_id", simple_doc.doc_id[:8]),
+            file_path=simple_doc.metadata.get("file_path", ""),
+            last_updated=simple_doc.metadata.get("last_updated", simple_doc.created_at[:10]),
+            tags=simple_doc.metadata.get("tags", []),
+            embedding=simple_doc.embedding
+        )
+    
+    def _matches_smart_context(self, document: KBDocument, filter_recommendations: Dict[str, Any]) -> bool:
+        """Check if document matches smart context recommendations"""
+        if not filter_recommendations.get("categories"):
+            return False
         
-        for document in self.documents:
-            if not self._matches_filters(document, filters):
-                continue
-            
-            # Simple keyword matching
-            content_lower = document.content.lower()
-            title_lower = document.title.lower()
-            
-            score = 0
-            matches = 0
-            for term in query_terms:
-                title_matches = title_lower.count(term)
-                content_matches = content_lower.count(term)
-                
-                score += title_matches * 3  # Title matches worth more
-                score += content_matches
-                if title_matches > 0 or content_matches > 0:
-                    matches += 1
-            
-            if matches > 0:
-                # Normalize score
-                normalized_score = min(1.0, score / (len(query_terms) * 10))
-                results.append(SearchResult(
-                    document=document,
-                    score=normalized_score,
-                    relevance_explanation=f"Keyword matches: {matches}/{len(query_terms)} terms"
-                ))
-        
-        # Sort by score and return top k
-        results.sort(key=lambda x: x.score, reverse=True)
-        return results[:top_k]
+        return document.category in filter_recommendations["categories"]
     
     def _matches_filters(self, document: KBDocument, filters: Optional[Dict[str, Any]]) -> bool:
         """Check if document matches search filters"""
@@ -326,34 +269,45 @@ class KnowledgeBaseService:
     
     def get_documents_by_category(self, category: str) -> List[KBDocument]:
         """Get all documents in a category"""
-        return [doc for doc in self.documents if doc.category == category]
+        results = []
+        for simple_doc in self.vector_store.get_all_documents().values():
+            if simple_doc.metadata.get("category") == category:
+                results.append(self._simple_doc_to_kb_doc(simple_doc))
+        return results
     
     def list_categories(self) -> List[str]:
         """Get list of all categories"""
-        return list(set(doc.category for doc in self.documents))
+        categories = set()
+        for simple_doc in self.vector_store.get_all_documents().values():
+            category = simple_doc.metadata.get("category", "general")
+            categories.add(category)
+        return list(categories)
     
     def refresh_index(self):
         """Rebuild the index from current KB files"""
-        self._build_index()
+        self.vector_store.clear_all()
+        self.document_map.clear()
+        self._load_documents_from_filesystem()
     
     def add_document(self, file_path: str) -> bool:
         """Add a new document to the knowledge base"""
         document = self._process_kb_file(file_path)
-        if document and self.model:
-            # Generate embedding
-            embedding = self.model.encode(document.content)
-            document.embedding = embedding
-            
-            # Add to collections
-            self.documents.append(document)
-            self.document_map[document.id] = document
-            
-            # Update index
-            if self.index and faiss:
-                embedding_matrix = np.array([embedding]).astype('float32')
-                faiss.normalize_L2(embedding_matrix)
-                self.index.add(embedding_matrix)
-            
+        if document:
+            # Add to vector store
+            doc_id = self.vector_store.add_document(
+                content=document.content,
+                doc_id=document.id,
+                embedding=document.embedding,
+                metadata={
+                    "title": document.title,
+                    "category": document.category,
+                    "kb_id": document.kb_id,
+                    "file_path": document.file_path,
+                    "last_updated": document.last_updated,
+                    "tags": document.tags
+                }
+            )
+            self.document_map[doc_id] = document
             return True
         return False
     
@@ -375,6 +329,14 @@ class KnowledgeBaseService:
         
         # Remove the original document from results
         return [result for result in results if result.document.id != doc_id][:top_k]
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get knowledge base statistics"""
+        return {
+            "total_documents": self.vector_store.count_documents(),
+            "categories": self.list_categories(),
+            "vector_store_stats": self.vector_store.get_stats()
+        }
 
 
 # Example usage and testing
@@ -393,10 +355,5 @@ if __name__ == "__main__":
     # Test category listing
     print("Categories:", kb.list_categories())
     
-    # Test filters
-    filtered_results = kb.search(
-        "rebalancing portfolio", 
-        filters={'category': 'playbooks'}, 
-        top_k=2
-    )
-    print(f"\nFiltered results: {len(filtered_results)}")
+    # Test stats
+    print("Stats:", kb.get_stats())

@@ -1,9 +1,9 @@
 """
-WealthPath AI - Anthropic Claude Client Implementation  
-Anthropic Claude integration for advisory content generation
+WealthPath AI - Anthropic Claude Client Implementation (Fixed Version)
+Works around Anthropic library version issues by using REST API directly
 """
 import time
-import anthropic
+import httpx
 from typing import Dict, Any, Optional
 from decimal import Decimal
 import logging
@@ -16,22 +16,43 @@ logger = logging.getLogger(__name__)
 
 
 class ClaudeClient(BaseLLMClient):
-    """Anthropic Claude client implementation"""
+    """Anthropic Claude client implementation using REST API"""
     
     def __init__(self, provider_config: LLMProvider):
         super().__init__(provider_config)
-        self.client = anthropic.AsyncAnthropic(
-            api_key=getattr(settings, 'ANTHROPIC_API_KEY', None)
-        )
+        self.api_key = getattr(settings, 'ANTHROPIC_API_KEY', None)
+        self.base_url = "https://api.anthropic.com/v1"
+        self.models = {}
+        self._initialize_models()
+    
+    def _initialize_models(self):
+        """Initialize Claude model configurations"""
+        try:
+            # Initialize models for different tiers
+            for tier, config in self.provider_config.models.items():
+                model_name = config.get("model", "claude-3-haiku-20240307")
+                self.models[tier] = {
+                    "model": model_name,
+                    "max_tokens": config.get("max_tokens", 4096)
+                }
+            logger.info("Claude models initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize Claude models: {e}")
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
-        """Generate content using Anthropic Claude"""
+        """Generate content using Anthropic Claude REST API"""
         start_time = time.time()
         
+        if not self.api_key:
+            raise ValueError("Claude API key not configured")
+        
         # Get model configuration
-        model_config = self.provider_config.models.get(request.model_tier, {})
-        model_name = model_config.get("model", "claude-3-haiku-20240307")
-        max_tokens = min(request.max_tokens or 2000, model_config.get("max_tokens", 4096))
+        model_config = self.models.get(request.model_tier)
+        if not model_config:
+            raise ValueError(f"Model not available for tier: {request.model_tier}")
+        
+        model_name = model_config["model"]
+        max_tokens = min(request.max_tokens or 2000, model_config["max_tokens"])
         
         try:
             # Prepare user message
@@ -41,92 +62,131 @@ class ClaudeClient(BaseLLMClient):
             if request.context_data:
                 user_content += f"\n\nContext Data: {request.context_data}"
             
-            # Call Claude API
-            response = await self.client.messages.create(
-                model=model_name,
-                max_tokens=max_tokens,
-                temperature=request.temperature,
-                system=request.system_prompt,
-                messages=[
+            # Prepare request payload for Messages API
+            payload = {
+                "model": model_name,
+                "max_tokens": max_tokens,
+                "temperature": request.temperature,
+                "system": request.system_prompt,
+                "messages": [
                     {"role": "user", "content": user_content}
                 ]
-            )
-            
-            # Extract response data
-            content = ""
-            for content_block in response.content:
-                if content_block.type == "text":
-                    content += content_block.text
-            
-            # Get token usage
-            token_usage = {
-                "input_tokens": response.usage.input_tokens,
-                "output_tokens": response.usage.output_tokens,
-                "total_tokens": response.usage.input_tokens + response.usage.output_tokens
             }
             
-            # Calculate cost
-            cost = self.calculate_cost(
-                token_usage["input_tokens"],
-                token_usage["output_tokens"],
-                request.model_tier
-            )
+            headers = {
+                "x-api-key": self.api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            }
             
-            generation_time = time.time() - start_time
-            
-            llm_response = LLMResponse(
-                provider=self.provider_id,
-                model=model_name,
-                content=content,
-                citations=[],  # Citations will be added by RAG system
-                number_validations=[],  # Will be populated by validation service
-                token_usage=token_usage,
-                cost=cost,
-                generation_time=generation_time,
-                metadata={
-                    "stop_reason": response.stop_reason,
-                    "stop_sequence": response.stop_sequence,
-                    "model_tier": request.model_tier,
-                    "temperature": request.temperature
+            # Make API request
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.base_url}/messages",
+                    json=payload,
+                    headers=headers,
+                    timeout=30.0
+                )
+                response.raise_for_status()
+                
+                result = response.json()
+                
+                # Extract generated text
+                content = ""
+                if "content" in result and len(result["content"]) > 0:
+                    for content_block in result["content"]:
+                        if content_block.get("type") == "text":
+                            content += content_block.get("text", "")
+                else:
+                    content = "No content generated"
+                
+                # Get token usage
+                usage = result.get("usage", {})
+                token_usage = {
+                    "input_tokens": usage.get("input_tokens", 0),
+                    "output_tokens": usage.get("output_tokens", 0),
+                    "total_tokens": usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
                 }
-            )
+                
+                # Calculate cost
+                cost = self.calculate_cost(
+                    token_usage["input_tokens"],
+                    token_usage["output_tokens"],
+                    request.model_tier
+                )
+                
+                generation_time = time.time() - start_time
+                
+                llm_response = LLMResponse(
+                    provider="claude",
+                    model=model_name,
+                    content=content,
+                    citations=[],
+                    number_validations=[],
+                    token_usage=token_usage,
+                    cost=Decimal(str(cost)),
+                    generation_time=generation_time,
+                    metadata={
+                        "stop_reason": result.get("stop_reason", "end_turn"),
+                        "model_tier": request.model_tier,
+                        "temperature": request.temperature
+                    }
+                )
+                
+                logger.info(f"Claude generation completed in {generation_time:.2f}s, cost: ${cost}")
+                return llm_response
             
-            logger.info(f"Claude generation completed in {generation_time:.2f}s, cost: ${cost}")
-            return llm_response
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Claude API HTTP error: {e.response.status_code} - {e.response.text}")
+            raise RuntimeError(f"Claude API error: {e.response.status_code}")
+        
+        except httpx.TimeoutException as e:
+            logger.error(f"Claude API timeout: {e}")
+            raise RuntimeError("Claude API timeout")
             
-        except anthropic.RateLimitError as e:
-            logger.error(f"Claude rate limit exceeded: {e}")
-            raise RuntimeError(f"Claude rate limit exceeded: {e}")
-        
-        except anthropic.APIError as e:
-            logger.error(f"Claude API error: {e}")
-            raise RuntimeError(f"Claude API error: {e}")
-        
         except Exception as e:
-            logger.error(f"Unexpected Claude error: {e}")
-            raise RuntimeError(f"Claude generation failed: {e}")
+            logger.error(f"Claude generation error: {e}")
+            raise RuntimeError(f"Claude generation error: {e}")
     
     async def validate_connection(self) -> bool:
         """Validate connection to Claude"""
         try:
-            # Make a minimal test request
-            response = await self.client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=1,
-                messages=[{"role": "user", "content": "test"}]
+            if not self.api_key:
+                return False
+            
+            # Test with a simple request
+            test_request = LLMRequest(
+                provider="claude",
+                system_prompt="You are a helpful assistant.",
+                user_prompt="Say 'Hello'",
+                model_tier="dev"
             )
-            return bool(response.content)
+            
+            response = await self.generate(test_request)
+            return response.content is not None
+            
         except Exception as e:
             logger.error(f"Claude connection validation failed: {e}")
             return False
     
-    def _handle_tool_use(self, response) -> str:
-        """Handle tool use in Claude responses"""
-        content = ""
-        for content_block in response.content:
-            if content_block.type == "text":
-                content += content_block.text
-            elif content_block.type == "tool_use":
-                # Handle tool use if needed in future
-                logger.info(f"Tool use detected: {content_block.name}")
-        return content
+    @property
+    def name(self) -> str:
+        return "Claude (REST API)"
+    
+    async def health_check(self) -> Dict[str, Any]:
+        """Check Claude health"""
+        try:
+            is_healthy = await self.validate_connection()
+            return {
+                "status": "healthy" if is_healthy else "unhealthy",
+                "provider": "claude",
+                "api_available": bool(self.api_key),
+                "models": list(self.models.keys())
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "provider": "claude",
+                "error": str(e),
+                "api_available": bool(self.api_key)
+            }

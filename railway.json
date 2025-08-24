@@ -2,20 +2,30 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "backend/Dockerfile.railway"
+    "dockerfilePath": "backend/Dockerfile"
   },
   "deploy": {
     "numReplicas": 1,
     "healthcheckPath": "/health",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3,
-    "memoryLimitMB": 512,
+    "memoryLimitMB": 256,
     "environmentVariables": {
       "PORT": "8000",
       "PYTHONOPTIMIZE": "2",
+      "PYTHONUNBUFFERED": "1",
       "MALLOC_ARENA_MAX": "2",
-      "CHROMA_PERSIST_DIRECTORY": "/tmp/vector_db",
-      "MEMORY_LIMIT": "512MB"
-    }
+      "VECTOR_STORE_PATH": "/tmp/vector_store.json",
+      "MEMORY_LIMIT": "256MB",
+      "ENVIRONMENT": "production",
+      "ADMIN_EMAIL": "debashishroy@gmail.com",
+      "LLM_DEFAULT_PROVIDER": "gemini"
+    },
+    "volumes": [
+      {
+        "mountPath": "/tmp",
+        "name": "vector-storage"
+      }
+    ]
   }
 }

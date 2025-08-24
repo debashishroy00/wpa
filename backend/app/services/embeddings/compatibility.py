@@ -7,7 +7,12 @@ from typing import List, Dict, Any, Optional, Union
 import asyncio
 import structlog
 
-from .hybrid_service import HybridEmbeddingService
+try:
+    from .hybrid_service import HybridEmbeddingService
+    HAS_HYBRID_SERVICE = True
+except ImportError:
+    HybridEmbeddingService = None
+    HAS_HYBRID_SERVICE = False
 from .base import EmbeddingContext, EmbeddingProvider
 from app.core.config import settings
 
@@ -31,8 +36,10 @@ class EmbeddingCompatibilityAdapter:
             hybrid_enabled=self._use_hybrid
         )
     
-    async def _get_service(self) -> HybridEmbeddingService:
+    async def _get_service(self):
         """Lazy initialization of hybrid service"""
+        if not HAS_HYBRID_SERVICE:
+            raise RuntimeError("HybridEmbeddingService not available - ML packages disabled")
         if not self._hybrid_service:
             self._hybrid_service = HybridEmbeddingService()
             await self._hybrid_service.initialize()
@@ -45,6 +52,10 @@ class EmbeddingCompatibilityAdapter:
         Generate embedding for single text (original interface).
         Returns raw embedding vector for backward compatibility.
         """
+        if not HAS_HYBRID_SERVICE or not self._use_hybrid:
+            # Return a dummy embedding when service not available
+            return [0.0] * 384  # Standard dimension
+        
         service = await self._get_service()
         
         # Trigger shadow mode comparison if enabled

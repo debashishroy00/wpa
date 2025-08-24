@@ -52,22 +52,18 @@ async def get_vector_contents(
         )
     
     try:
-        vector_db = get_vector_db()
+        # Use simple vector store instead of ChromaDB
+        from app.services.simple_vector_store import get_vector_store
+        vector_store = get_vector_store()
         
-        # Get all documents for this user from the collection
-        all_docs = vector_db.collection.get(
-            where={"user_id": user_id},
-            include=["documents", "metadatas"]
-        )
-        
-        # Format the response
+        # Get all documents for this user
         documents = []
-        if all_docs['ids']:
-            for i, doc_id in enumerate(all_docs['ids']):
+        for doc_id, doc in vector_store.documents.items():
+            if doc.metadata.get("user_id") == str(user_id):
                 documents.append({
-                    "id": doc_id,
-                    "content": all_docs['documents'][i] if i < len(all_docs['documents']) else None,
-                    "metadata": all_docs['metadatas'][i] if i < len(all_docs['metadatas']) else None
+                    "id": doc.doc_id,
+                    "content": doc.content[:500] + "..." if len(doc.content) > 500 else doc.content,
+                    "metadata": doc.metadata
                 })
         
         return {
@@ -77,8 +73,8 @@ async def get_vector_contents(
             "last_updated": datetime.utcnow().isoformat(),
             "documents": documents,
             "debug_info": {
-                "collection_name": vector_db.collection.name,
-                "user_filter": {"user_id": user_id}
+                "storage_type": "SimpleVectorStore",
+                "user_filter": {"user_id": str(user_id)}
             }
         }
         

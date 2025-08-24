@@ -114,7 +114,7 @@ async def call_llm_api(system_prompt: str, user_message: str, provider: str, mod
         return f"I apologize, but I'm having trouble processing your request right now. Error: {str(e)}"
 
 async def call_real_llm_api(system_prompt: str, user_prompt: str, provider: str, model_tier: str, user_id: int = None, query: str = None) -> str:
-    """Real LLM API calls with actual providers - copied from chat.py"""
+    """Real LLM API calls using proper LLM service"""
     
     # Store payloads for debugging
     debug_payload = {
@@ -137,78 +137,23 @@ async def call_real_llm_api(system_prompt: str, user_prompt: str, provider: str,
         store_llm_payload(user_id, debug_payload)
     
     try:
-        if provider == "gemini":
-            import google.generativeai as genai
-            import os
-            
-            api_key = os.getenv("GEMINI_API_KEY")
-            if not api_key:
-                return "❌ Gemini API key not configured"
-            
-            genai.configure(api_key=api_key)
-            
-            # Model selection based on tier
-            model_name = "gemini-1.5-flash" if model_tier == "dev" else "gemini-1.5-pro"
-            model = genai.GenerativeModel(model_name)
-            
-            # Combine system and user prompts
-            full_prompt = f"{system_prompt}\n\nUser Question: {user_prompt}"
-            
-            response = model.generate_content(full_prompt)
-            return response.text
-            
-        elif provider == "openai":
-            import openai
-            import os
-            
-            api_key = os.getenv("OPENAI_API_KEY")
-            if not api_key:
-                return "❌ OpenAI API key not configured"
-            
-            client = openai.OpenAI(api_key=api_key)
-            
-            # Model selection based on tier
-            model_name = "gpt-3.5-turbo" if model_tier == "dev" else "gpt-4"
-            
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                max_tokens=2000,
-                temperature=0.7
-            )
-            
-            return response.choices[0].message.content
-            
-        elif provider == "claude":
-            import anthropic
-            import os
-            
-            api_key = os.getenv("ANTHROPIC_API_KEY")
-            if not api_key:
-                return "❌ Claude API key not configured"
-            
-            client = anthropic.Anthropic(api_key=api_key)
-            
-            # Model selection based on tier
-            model_name = "claude-3-haiku-20240307" if model_tier == "dev" else "claude-3-sonnet-20240229"
-            
-            response = client.messages.create(
-                model=model_name,
-                max_tokens=2000,
-                temperature=0.7,
-                system=system_prompt,
-                messages=[
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
-            
-            return response.content[0].text
-            
-        else:
-            return f"❌ Unsupported provider: {provider}"
+        # Use the proper LLM service instead of hardcoded implementations
+        from ....services.llm_service import llm_service
+        from ....models.llm_models import LLMRequest
+        
+        # Create proper LLM request
+        llm_request = LLMRequest(
+            provider=provider,
+            model_tier=model_tier,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            temperature=0.7,
+            max_tokens=2000
+        )
+        
+        # Call LLM service
+        response = await llm_service.generate(llm_request)
+        return response.content
             
     except Exception as e:
         logger.error(f"LLM API call failed for {provider}: {str(e)}")
