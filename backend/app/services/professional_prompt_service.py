@@ -5,9 +5,17 @@ Surpasses human advisor capabilities with comprehensive analysis
 """
 from typing import Dict, Any, List
 import logging
-from .vector_db_service import FinancialVectorDB
 
 logger = logging.getLogger(__name__)
+
+# Optional vector database import - gracefully handle missing dependencies
+try:
+    from .vector_db_service import FinancialVectorDB
+    VECTOR_DB_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Vector database not available: {e}")
+    VECTOR_DB_AVAILABLE = False
+    FinancialVectorDB = None
 
 
 class ProfessionalPromptService:
@@ -17,7 +25,17 @@ class ProfessionalPromptService:
     """
     
     def __init__(self):
-        self.vector_db = FinancialVectorDB()
+        # Initialize vector database if available
+        if VECTOR_DB_AVAILABLE and FinancialVectorDB:
+            try:
+                self.vector_db = FinancialVectorDB()
+                logger.info("Vector database initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize vector database: {e}")
+                self.vector_db = None
+        else:
+            self.vector_db = None
+            logger.info("Vector database not available - using fallback data")
     
     def _get_real_financial_data(self, user_id: int) -> Dict[str, Any]:
         """Get real financial data from vector database for debashishroy@gmail.com"""
@@ -93,8 +111,8 @@ class ProfessionalPromptService:
                 'cash': 0,
                 'net_worth': 0,
                 'monthly_expenses': 0,
-                'monthly_surplus': 0
-            }
+                er.error(f"Error retrieving real financial data from vector DB: {e}")
+            return default_data
     
     def build_professional_report_prompt(self, complete_context: Dict[str, Any], user_query: str) -> str:
         """

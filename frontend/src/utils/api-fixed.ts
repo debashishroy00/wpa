@@ -5,13 +5,33 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { AuthTokens, ApiError } from '../types';
 
+// Smart API URL detection based on environment
+const getApiBaseUrl = () => {
+  // Check if we have an environment variable set
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Check if we're in development (localhost)
+  if (window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000';  // Use local backend
+  }
+  
+  // Default to production backend for any other domain
+  return 'https://wealthpath-backend.onrender.com';
+};
+
 class ApiClientFixed {
   private client: AxiosInstance;
   private tokens?: AuthTokens;
 
   constructor() {
+    const baseURL = getApiBaseUrl();
+    console.log('🔗 API connected to (Fixed Version):', baseURL);
+    
     this.client = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+      baseURL,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',

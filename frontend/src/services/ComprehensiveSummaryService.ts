@@ -9,13 +9,14 @@ import {
   LLMContext, 
   UserPreferences 
 } from '../types/financial.types';
+import { getApiBaseUrl } from '../utils/getApiBaseUrl';
 
 class ComprehensiveSummaryService {
   private static instance: ComprehensiveSummaryService;
   private baseURL: string;
 
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    this.baseURL = getApiBaseUrl();
   }
 
   static getInstance(): ComprehensiveSummaryService {

@@ -3,6 +3,8 @@
  * Handles indexing and searching of financial data embeddings
  */
 
+import { getApiBaseUrl } from '../utils/getApiBaseUrl';
+
 export interface VectorSearchResult {
     content: string;
     metadata: {
@@ -34,7 +36,7 @@ export class VectorDBService {
     private baseURL: string;
     
     constructor() {
-        this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        this.baseURL = getApiBaseUrl();
     }
     
     static getInstance(): VectorDBService {

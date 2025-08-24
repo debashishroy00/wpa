@@ -119,7 +119,19 @@ const FinancialAdvisorChat: React.FC = () => {
     };
 
     const getBaseURL = () => {
-        return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        // Smart API URL detection
+        if (import.meta.env.VITE_API_BASE_URL) {
+            return import.meta.env.VITE_API_BASE_URL;
+        }
+        
+        // Check if we're in development (localhost)
+        if (window.location.hostname === 'localhost' || 
+            window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:8000';  // Use local backend
+        }
+        
+        // Default to production backend
+        return 'https://wealthpath-backend.onrender.com';
     };
 
     const checkSyncStatus = async () => {
