@@ -24,11 +24,6 @@ const getApiBaseUrl = () => {
 class ApiClient {
   private client: AxiosInstance;
   private tokens?: AuthTokens;
-  private isRefreshing = false;
-  private failedQueue: Array<{
-    resolve: (value?: any) => void;
-    reject: (error?: any) => void;
-  }> = [];
 
   constructor() {
     const baseURL = getApiBaseUrl();

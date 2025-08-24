@@ -37,14 +37,14 @@ export const emergencyAuthReset = () => {
   }
 };
 
-// Auto-reset if URL contains clearAuth parameter
-if (typeof window !== 'undefined') {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('clearAuth')) {
-    console.log('🔍 clearAuth parameter detected, initiating emergency reset...');
-    emergencyAuthReset();
-  }
-}
+// COMMENTED OUT - Auto-reset if URL contains clearAuth parameter
+// if (typeof window !== 'undefined') {
+//   const urlParams = new URLSearchParams(window.location.search);
+//   if (urlParams.get('clearAuth')) {
+//     console.log('🔍 clearAuth parameter detected, initiating emergency reset...');
+//     emergencyAuthReset();
+//   }
+// }
 
 // Export for console access
 if (typeof window !== 'undefined') {

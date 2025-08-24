@@ -4,7 +4,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { User, UserProfile, AuthTokens, AuthState } from '../types/auth';
-import { apiClient } from '../utils/api';
+import { apiClient } from '../utils/api-simple';
 
 interface AuthStore extends AuthState {
   // Actions

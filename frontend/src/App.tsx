@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 
 // Utilities
-import { apiClient } from './utils/api'
+import { apiClient } from './utils/api-simple' // Use simplified API client
 import { useAuthStore } from './stores/auth-store'
-import './utils/emergencyAuthReset' // Auto-detect auth reset parameters
+// REMOVED: import './utils/emergencyAuthReset' // Commenting out to avoid interference
 
 // Components
 import FinancialManagementPage from './components/financial/FinancialManagementPage'
