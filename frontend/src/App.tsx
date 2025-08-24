@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 // Utilities
 import { apiClient } from './utils/api'
 import { useAuthStore } from './stores/auth-store'
+import './utils/emergencyAuthReset' // Auto-detect auth reset parameters
 
 // Components
 import FinancialManagementPage from './components/financial/FinancialManagementPage'

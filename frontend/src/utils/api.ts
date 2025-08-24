@@ -24,6 +24,11 @@ const getApiBaseUrl = () => {
 class ApiClient {
   private client: AxiosInstance;
   private tokens?: AuthTokens;
+  private isRefreshing = false;
+  private failedQueue: Array<{
+    resolve: (value?: any) => void;
+    reject: (error?: any) => void;
+  }> = [];
 
   constructor() {
     const baseURL = getApiBaseUrl();
@@ -52,30 +57,65 @@ class ApiClient {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor for error handling and token refresh
+    // Response interceptor with improved refresh token logic
     this.client.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
 
+        // Only handle 401 errors that haven't been retried yet
         if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+          
+          // If we don't have a refresh token, just clear tokens and reject
+          if (!this.tokens?.refresh_token) {
+            console.warn('🚫 401 error but no refresh token available, clearing auth');
+            this.clearTokens();
+            return Promise.reject(new Error('Authentication required'));
+          }
 
-          if (this.tokens?.refresh_token) {
-            try {
-              const refreshResponse = await this.refreshToken();
-              this.setTokens(refreshResponse.data);
-              
-              // Retry the original request with new token
-              originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
-              return this.client(originalRequest);
-            } catch (refreshError) {
-              // Refresh failed, clear tokens but don't redirect
-              console.error('Token refresh failed:', refreshError);
-              this.clearTokens();
-              // Let the error bubble up so the form can handle it gracefully
-              return Promise.reject(new Error('Authentication expired. Please refresh the page and try again.'));
-            }
+          // If we're already refreshing, queue this request
+          if (this.isRefreshing) {
+            return new Promise((resolve, reject) => {
+              this.failedQueue.push({ resolve, reject });
+            }).then(() => {
+              if (this.tokens?.access_token) {
+                originalRequest.headers.Authorization = `Bearer ${this.tokens.access_token}`;
+                return this.client(originalRequest);
+              }
+              return Promise.reject(new Error('Authentication failed'));
+            }).catch(err => {
+              return Promise.reject(err);
+            });
+          }
+
+          // Mark request as retried and start refresh process
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            console.log('🔄 Attempting token refresh...');
+            const refreshResponse = await this.refreshTokenDirectly();
+            this.setTokens(refreshResponse.data);
+            
+            // Process the failed queue
+            this.processQueue(null);
+            
+            // Retry the original request
+            originalRequest.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
+            return this.client(originalRequest);
+            
+          } catch (refreshError) {
+            console.error('❌ Token refresh failed:', refreshError);
+            
+            // Process queue with error
+            this.processQueue(refreshError);
+            
+            // Clear tokens and redirect
+            this.clearTokens();
+            
+            return Promise.reject(new Error('Authentication expired. Please log in again.'));
+          } finally {
+            this.isRefreshing = false;
           }
         }
 
@@ -91,10 +131,44 @@ class ApiClient {
     );
   }
 
+  private processQueue(error: any) {
+    this.failedQueue.forEach(({ resolve, reject }) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+    
+    this.failedQueue = [];
+  }
+
   private async refreshToken(): Promise<AxiosResponse<AuthTokens>> {
     return this.client.post('/api/v1/auth/refresh', {
       token: this.tokens?.refresh_token,
     });
+  }
+
+  // Direct refresh token method that bypasses interceptors to prevent loops
+  private async refreshTokenDirectly(): Promise<AxiosResponse<AuthTokens>> {
+    const baseURL = getApiBaseUrl();
+    
+    const response = await fetch(`${baseURL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: this.tokens?.refresh_token,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Refresh token failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { data } as AxiosResponse<AuthTokens>;
   }
 
   setTokens(tokens: AuthTokens) {
