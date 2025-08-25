@@ -55,25 +55,14 @@ class ApiClient {
       (error) => Promise.reject(error)
     );
 
-    // SIMPLIFIED Response interceptor - aggressive auth clearing on 401
+    // SIMPLIFIED Response interceptor - no refresh logic
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        // Aggressively clear auth on any 401 error
+        // Just pass through the error - don't try to refresh
         if (error.response?.status === 401) {
-          console.log('401 error - clearing all auth data immediately');
-          
-          // Clear all auth data immediately
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('auth_tokens');
-          localStorage.removeItem('wealthpath-auth-store');
-          sessionStorage.clear();
-          
-          // Dispatch event to notify AuthWrapper
-          window.dispatchEvent(new CustomEvent('authCleared'));
-          
-          // Clear from this client too
-          this.tokens = undefined;
+          console.log('401 error - auth required (no auto-refresh)');
+          // Don't clear tokens, don't refresh, just let it fail gracefully
         }
         
         return Promise.reject(error);
@@ -148,13 +137,6 @@ apiClient.loadTokensFromStorage();
 if (typeof window !== 'undefined') {
   (window as any).quickLogin = async () => {
     try {
-      // First, clear any existing auth data
-      console.log('🧹 Clearing existing auth before login...');
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('auth_tokens');
-      localStorage.removeItem('wealthpath-auth-store');
-      sessionStorage.clear();
-      
       console.log('🔄 Attempting quick login...');
       const baseURL = getApiBaseUrl();
       const response = await fetch(`${baseURL}/api/v1/auth/login`, {
@@ -177,7 +159,6 @@ if (typeof window !== 'undefined') {
         window.location.reload();
       } else {
         console.error('❌ Login failed - no access token in response');
-        console.error('Response:', data);
       }
     } catch (error) {
       console.error('❌ Login failed:', error);

@@ -4,13 +4,10 @@ import { Helmet } from 'react-helmet-async'
 // Utilities
 import { apiClient } from './utils/api-simple' // Use simplified API client
 import { useAuthStore } from './stores/auth-store'
-import './utils/clearInvalidAuth' // Auto-clear invalid auth on load
-// REMOVED: import './utils/emergencyAuthReset' // Commenting out to avoid interference
 
 // Components
 import FinancialManagementPage from './components/financial/FinancialManagementPage'
 import ProfileManagementPage from './components/profile/ProfileManagementPage'
-import AuthWrapper from './components/AuthWrapper'
 import ProjectionsPage from './components/projections/ProjectionsPage'
 import { EnableAssumptionsEditing } from './components/QuickFix'
 import GoalManager from './components/goals/GoalManager'
@@ -180,11 +177,7 @@ function App() {
   }
 
   if (currentView === 'projections') {
-    return (
-      <AuthWrapper>
-        <ProjectionsPage />
-      </AuthWrapper>
-    )
+    return <ProjectionsPage />
   }
 
 
@@ -667,9 +660,7 @@ const FinancialDataStep: React.FC<FinancialDataStepProps> = ({ onNext }) => {
       </div>
       
       {/* Financial Management Page */}
-      <AuthWrapper>
-        <FinancialManagementPage />
-      </AuthWrapper>
+      <FinancialManagementPage />
       
       {/* Continue Button */}
       <div style={{
@@ -730,9 +721,7 @@ const ProfileDataStep: React.FC<ProfileDataStepProps> = ({ onNext }) => {
       </div>
       
       {/* Profile Management Page */}
-      <AuthWrapper>
-        <ProfileManagementPage />
-      </AuthWrapper>
+      <ProfileManagementPage />
       
       {/* Continue Button */}
       <div style={{
@@ -3752,9 +3741,7 @@ const GoalDefinitionStep: React.FC<{ onNext: () => void }> = ({ onNext }) => {
         minHeight: '400px',
         borderRadius: '0 0 12px 12px'
       }}>
-        <AuthWrapper>
-          <GoalManager />
-        </AuthWrapper>
+        <GoalManager />
       </div>
       
       {/* Continue Button */}
@@ -3784,11 +3771,7 @@ const GoalDefinitionStep: React.FC<{ onNext: () => void }> = ({ onNext }) => {
 }
 
 const IntelligenceStep: React.FC<{ onNext: () => void }> = ({ onNext }) => {
-  return (
-    <AuthWrapper>
-      <IntelligenceDashboard onNext={onNext} />
-    </AuthWrapper>
-  )
+  return <IntelligenceDashboard onNext={onNext} />
 }
 
 interface RoadmapStepProps {
@@ -3797,9 +3780,7 @@ interface RoadmapStepProps {
 
 const RoadmapStep: React.FC<RoadmapStepProps> = ({ onNext }) => (
   <div>
-    <AuthWrapper>
-      <FinancialAdvisoryDashboard />
-    </AuthWrapper>
+    <FinancialAdvisoryDashboard />
     <div style={{ textAlign: 'center', marginTop: '30px' }}>
       <button 
         onClick={onNext}
@@ -3841,9 +3822,7 @@ const ChatStep: React.FC = () => (
         Chat with your personal AI Financial Advisor using real-time data from your financial profile
       </p>
     </div>
-    <AuthWrapper>
-      <FinancialAdvisorChat />
-    </AuthWrapper>
+    <FinancialAdvisorChat />
   </div>
 )
 

@@ -1,8 +1,8 @@
 /**
- * Auth Wrapper - Only render children if user has a VALID token
- * Prevents automatic API calls when not authenticated or tokens are invalid
+ * Simple Auth Wrapper - Only render children if user has a token
+ * Prevents automatic API calls when not authenticated
  */
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -10,84 +10,10 @@ interface AuthWrapperProps {
 }
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children, fallback }) => {
-  const [isValid, setIsValid] = useState<boolean | null>(null); // null = checking, false = invalid, true = valid
+  // Simple token check - don't validate, just check if exists
+  const hasToken = !!localStorage.getItem('access_token');
   
-  useEffect(() => {
-    const checkTokenValidity = async () => {
-      const token = localStorage.getItem('access_token');
-      
-      if (!token) {
-        console.log('🚫 AuthWrapper: No token found');
-        setIsValid(false);
-        return;
-      }
-      
-      // Simple token expiration check (if it's a JWT)
-      try {
-        console.log('🔍 AuthWrapper: Checking token expiration...');
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-        
-        if (payload.exp && payload.exp < currentTime) {
-          console.log('❌ AuthWrapper: Token is expired, clearing localStorage');
-          // Clear all auth-related data
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('auth_tokens');
-          localStorage.removeItem('wealthpath-auth-store');
-          setIsValid(false);
-        } else {
-          console.log('✅ AuthWrapper: Token appears valid (not expired)');
-          setIsValid(true);
-        }
-      } catch (error) {
-        // If token isn't JWT or can't be decoded, assume it's invalid
-        console.log('❌ AuthWrapper: Token is not valid JWT format, clearing localStorage');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('auth_tokens');
-        localStorage.removeItem('wealthpath-auth-store');
-        setIsValid(false);
-      }
-    };
-    
-    // Check initially
-    checkTokenValidity();
-    
-    // Listen for localStorage changes (including from other tabs/scripts)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'access_token' || e.key === 'auth_tokens' || e.key === null) {
-        console.log('📡 AuthWrapper: Storage changed, re-checking auth...');
-        // Small delay to ensure all clearing is complete
-        setTimeout(checkTokenValidity, 100);
-      }
-    };
-    
-    // Listen for custom auth clearing events
-    const handleAuthCleared = () => {
-      console.log('🔄 AuthWrapper: Auth cleared event received');
-      setIsValid(false);
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('authCleared', handleAuthCleared);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('authCleared', handleAuthCleared);
-    };
-  }, []);
-  
-  // Still checking token validity
-  if (isValid === null) {
-    return (
-      <div className="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-300">Validating authentication...</p>
-      </div>
-    );
-  }
-  
-  // Token is invalid or doesn't exist
-  if (!isValid) {
+  if (!hasToken) {
     return (
       <div className="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700 text-center">
         <div className="text-gray-400 mb-4">
