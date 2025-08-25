@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface ShadowTestResult {
   id: string;
@@ -32,7 +33,7 @@ const ShadowModeMonitor: React.FC = () => {
       
       if (token) {
         // Try authenticated endpoint if token exists
-        const response = await fetch('/api/v1/vector/status/1', {
+        const response = await fetch(`${getApiBaseUrl()}/api/v1/vector/status/1`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -54,7 +55,7 @@ const ShadowModeMonitor: React.FC = () => {
       
       // Fallback to debug endpoint (no authentication required)
       console.log('🔄 Trying debug endpoint...');
-      const debugResponse = await fetch('/api/v1/vector/debug-status');
+      const debugResponse = await fetch(`${getApiBaseUrl()}/api/v1/vector/debug-status`);
       
       if (debugResponse.ok) {
         const data = await debugResponse.json();
@@ -210,7 +211,7 @@ const ShadowModeMonitor: React.FC = () => {
             onClick={async () => {
               try {
                 console.log('🧪 Testing backend directly...');
-                const response = await fetch('/api/v1/vector/debug-status');
+                const response = await fetch(`${getApiBaseUrl()}/api/v1/vector/debug-status`);
                 console.log('🧪 Debug endpoint response:', response.status);
                 if (response.ok) {
                   const data = await response.json();

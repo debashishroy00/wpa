@@ -3,6 +3,7 @@
  * Main component for managing financial goals
  */
 import React, { useState } from 'react';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 import { 
   Target, 
   Plus, 
@@ -242,7 +243,7 @@ const GoalManager: React.FC<GoalManagerProps> = ({ className = '' }) => {
               variant="outline"
               onClick={async () => {
                 try {
-                  const response = await fetch('/api/v1/sync-net-worth', {
+                  const response = await fetch(`${getApiBaseUrl()}/api/v1/sync-net-worth`, {
                     method: 'POST',
                     headers: {
                       'Authorization': `Bearer ${localStorage.getItem('auth_tokens') ? JSON.parse(localStorage.getItem('auth_tokens')!).access_token : ''}`,

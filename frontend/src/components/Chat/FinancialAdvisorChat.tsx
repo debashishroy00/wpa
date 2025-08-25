@@ -310,7 +310,7 @@ const FinancialAdvisorChat: React.FC = () => {
 
         try {
             // Send message to backend
-            const response = await fetch('/api/v1/chat/message', {
+            const response = await fetch(`${getApiBaseUrl()}/api/v1/chat/message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

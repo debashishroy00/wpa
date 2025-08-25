@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useAdminStore } from '../../stores/admin/adminStore';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface LogEntry {
   timestamp: string;
@@ -38,7 +39,7 @@ const DebugTools: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await fetch('/api/v1/admin/debug/performance', {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/debug/performance`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -124,7 +125,7 @@ const DebugTools: React.FC = () => {
   const clearAllCaches = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/admin/clear-cache', {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/clear-cache`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });

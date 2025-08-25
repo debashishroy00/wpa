@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAdminStore } from '../../stores/admin/adminStore';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface DataIssue {
   id: string;
@@ -42,7 +43,7 @@ const DataIntegrityPanel: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await fetch('/api/v1/admin/data-integrity', {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/data-integrity`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

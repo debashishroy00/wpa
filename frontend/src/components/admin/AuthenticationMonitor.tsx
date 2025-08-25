@@ -5,6 +5,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useAdminStore } from '../../stores/admin/adminStore';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface AuthSession {
   id: number;
@@ -46,7 +47,7 @@ const AuthenticationMonitor: React.FC = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await fetch('/api/v1/admin/sessions', {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/admin/sessions`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
