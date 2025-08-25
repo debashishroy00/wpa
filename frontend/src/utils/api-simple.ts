@@ -165,7 +165,42 @@ if (typeof window !== 'undefined') {
     }
   };
 
+  (window as any).clearAndLogin = async () => {
+    console.log('🧹 Clearing old tokens...');
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    console.log('🔐 Logging in with fresh tokens...');
+    try {
+      const baseURL = getApiBaseUrl();
+      const response = await fetch(`${baseURL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'test@test.com',
+          password: 'test123'
+        })
+      });
+      
+      const data = await response.json();
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem('refresh_token', data.refresh_token);
+          apiClient.setTokens(data);
+        }
+        console.log('✅ Fresh login successful! Refreshing...');
+        window.location.reload();
+      } else {
+        console.error('❌ Login failed:', data);
+      }
+    } catch (error) {
+      console.error('❌ Login error:', error);
+    }
+  };
+
   console.log('🛠️ Run window.quickLogin() to login with test credentials');
+  console.log('💡 Run window.clearAndLogin() to clear old tokens and login fresh');
   
   // Auto-clear tokens if URL has clear parameter
   const urlParams = new URLSearchParams(window.location.search);
