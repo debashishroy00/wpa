@@ -135,16 +135,22 @@ apiClient.loadTokensFromStorage();
 
 // Add quickLogin function to window for easy testing
 if (typeof window !== 'undefined') {
-  (window as any).quickLogin = async () => {
+  (window as any).quickLogin = async (username, password) => {
+    if (!username || !password) {
+      console.log('Usage: window.quickLogin("your-email@domain.com", "your-password")');
+      console.log('Example: window.quickLogin("debashishroy@gmail.com", "password123")');
+      return;
+    }
+    
     try {
-      console.log('🔄 Attempting quick login...');
+      console.log('🔄 Attempting login with provided credentials...');
       const baseURL = getApiBaseUrl();
       const response = await fetch(`${baseURL}/api/v1/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'test@test.com',  // Your test user
-          password: 'test123'
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          username,
+          password
         })
       });
       
@@ -158,32 +164,38 @@ if (typeof window !== 'undefined') {
         console.log('✅ Logged in! Refreshing...');
         window.location.reload();
       } else {
-        console.error('❌ Login failed - no access token in response');
+        console.error('❌ Login failed:', data);
       }
     } catch (error) {
       console.error('❌ Login failed:', error);
     }
   };
 
-  (window as any).clearAndLogin = async () => {
+  (window as any).clearAndLogin = async (username, password) => {
+    if (!username || !password) {
+      console.log('Usage: window.clearAndLogin("your-email@domain.com", "your-password")');
+      console.log('Example: window.clearAndLogin("debashishroy@gmail.com", "password123")');
+      return;
+    }
+    
     console.log('🧹 Clearing old tokens...');
     localStorage.clear();
     sessionStorage.clear();
     
-    console.log('🔐 Logging in with fresh tokens...');
+    console.log('🔐 Logging in with provided credentials...');
     try {
       const baseURL = getApiBaseUrl();
       const response = await fetch(`${baseURL}/api/v1/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'test@test.com',
-          password: 'test123'
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          username,
+          password
         })
       });
       
       const data = await response.json();
-      if (data.access_token) {
+      if (response.ok && data.access_token) {
         localStorage.setItem('access_token', data.access_token);
         if (data.refresh_token) {
           localStorage.setItem('refresh_token', data.refresh_token);
@@ -199,8 +211,8 @@ if (typeof window !== 'undefined') {
     }
   };
 
-  console.log('🛠️ Run window.quickLogin() to login with test credentials');
-  console.log('💡 Run window.clearAndLogin() to clear old tokens and login fresh');
+  console.log('🛠️ Usage: window.quickLogin("email", "password")');
+  console.log('💡 Usage: window.clearAndLogin("email", "password") - clears old tokens first');
   
   // Auto-clear tokens if URL has clear parameter
   const urlParams = new URLSearchParams(window.location.search);
