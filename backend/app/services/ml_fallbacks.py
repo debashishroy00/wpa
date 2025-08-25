@@ -52,6 +52,108 @@ class NumpyFallback:
         """Type conversion fallback"""
         return data  # Just return as-is for fallback
     
+    @staticmethod
+    def sin(x):
+        """Sine function fallback"""
+        import math
+        if isinstance(x, list):
+            return [math.sin(val) for val in x]
+        return math.sin(x)
+    
+    @staticmethod
+    def sqrt(x):
+        """Square root fallback"""
+        import math
+        if isinstance(x, list):
+            return [math.sqrt(val) if val >= 0 else 0 for val in x]
+        return math.sqrt(x) if x >= 0 else 0
+    
+    @staticmethod
+    def std(data, axis=None):
+        """Standard deviation fallback"""
+        if not data:
+            return 0
+        mean_val = NumpyFallback.mean(data)
+        variance = sum((x - mean_val) ** 2 for x in data) / len(data)
+        return variance ** 0.5
+    
+    @staticmethod
+    def percentile(data, q, axis=None):
+        """Percentile fallback"""
+        if not data:
+            return []
+        if isinstance(data[0], list):
+            # Handle 2D array-like data
+            result = []
+            for col in range(len(data[0])):
+                col_data = sorted([row[col] for row in data])
+                idx = int((q / 100) * (len(col_data) - 1))
+                result.append(col_data[idx])
+            return result
+        else:
+            # Handle 1D data
+            sorted_data = sorted(data)
+            idx = int((q / 100) * (len(sorted_data) - 1))
+            return sorted_data[idx]
+    
+    @property  
+    def pi(self):
+        """Pi constant"""
+        import math
+        return math.pi
+    
+    class RandomFallback:
+        """Random number generation fallback"""
+        @staticmethod
+        def normal(mean=0.0, std=1.0, size=None):
+            import random
+            if size is None:
+                return random.gauss(mean, std)
+            elif isinstance(size, int):
+                return [random.gauss(mean, std) for _ in range(size)]
+            else:
+                # Handle tuple size
+                return [[random.gauss(mean, std) for _ in range(size[1])] for _ in range(size[0])]
+        
+        @staticmethod
+        def uniform(low=0.0, high=1.0, size=None):
+            import random
+            if size is None:
+                return random.uniform(low, high)
+            elif isinstance(size, int):
+                return [random.uniform(low, high) for _ in range(size)]
+            else:
+                return [[random.uniform(low, high) for _ in range(size[1])] for _ in range(size[0])]
+    
+    random = RandomFallback()
+    
+    class LinalgFallback:
+        """Linear algebra fallbacks"""
+        @staticmethod
+        def norm(x):
+            """Vector norm fallback"""
+            if isinstance(x, list):
+                return sum(val * val for val in x) ** 0.5
+            return abs(x)
+        
+        @staticmethod
+        def pad(array, pad_width, mode='constant', constant_values=0):
+            """Simple padding fallback"""
+            if isinstance(array, list):
+                if isinstance(pad_width, tuple) and len(pad_width) == 2:
+                    left_pad, right_pad = pad_width
+                    return [constant_values] * left_pad + array + [constant_values] * right_pad
+                else:
+                    return [constant_values] * pad_width + array + [constant_values] * pad_width
+            return array
+    
+    linalg = LinalgFallback()
+    
+    @staticmethod
+    def pad(array, pad_width, mode='constant', constant_values=0):
+        """Pad array fallback"""
+        return NumpyFallback.linalg.pad(array, pad_width, mode, constant_values)
+    
     class ArrayFallback:
         def __init__(self, data):
             self.data = data

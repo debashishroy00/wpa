@@ -3,7 +3,7 @@ Step 4: Deterministic Plan Engine Service
 Core calculation engine with no subjective language
 """
 # import numpy as np # DISABLED FOR DEPLOYMENT
-from app.services.ml_fallbacks import numpy_fallback as np
+from app.services.ml_fallbacks import np
 from typing import Dict, List, Tuple, Optional
 from decimal import Decimal
 from datetime import datetime

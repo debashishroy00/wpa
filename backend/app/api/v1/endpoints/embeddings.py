@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel
 import structlog
-from app.services.ml_fallbacks import numpy_fallback as np
+from app.services.ml_fallbacks import np
 
 from app.services.embeddings.compatibility import get_embedding_service, MigrationHelper
 from app.services.embeddings.base import EmbeddingContext

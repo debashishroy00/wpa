@@ -4,7 +4,7 @@ Provides comprehensive financial goal analysis, conflict detection, and optimiza
 """
 
 # import numpy as np # DISABLED FOR DEPLOYMENT
-from app.services.ml_fallbacks import numpy_fallback as np
+from app.services.ml_fallbacks import np
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List, Dict, Optional, Tuple

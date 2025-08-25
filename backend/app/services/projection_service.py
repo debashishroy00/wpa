@@ -4,7 +4,7 @@ Multi-factor projection engine with Monte Carlo simulation and sensitivity analy
 """
 # import numpy as np # DISABLED FOR DEPLOYMENT
 # import pandas as pd # DISABLED FOR DEPLOYMENT
-from app.services.ml_fallbacks import numpy_fallback as np
+from app.services.ml_fallbacks import np
 from typing import Dict, List, Tuple, Optional
 from decimal import Decimal
 from datetime import datetime, timezone
