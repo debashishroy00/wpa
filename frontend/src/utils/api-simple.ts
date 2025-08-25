@@ -166,4 +166,15 @@ if (typeof window !== 'undefined') {
   };
 
   console.log('🛠️ Run window.quickLogin() to login with test credentials');
+  
+  // Auto-clear tokens if URL has clear parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('clear') || urlParams.get('reset') || urlParams.get('clearAuth')) {
+    console.log('🧹 Auto-clearing all tokens...');
+    localStorage.clear();
+    sessionStorage.clear();
+    // Remove parameter and reload
+    window.history.replaceState({}, document.title, window.location.pathname);
+    setTimeout(() => window.location.reload(), 100);
+  }
 }
