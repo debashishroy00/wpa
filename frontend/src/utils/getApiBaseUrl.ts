@@ -1,21 +1,19 @@
 /**
- * Smart API URL detection based on environment
+ * Smart API URL detection based on environment - UPDATED v2
  * Works automatically for both local development and production
  */
 export const getApiBaseUrl = (): string => {
-  // Check if we have an environment variable set
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  const hostname = window.location.hostname;
+  
+  // FORCE PRODUCTION URL FOR ANY NON-LOCALHOST
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    console.log('🔗 PRODUCTION MODE (Utility) - Using render backend:', hostname);
+    return 'https://wealthpath-backend.onrender.com';
   }
   
-  // Check if we're in development (localhost)
-  if (window.location.hostname === 'localhost' || 
-      window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:8000';  // Use local backend
-  }
-  
-  // Default to production backend for any other domain
-  return 'https://wealthpath-backend.onrender.com';
+  // Localhost fallback
+  console.log('🔍 Localhost detected (Utility) - using local backend');
+  return 'http://localhost:8000';
 };
 
 // Export a ready-to-use constant

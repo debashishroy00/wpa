@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 // Utilities
 import { apiClient } from './utils/api-simple' // Use simplified API client
 import { useAuthStore } from './stores/auth-store'
+import { getApiBaseUrl } from './utils/getApiBaseUrl'
 
 // Components
 import FinancialManagementPage from './components/financial/FinancialManagementPage'
@@ -92,7 +93,7 @@ function App() {
               const formData = new FormData()
               // SECURITY: Removed hardcoded credentials
               
-              const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+              const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
                 method: 'POST',
                 body: formData,
               })
@@ -3863,7 +3864,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBack, onRegister }
       formData.append('username', email)
       formData.append('password', password)
 
-      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
         method: 'POST',
         body: formData,
       })
@@ -4004,7 +4005,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onBack, onL
       loginFormData.append('username', formData.email)
       loginFormData.append('password', formData.password)
 
-      const loginResponse = await fetch('http://localhost:8000/api/v1/auth/login', {
+      const loginResponse = await fetch(`${getApiBaseUrl()}/api/v1/auth/login`, {
         method: 'POST',
         body: loginFormData,
       })

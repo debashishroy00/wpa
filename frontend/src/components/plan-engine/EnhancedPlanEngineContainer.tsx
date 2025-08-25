@@ -13,6 +13,7 @@ import Button from '../ui/Button';
 import { Loader2, FileText, BarChart3, Settings, RefreshCw, Shield } from 'lucide-react';
 import ComprehensiveSummaryDisplay from '../financial/ComprehensiveSummaryDisplay';
 import { useAuthUser } from '../../stores/auth-store';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface AdvisoryState {
   loading: boolean;
@@ -459,7 +460,7 @@ const EnhancedPlanEngineContainer: React.FC = () => {
 
   // ✅ CALL LLM API
   const callLLMAPI = async (step4_data: any) => {
-    const response = await fetch('http://localhost:8000/api/v1/llm/advisory/generate', {
+    const response = await fetch(`${getApiBaseUrl()}/api/v1/llm/advisory/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

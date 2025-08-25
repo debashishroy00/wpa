@@ -26,6 +26,7 @@ import ContextPanel from './ContextPanel';
 import LLMProviderSettings from './LLMProviderSettings';
 import LLMSettingsService, { ChatSettings } from '../../services/LLMSettingsService';
 import { useAuthUser } from '../../stores/auth-store';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface Message {
     id: string;
@@ -127,7 +128,7 @@ const FinancialAdvisorChat: React.FC = () => {
         // Check if we're in development (localhost)
         if (window.location.hostname === 'localhost' || 
             window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:8000';  // Use local backend
+            return getApiBaseUrl();  // Use environment-aware backend
         }
         
         // Default to production backend

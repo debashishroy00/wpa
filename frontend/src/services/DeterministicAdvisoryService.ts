@@ -5,6 +5,7 @@
  */
 
 import { FinancialDataService } from './FinancialDataService';
+import { getApiBaseUrl } from '../utils/getApiBaseUrl';
 
 // ========== STRICT TYPE DEFINITIONS ==========
 interface PlanInputs {
@@ -955,7 +956,7 @@ Write a substantive, informative advisory that provides real value and actionabl
       };
     }
 
-    const response = await fetch('http://localhost:8000/api/v1/llm/generate', {
+    const response = await fetch(`${getApiBaseUrl()}/api/v1/llm/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -994,7 +995,7 @@ Write a substantive, informative advisory that provides real value and actionabl
       deterministic_prompt: prompt  // Add our prompt as additional data
     };
     
-    const response = await fetch('http://localhost:8000/api/v1/llm/advisory/generate', {
+    const response = await fetch(`${getApiBaseUrl()}/api/v1/llm/advisory/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
