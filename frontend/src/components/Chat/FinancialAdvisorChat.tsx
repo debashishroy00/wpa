@@ -310,7 +310,14 @@ const FinancialAdvisorChat: React.FC = () => {
 
         try {
             // Send message to backend
-            const response = await fetch(`${getApiBaseUrl()}/api/v1/chat/message`, {
+            const baseUrl = getApiBaseUrl();
+            // HOTFIX: Hardcode the URL to force production backend
+            const fullUrl = 'https://wealthpath-backend.onrender.com/api/v1/chat/message';
+            console.log('🔗 Chat API Base URL:', baseUrl);
+            console.log('🌐 Full Chat URL (HARDCODED):', fullUrl);
+            console.log('🚨 USING HARDCODED URL FOR DEBUGGING');
+            
+            const response = await fetch(fullUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
