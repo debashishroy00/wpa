@@ -1746,10 +1746,24 @@ def get_all_financial_entries(
     ).all()
     
     if not entries:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No financial data found for user"
-        )
+        # Return empty data structure instead of 404
+        return {
+            "user_id": user_id,
+            "entries": {
+                "assets": [],
+                "liabilities": [],
+                "income": [],
+                "expenses": []
+            },
+            "summary": {
+                "total_entries": 0,
+                "total_assets": 0.0,
+                "total_liabilities": 0.0,
+                "net_worth": 0.0
+            },
+            "message": "No financial data found. Please add your financial information.",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
     
     # Group entries by category
     grouped_entries = {
@@ -1820,10 +1834,22 @@ def get_live_financial_summary(
     ).all()
     
     if not entries:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No financial data found for user"
-        )
+        # Return empty data structure instead of 404
+        return {
+            "user_id": user_id,
+            "summary": {
+                "total_assets": 0.0,
+                "total_liabilities": 0.0,
+                "net_worth": 0.0,
+                "liquid_assets": 0.0,
+                "investment_assets": 0.0,
+                "retirement_assets": 0.0,
+                "real_estate_assets": 0.0
+            },
+            "entries_count": 0,
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "message": "No financial data found. Please add your financial information."
+        }
     
     # Calculate totals from ACTUAL entries
     total_assets = sum(
