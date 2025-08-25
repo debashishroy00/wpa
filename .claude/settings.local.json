@@ -92,7 +92,13 @@
       "Bash(./venv/bin/pip list)",
       "Bash(timeout 10s docker run -p 8000:8000 wpa-final-test)",
       "Bash(timeout 10s docker run -p 8001:8000 wpa-final-clean)",
-      "Bash(time curl:*)"
+      "Bash(time curl:*)",
+      "Bash(/mnt/c/projects/wpa/test_production_auth.sh)",
+      "Bash(./venv/bin/pip install python-jose[cryptography] passlib[bcrypt])",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

@@ -84,13 +84,13 @@ function App() {
         } catch (authErr) {
           console.log('❌ Auth check failed:', authErr)
           console.log('🔄 Stored tokens invalid or expired, attempting auto-login...')
-          // User not logged in, try auto-login with test account for development
-          if (import.meta.env.MODE === 'development') {
+          // User not logged in - no auto-login (removed hardcoded credentials for security)
+          console.log('❌ User not authenticated - please login manually')
+          if (false) { // Disabled auto-login for security
             try {
-              console.log('Auto-logging in with test account...')
+              console.log('Auto-login disabled for security')
               const formData = new FormData()
-              formData.append('username', 'debashishroy@gmail.com')
-              formData.append('password', 'password123')
+              // SECURITY: Removed hardcoded credentials
               
               const response = await fetch('http://localhost:8000/api/v1/auth/login', {
                 method: 'POST',
