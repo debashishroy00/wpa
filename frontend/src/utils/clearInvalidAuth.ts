@@ -30,6 +30,9 @@ export const clearAllAuthData = () => {
   }
   
   console.log('✅ All authentication data cleared');
+  
+  // Dispatch custom event to notify AuthWrapper components
+  window.dispatchEvent(new CustomEvent('authCleared'));
 };
 
 // Auto-clear if page has clearAuth parameter

@@ -49,7 +49,31 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children, fallback }) => {
       }
     };
     
+    // Check initially
     checkTokenValidity();
+    
+    // Listen for localStorage changes (including from other tabs/scripts)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'access_token' || e.key === 'auth_tokens' || e.key === null) {
+        console.log('📡 AuthWrapper: Storage changed, re-checking auth...');
+        // Small delay to ensure all clearing is complete
+        setTimeout(checkTokenValidity, 100);
+      }
+    };
+    
+    // Listen for custom auth clearing events
+    const handleAuthCleared = () => {
+      console.log('🔄 AuthWrapper: Auth cleared event received');
+      setIsValid(false);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('authCleared', handleAuthCleared);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authCleared', handleAuthCleared);
+    };
   }, []);
   
   // Still checking token validity
