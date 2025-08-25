@@ -7,18 +7,36 @@ import { AuthTokens, ApiError } from '../types';
 
 // Smart API URL detection based on environment
 const getApiBaseUrl = () => {
+  // Log environment detection for debugging
+  console.log('Environment detection:', {
+    hostname: window.location.hostname,
+    env_var: import.meta.env.VITE_API_BASE_URL,
+    mode: import.meta.env.MODE,
+    prod: import.meta.env.PROD
+  });
+  
   // Check if we have an environment variable set
   if (import.meta.env.VITE_API_BASE_URL) {
+    console.log('Using ENV variable:', import.meta.env.VITE_API_BASE_URL);
     return import.meta.env.VITE_API_BASE_URL;
   }
   
   // Check if we're in development (localhost)
   if (window.location.hostname === 'localhost' || 
       window.location.hostname === '127.0.0.1') {
+    console.log('Detected localhost - using local backend');
     return 'http://localhost:8000';  // Use local backend
   }
   
+  // Check for Vercel deployment (wpa-dusky.vercel.app or any vercel.app domain)
+  if (window.location.hostname.includes('vercel.app') || 
+      window.location.hostname === 'wpa-dusky.vercel.app') {
+    console.log('Detected Vercel deployment - using production backend');
+    return 'https://wealthpath-backend.onrender.com';
+  }
+  
   // Default to production backend for any other domain
+  console.log('Using default production backend');
   return 'https://wealthpath-backend.onrender.com';
 };
 
@@ -138,7 +156,7 @@ if (typeof window !== 'undefined') {
   (window as any).quickLogin = async (username, password) => {
     if (!username || !password) {
       console.log('Usage: window.quickLogin("your-email@domain.com", "your-password")');
-      console.log('Example: window.quickLogin("debashishroy@gmail.com", "password123")');
+      console.log('Example: window.quickLogin("your-email@example.com", "your-password")');
       return;
     }
     
@@ -174,7 +192,7 @@ if (typeof window !== 'undefined') {
   (window as any).clearAndLogin = async (username, password) => {
     if (!username || !password) {
       console.log('Usage: window.clearAndLogin("your-email@domain.com", "your-password")');
-      console.log('Example: window.clearAndLogin("debashishroy@gmail.com", "password123")');
+      console.log('Example: window.clearAndLogin("your-email@example.com", "your-password")');
       return;
     }
     
