@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 // Utilities
 import { apiClient } from './utils/api-simple' // Use simplified API client
 import { useAuthStore } from './stores/auth-store'
+import './utils/clearInvalidAuth' // Auto-clear invalid auth on load
 // REMOVED: import './utils/emergencyAuthReset' // Commenting out to avoid interference
 
 // Components
