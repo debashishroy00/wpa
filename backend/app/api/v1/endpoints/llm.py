@@ -92,6 +92,19 @@ async def generate_content(request: LLMRequest) -> LLMResponse:
                 detail=f"Provider '{request.provider}' not available"
             )
         
+        # CRITICAL SAFETY CHECK: Prevent expense breakdown fabrication
+        if "expense" in request.user_prompt.lower() and "show me" in request.user_prompt.lower():
+            logger.warning("Blocked request that could lead to expense fabrication")
+            return LLMResponse(
+                provider=request.provider,
+                model=request.model_tier or "safety",
+                content="I cannot provide detailed expense breakdowns unless I have your actual financial data. Please use the financial dashboard to view your real expense categories.",
+                token_usage={"input_tokens": 10, "completion_tokens": 30, "total_tokens": 40},
+                cost=0.0,
+                generation_time=0.1,
+                metadata={"safety_block": True}
+            )
+        
         response = await llm_service.generate(request)
         return response
         

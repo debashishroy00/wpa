@@ -172,7 +172,7 @@ async def get_active_sessions(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    if current_user.email != "debashishroy@gmail.com":
+    if not verify_admin_access(current_user.email):
         raise HTTPException(status_code=403, detail="Admin access required")
     
     # For now, return basic session info
@@ -494,7 +494,7 @@ async def get_system_logs(
     level: str = "INFO",
     limit: int = 50
 ):
-    if current_user.email != "debashishroy@gmail.com":
+    if not verify_admin_access(current_user.email):
         raise HTTPException(status_code=403, detail="Admin access required")
     
     # Simple mock logs for now - in production you'd read from log files
@@ -537,7 +537,7 @@ async def get_system_logs(
 async def get_performance_metrics(
     current_user: User = Depends(get_current_active_user)
 ):
-    if current_user.email != "debashishroy@gmail.com":
+    if not verify_admin_access(current_user.email):
         raise HTTPException(status_code=403, detail="Admin access required")
     
     if PSUTIL_AVAILABLE:
@@ -578,7 +578,7 @@ async def get_data_integrity(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    if current_user.email != "debashishroy@gmail.com":
+    if not verify_admin_access(current_user.email):
         raise HTTPException(status_code=403, detail="Admin access required")
     
     try:

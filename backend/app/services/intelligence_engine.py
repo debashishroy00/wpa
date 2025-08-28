@@ -545,8 +545,8 @@ class IntelligenceEngine:
             mortgage_data = advisor_data.get('mortgage', {})
             if mortgage_data.get('interest_rate'):
                 current_rate = mortgage_data['interest_rate']
-                monthly_payment = mortgage_data.get('monthly_payment', 2824)
-                balance = mortgage_data.get('balance', 313026)
+                monthly_payment = mortgage_data.get('monthly_payment', 0)  # No hardcoded defaults
+                balance = mortgage_data.get('balance', 0)  # No hardcoded defaults
                 
                 # For rates above 5.8%, recommend refinancing first
                 if current_rate > 5.8:

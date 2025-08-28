@@ -13,6 +13,7 @@ from uuid import uuid4, UUID
 from app.db.session import get_db
 from app.models.user import User
 from app.models.goals_v2 import Goal, UserPreferences
+from app.utils.safe_conversion import safe_float
 from app.models.financial import FinancialEntry, NetWorthSnapshot
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.services.intelligence_engine import (
@@ -448,9 +449,10 @@ def _get_advisor_data(db: Session, user_id: int) -> Dict:
             
         # Check for 401k entries
         elif '401k' in entry.description.lower() and entry.category == 'assets':
-            if not advisor_data["retirement"] or float(entry.amount) > advisor_data["retirement"].get("balance", 0):
+            entry_amount = safe_float(entry.amount, 0.0)
+            if not advisor_data["retirement"] or entry_amount > advisor_data["retirement"].get("balance", 0):
                 advisor_data["retirement"] = {
-                    "balance": float(entry.amount),
+                    "balance": entry_amount,
                     "contribution_percent": details.get('contribution_percent'),
                     "employer_match": details.get('employer_match'),
                     "employer_match_limit": details.get('employer_match_limit'),
@@ -461,9 +463,10 @@ def _get_advisor_data(db: Session, user_id: int) -> Dict:
             
         # Check for investment accounts
         elif entry.category == 'assets' and ('investment' in entry.description.lower() or 'mutual' in entry.description.lower() or 'etf' in entry.description.lower()):
-            if not advisor_data["investments"] or float(entry.amount) > advisor_data["investments"].get("balance", 0):
+            entry_amount = safe_float(entry.amount, 0.0)
+            if not advisor_data["investments"] or entry_amount > advisor_data["investments"].get("balance", 0):
                 advisor_data["investments"] = {
-                    "balance": float(entry.amount),
+                    "balance": entry_amount,
                     "stocks_percent": details.get('stocks_percent'),
                     "bonds_percent": details.get('bonds_percent'),
                     "average_expense_ratio": details.get('average_expense_ratio'),

@@ -59,7 +59,8 @@ async def get_vector_contents(
         # Get all documents for this user
         documents = []
         for doc_id, doc in vector_store.documents.items():
-            if doc.metadata.get("user_id") == str(user_id):
+            metadata_user_id = doc.metadata.get("user_id")
+            if metadata_user_id == user_id or metadata_user_id == str(user_id):
                 documents.append({
                     "id": doc.doc_id,
                     "content": doc.content[:500] + "..." if len(doc.content) > 500 else doc.content,
@@ -116,9 +117,10 @@ async def get_last_llm_payload(
                 "last_check": datetime.utcnow().isoformat()
             }
         
-        # Calculate sizes and analyze content
-        system_prompt = payload.get("system_prompt", "")
-        user_message = payload.get("user_message", "")
+        # Calculate sizes and analyze content - extract from request sub-object
+        request_data = payload.get("request", {})
+        system_prompt = request_data.get("system_prompt", "")
+        user_message = request_data.get("user_message", "")
         
         analysis = {
             "has_goals": "goal" in system_prompt.lower() or "retirement" in system_prompt.lower(),
@@ -138,12 +140,12 @@ async def get_last_llm_payload(
         return {
             "status": "success",
             "user_id": user_id,
-            "query": payload.get("query", ""),
+            "query": user_message,  # Use extracted user message
             "timestamp": payload.get("timestamp", ""),
-            "provider": payload.get("provider", ""),
+            "provider": request_data.get("provider", ""),
             "system_prompt": system_prompt,
             "user_message": user_message,
-            "context_used": payload.get("context_used", ""),
+            "context_used": request_data.get("context", ""),
             "analysis": analysis,
             "raw_payload": payload
         }

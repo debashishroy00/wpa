@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from .simple_vector_store import get_vector_store, SimpleDocument
-from .smart_context_selector import get_context_selector
+# Smart context selector removed - using simplified context
 
 
 @dataclass
@@ -42,7 +42,7 @@ class KnowledgeBaseService:
     def __init__(self, kb_path: str = None):
         self.kb_path = kb_path or "/mnt/c/projects/wpa/backend/knowledge_base" 
         self.vector_store = get_vector_store()
-        self.context_selector = get_context_selector()
+        # Context selector removed - using simplified filtering
         self.document_map: Dict[str, KBDocument] = {}
         
         # Load documents from file system if needed
@@ -171,7 +171,8 @@ class KnowledgeBaseService:
         """Search knowledge base using simple vector store and smart context selection"""
         
         # Get smart filtering recommendations
-        filter_recommendations = self.context_selector.get_relevant_document_filters(query)
+        # Context selector removed - using simple filtering
+        filter_recommendations = {}
         
         try:
             # First try text search

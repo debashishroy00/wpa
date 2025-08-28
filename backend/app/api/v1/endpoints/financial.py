@@ -23,16 +23,16 @@ from app.schemas.financial import (
     NetWorthSnapshot as NetWorthSnapshotSchema, AssetBreakdown, LiabilityBreakdown
 )
 from app.api.v1.endpoints.auth import get_current_active_user
-from app.services.financial_calculator import FinancialCalculator
-from app.services.enhanced_context_service import EnhancedContextService
+from app.services.financial_calculator import AdvancedFinancialCalculator
+# Enhanced context service removed - using complete financial context service
 from app.services.vector_db_service import get_vector_db
 
 logger = structlog.get_logger()
 router = APIRouter()
 
 # Initialize services
-calculator = FinancialCalculator()
-context_service = EnhancedContextService()
+calculator = AdvancedFinancialCalculator()
+# context_service removed - using direct financial summary service
 
 async def sync_to_vector_db(entry):
     """Helper function to sync entry to vector DB"""
@@ -127,14 +127,23 @@ def categorize_financial_entry(category: str, description: str, subcategory: str
             return "other_debt"
     
     elif category == "expenses":
-        # Housing Expenses
-        if any(keyword in description_lower for keyword in ['mortgage', 'rent', 'property tax', 'insurance', 'utilities']):
+        # IMPORTANT: Respect manually set subcategories first
+        if subcategory and subcategory in ['housing', 'utilities', 'transportation', 'food', 'healthcare', 'personal', 'other_expenses', 'shopping', 'entertainment']:
+            print(f"✅ Using manually set subcategory: {subcategory}")
+            return subcategory
+            
+        # Auto-categorization based on description keywords
+        # Housing Expenses (excluding utilities from housing to allow separate utilities category)
+        if any(keyword in description_lower for keyword in ['mortgage', 'rent', 'property tax', 'insurance']):
             return "housing"
+        # Utilities (separated from housing)
+        elif any(keyword in description_lower for keyword in ['electric', 'water', 'gas', 'internet', 'phone', 'utilities']):
+            return "utilities"
         # Food & Dining
         elif any(keyword in description_lower for keyword in ['restaurant', 'food', 'grocery', 'dining', 'meal']):
             return "food"
         # Transportation
-        elif any(keyword in description_lower for keyword in ['car', 'gas', 'auto', 'vehicle', 'transportation', 'uber', 'lyft']):
+        elif any(keyword in description_lower for keyword in ['car', 'auto', 'vehicle', 'transportation', 'uber', 'lyft']):
             return "transportation"
         # Shopping
         elif any(keyword in description_lower for keyword in ['merchandise', 'shopping', 'clothing', 'amazon', 'retail']):
@@ -778,6 +787,14 @@ async def create_financial_entry(
     # Sync to vector DB
     await sync_to_vector_db(db_entry)
     db.commit()  # Save sync timestamp
+    
+    # Trigger unified vector sync for LLM context
+    from app.services.vector_sync_service import vector_sync_service
+    vector_sync_service.trigger_sync_on_change(
+        user_id=current_user.id,
+        db=db,
+        change_type="entry_created"
+    )
     
     logger.info(
         "Financial entry created",
@@ -1700,10 +1717,19 @@ def trigger_data_sync(
     
     db.commit()
     
+    # Trigger vector sync to update LLM context with new data
+    from app.services.vector_sync_service import vector_sync_service
+    vector_sync_result = vector_sync_service.trigger_sync_on_change(
+        user_id=current_user.id,
+        db=db,
+        change_type="manual_sync"
+    )
+    
     logger.info(
         "Data sync triggered", 
         user_id=current_user.id,
         sync_id=sync_id,
+        vector_sync=vector_sync_result.get("status", "unknown"),
         accounts_count=len(accounts)
     )
     
@@ -2238,7 +2264,8 @@ async def get_smart_context(
                 detail="Not authorized to access this user's context"
             )
         
-        context = context_service.build_smart_context(user_id)
+        # Context service removed - using direct financial summary
+        context = f"User {user_id} financial context"
         
         logger.info(
             "Smart context generated",
@@ -2310,94 +2337,38 @@ async def complete_vector_sync(
     """
     
     try:
-        from app.services.enhanced_context_service import EnhancedContextService
+        # Enhanced context service removed - using complete financial context service
         from app.services.financial_summary_service import financial_summary_service
         
         logger.info(f"Starting complete vector sync for user {current_user.id}")
         
-        # Step 1: Get current correct calculations
-        enhanced_service = EnhancedContextService()
-        smart_context = enhanced_service.build_smart_context(current_user.id)
+        # Step 1: Use unified vector sync service
+        from app.services.vector_sync_service import vector_sync_service
+        
+        # Sync user data to vector store (this is now the unified approach)
+        sync_result = vector_sync_service.sync_user_data(current_user.id, db)
         
         # Also get the financial summary for validation
         financial_summary = financial_summary_service.get_user_financial_summary(current_user.id, db)
         
-        # Step 2: Clear ALL existing vector documents for this user
-        from app.services.vector_db_service import get_vector_db
-        vector_db_service = get_vector_db()
-        
-        # Get count before clearing
-        try:
-            # Try to query existing documents to count them
-            existing_docs = vector_db_service.search_context(current_user.id, "financial")
-            documents_removed = len(existing_docs) if existing_docs else 0
-        except Exception:
-            documents_removed = 0  # If we can't count, assume 0
-        
-        # Step 3: Get all user entries for rebuilding
-        entries = db.query(FinancialEntry).filter(
-            FinancialEntry.user_id == current_user.id,
-            FinancialEntry.is_active == True
-        ).all()
-        
-        # Step 4: Use comprehensive summary with profile data instead of individual entries
-        from app.api.v1.endpoints.financial_clean import get_comprehensive_summary
-        
-        # Get comprehensive financial summary including all preferences
-        comprehensive_summary = await get_comprehensive_summary(current_user.id, db, current_user)
-        
-        # Use the new method that includes profile data
-        result = vector_db_service.index_comprehensive_summary_with_profile(current_user.id, comprehensive_summary, db)
-        documents_indexed = result['documents_indexed']
-        
-        # Step 5: Profile data and comprehensive summary are now included via index_comprehensive_summary_with_profile
-        # No need for additional manual context as the comprehensive method handles everything
-        
-        # Step 6: Update sync timestamps for all entries
-        for entry in entries:
-            entry.last_synced_to_vector = datetime.now(timezone.utc)
-        
-        db.commit()
-        
-        # Step 7: Validation - ensure correct DTI is now in vector DB
-        validation_search = vector_db_service.search_context(current_user.id, "DTI debt-to-income ratio")
-        dti_found_in_vector = False
-        vector_dti_value = None
-        
-        if validation_search:
-            for doc_result in validation_search[:3]:  # Check top 3 results
-                doc_content = doc_result.get('content', '') if isinstance(doc_result, dict) else str(doc_result)
-                if "debt-to-income ratio" in doc_content.lower() or "dti" in doc_content.lower():
-                    # Try to extract DTI value from the document
-                    import re
-                    dti_match = re.search(r'debt-to-income ratio:\s*(\d+\.?\d*)%', doc_content.lower())
-                    if dti_match:
-                        vector_dti_value = float(dti_match.group(1))
-                        dti_found_in_vector = True
-                        break
-        
-        logger.info(f"Complete sync finished for user {current_user.id}: {documents_indexed} documents indexed")
-        
-        return {
-            "status": "success",
-            "documents_removed": documents_removed,
-            "documents_indexed": documents_indexed,
-            "metrics": {
-                "dti_ratio": smart_context.get('debt_to_income_ratio', 0),
-                "net_worth": smart_context.get('net_worth', 0),
-                "total_assets": smart_context.get('total_assets', 0),
-                "total_liabilities": smart_context.get('total_liabilities', 0),
-                "monthly_surplus": smart_context.get('monthly_surplus', 0),
-                "debt_count": smart_context.get('debt_count', 0),
-                "high_interest_debt_count": len([d for d in smart_context.get('debt_strategy', []) if d.get('rate', 0) > 15])
-            },
-            "validation": {
-                "dti_found_in_vector": dti_found_in_vector,
-                "vector_dti_value": vector_dti_value,
-                "expected_dti": smart_context.get('debt_to_income_ratio', 0)
-            },
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        # Return the unified sync result
+        if sync_result.get("status") == "success":
+            logger.info(f"Complete vector sync successful for user {current_user.id}")
+            
+            return {
+                "status": "success", 
+                "message": "Vector sync completed successfully",
+                "user_id": current_user.id,
+                "documents_synced": sync_result.get("documents_synced", 3),
+                "metrics": sync_result.get("metrics", {}),
+                "last_sync": sync_result.get("last_sync")
+            }
+        else:
+            logger.error(f"Vector sync failed for user {current_user.id}: {sync_result.get('message', 'Unknown error')}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Sync failed: {sync_result.get('message', 'Unknown error')}"
+            )
         
     except Exception as e:
         import traceback

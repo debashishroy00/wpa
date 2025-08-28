@@ -280,3 +280,6 @@ def reset_vector_store():
     """Reset the global instance (useful for testing)"""
     global _vector_store_instance
     _vector_store_instance = None
+
+# Create global instance for easy access
+simple_vector_store = get_vector_store()

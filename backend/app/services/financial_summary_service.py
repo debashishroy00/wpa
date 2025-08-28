@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from decimal import Decimal
 import logging
 from ..models.financial import FinancialEntry, EntryCategory, FrequencyType
+from ..utils.safe_conversion import safe_float
 
 logger = logging.getLogger(__name__)
 
@@ -41,27 +42,27 @@ class FinancialSummaryService:
             
             for entry in entries:
                 if entry.category == EntryCategory.assets:
-                    subcategory = entry.subcategory or ('real_estate' if float(entry.amount) > 100000 else 'other_assets')
+                    subcategory = entry.subcategory or ('real_estate' if safe_float(entry.amount, 0) > 100000 else 'other_assets')
                     if subcategory not in assets_by_category:
                         assets_by_category[subcategory] = []
                     assets_by_category[subcategory].append({
                         "name": entry.description,
-                        "value": float(entry.amount),
+                        "value": safe_float(entry.amount, 0),
                         "subcategory": subcategory
                     })
                 elif entry.category == EntryCategory.liabilities:
                     liability_data = {
                         "name": entry.description,
-                        "balance": float(entry.amount),
+                        "balance": safe_float(entry.amount, 0),
                         "subcategory": entry.subcategory or 'other_debt',
                         "type": entry.subcategory or 'debt'
                     }
                     
                     # Add enhanced liability details if available
                     if entry.interest_rate is not None:
-                        liability_data["interest_rate"] = float(entry.interest_rate)
+                        liability_data["interest_rate"] = safe_float(entry.interest_rate, 0)
                     if entry.minimum_payment is not None:
-                        liability_data["minimum_payment"] = float(entry.minimum_payment)
+                        liability_data["minimum_payment"] = safe_float(entry.minimum_payment, 0)
                     
                     liabilities.append(liability_data)
                 elif entry.category == EntryCategory.income:
@@ -98,8 +99,8 @@ class FinancialSummaryService:
             # Income sources: employment + rental + investment_income + other
             # Expense categories: all tracked monthly expenses
             # Note: Calculations are user-specific from financial_entries table
-            monthly_surplus = float(monthly_income - monthly_expenses)
-            savings_rate = (monthly_surplus / float(monthly_income)) * 100 if monthly_income > 0 else 0
+            monthly_surplus = safe_float(monthly_income - monthly_expenses, 0)
+            savings_rate = (monthly_surplus / safe_float(monthly_income, 1)) * 100 if monthly_income > 0 else 0
             
             # Log calculated values for verification
             logger.debug(f"User {user_id}: Net Worth=${net_worth:,.0f}, Monthly Surplus=${monthly_surplus:,.0f}, Savings Rate={savings_rate:.1f}%")
@@ -108,15 +109,15 @@ class FinancialSummaryService:
             monthly_debt_payments = self._calculate_monthly_debt_payments(entries, user_id)
             
             # Calculate debt-to-income ratio
-            debt_to_income_ratio = (monthly_debt_payments / float(monthly_income)) * 100 if monthly_income > 0 else 0
+            debt_to_income_ratio = (monthly_debt_payments / safe_float(monthly_income, 1)) * 100 if monthly_income > 0 else 0
             
             # Build summary
             summary = {
-                'netWorth': float(net_worth),
-                'totalAssets': float(total_assets),
-                'totalLiabilities': float(total_liabilities),
-                'monthlyIncome': float(monthly_income),
-                'monthlyExpenses': float(monthly_expenses),
+                'netWorth': safe_float(net_worth, 0),
+                'totalAssets': safe_float(total_assets, 0),
+                'totalLiabilities': safe_float(total_liabilities, 0),
+                'monthlyIncome': safe_float(monthly_income, 0),
+                'monthlyExpenses': safe_float(monthly_expenses, 0),
                 'monthlySurplus': monthly_surplus,
                 'monthlyDebtPayments': monthly_debt_payments,
                 'debtToIncomeRatio': debt_to_income_ratio,
@@ -142,7 +143,7 @@ class FinancialSummaryService:
         # Group by balance to avoid duplicates, keep the one with highest minimum payment
         unique_liabilities = {}
         for liability in liabilities:
-            balance_key = float(liability.amount)
+            balance_key = safe_float(liability.amount, 0)
             if balance_key not in unique_liabilities:
                 unique_liabilities[balance_key] = liability
             else:
@@ -153,49 +154,62 @@ class FinancialSummaryService:
         
         for liability in unique_liabilities.values():
             if liability.minimum_payment and liability.minimum_payment > 0:
-                frequency = liability.frequency if liability.frequency else FrequencyType.monthly
-                amount = Decimal(str(liability.minimum_payment))
+                # Exclude housing-related liabilities from DTI calculation
+                is_housing = ('mortgage' in liability.description.lower() or 
+                             'home loan' in liability.description.lower() or
+                             'home' in liability.description.lower())
                 
-                # Convert to monthly - treat 'one_time' as monthly for minimum payments
-                if frequency in [FrequencyType.monthly, FrequencyType.one_time]:
-                    monthly_debt_total += amount
-                elif frequency == FrequencyType.annually:
-                    monthly_debt_total += amount / 12
-                elif frequency == FrequencyType.quarterly:
-                    monthly_debt_total += amount / 3
-                elif frequency == FrequencyType.weekly:
-                    monthly_debt_total += amount * Decimal('4.33')  # Average weeks per month
-                elif frequency == FrequencyType.daily:
-                    monthly_debt_total += amount * 30
-        
-        # Method 2: If no minimum payments, look for debt payment expenses
-        if monthly_debt_total == 0:
-            expenses = [e for e in entries if e.category == EntryCategory.expenses]
-            debt_payment_keywords = [
-                'mortgage', 'home loan', 'credit card', 'loan payment', 
-                'car payment', 'student loan', 'debt payment', 'installment'
-            ]
-            
-            for expense in expenses:
-                expense_desc_lower = expense.description.lower()
-                if any(keyword in expense_desc_lower for keyword in debt_payment_keywords):
-                    frequency = expense.frequency if expense.frequency else FrequencyType.monthly
-                    amount = Decimal(str(expense.amount))
+                if not is_housing:
+                    frequency = liability.frequency if liability.frequency else FrequencyType.monthly
+                    amount = Decimal(str(liability.minimum_payment))
                     
-                    # Convert to monthly
-                    if frequency == FrequencyType.monthly:
+                    # Convert to monthly - treat 'one_time' as monthly for minimum payments
+                    if frequency in [FrequencyType.monthly, FrequencyType.one_time]:
                         monthly_debt_total += amount
                     elif frequency == FrequencyType.annually:
                         monthly_debt_total += amount / 12
                     elif frequency == FrequencyType.quarterly:
                         monthly_debt_total += amount / 3
                     elif frequency == FrequencyType.weekly:
-                        monthly_debt_total += amount * Decimal('4.33')
+                        monthly_debt_total += amount * Decimal('4.33')  # Average weeks per month
                     elif frequency == FrequencyType.daily:
                         monthly_debt_total += amount * 30
         
+        # Method 2: Look for non-housing debt payment expenses 
+        # EXCLUDE mortgage/housing payments from DTI calculation (they're housing expenses, not debt)
+        expenses = [e for e in entries if e.category == EntryCategory.expenses]
+        debt_payment_keywords = [
+            'credit card', 'loan payment', 'car payment', 'student loan', 
+            'debt payment', 'installment', 'personal loan'
+        ]
+        # Explicitly exclude housing-related payments from DTI
+        housing_keywords = ['mortgage', 'home loan', 'property tax', 'rent', 'hoa']
+        
+        for expense in expenses:
+            expense_desc_lower = expense.description.lower()
+            # Only include if it's a debt keyword AND not a housing keyword
+            is_debt_payment = any(keyword in expense_desc_lower for keyword in debt_payment_keywords)
+            is_housing_payment = any(keyword in expense_desc_lower for keyword in housing_keywords)
+            
+            if is_debt_payment and not is_housing_payment:
+                frequency = expense.frequency if expense.frequency else FrequencyType.monthly
+                amount = Decimal(str(expense.amount))
+                
+                # Convert to monthly
+                if frequency == FrequencyType.monthly:
+                    monthly_debt_total += amount
+                elif frequency == FrequencyType.annually:
+                    monthly_debt_total += amount / 12
+                elif frequency == FrequencyType.quarterly:
+                    monthly_debt_total += amount / 3
+                elif frequency == FrequencyType.weekly:
+                    monthly_debt_total += amount * Decimal('4.33')
+                elif frequency == FrequencyType.daily:
+                    monthly_debt_total += amount * 30
+        
         logger.info(f"Calculated monthly debt payments for user {user_id}: ${monthly_debt_total}")
-        return float(monthly_debt_total)
+        logger.debug(f"DEBUG: Debt calculation details - Method 1 liabilities: {len(unique_liabilities)}, Method 2 expenses checked")
+        return safe_float(monthly_debt_total, 0)
 
 
 # Global instance

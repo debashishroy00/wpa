@@ -205,8 +205,8 @@ async def get_smart_recommendations(
                     new_interest_portion = balance * (potential_rate / 100 / 12)
                     monthly_savings = current_interest_portion - new_interest_portion
                 else:
-                    # Fallback calculation
-                    monthly_savings = (monthly_payment or 2264) * ((current_rate - potential_rate) / current_rate) * 0.7
+                    # No fallback hardcoded values - use only real data
+                    monthly_savings = monthly_payment * ((current_rate - potential_rate) / current_rate) * 0.7 if monthly_payment else 0
                 
                 recommendations.append(SmartRecommendation(
                     id="refinance-mortgage",

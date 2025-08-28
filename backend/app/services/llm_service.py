@@ -69,7 +69,8 @@ class NumberValidator:
         
         for number_str in numbers:
             try:
-                number = float(number_str.replace(',', ''))
+                from ..utils.safe_conversion import safe_float
+                number = safe_float(number_str.replace(',', ''), 0)
                 validation = self._validate_single_number(number, source_data)
                 if validation:
                     validations.append(validation)

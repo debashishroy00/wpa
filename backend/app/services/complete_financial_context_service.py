@@ -8,6 +8,7 @@ from typing import Dict, List, Any
 from sqlalchemy.orm import Session
 import logging
 from decimal import Decimal
+from ..utils.safe_conversion import safe_float
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,8 @@ class CompleteFinancialContextService:
         """
         Build the complete financial context that includes EVERYTHING
         
-        This is the definitive financial picture - no more partial data!
+        IMPORTANT: This service only provides REAL data from database.
+        Never includes fabricated expense breakdowns or hardcoded values.
         """
         try:
             # Get complete financial data
@@ -205,6 +207,20 @@ Example:
             if 'error' in summary:
                 return {'error': summary['error']}
             
+            # USER DATA VALIDATION: Ensure we have the correct user's data
+            # Check for the specific user scenario mentioned in the audit
+            portfolio_value = summary.get('totalAssets', 0)
+            monthly_income = summary.get('monthlyIncome', 0)
+            net_worth = summary.get('netWorth', 0)
+            
+            # Log the data we're using for this user (for validation)
+            logger.info(f"User {user_id} financial data: Portfolio=${portfolio_value:,.0f}, Income=${monthly_income:,.0f}, NetWorth=${net_worth:,.0f}")
+            
+            # Ensure we're not returning empty or obviously wrong data
+            if portfolio_value == 0 and monthly_income == 0 and net_worth == 0:
+                logger.warning(f"User {user_id} has no financial data - may be data isolation issue")
+                return {'error': 'No financial data found for user'}
+            
             # Get user info
             user = db.query(User).filter(User.id == user_id).first()
             profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
@@ -223,7 +239,7 @@ Example:
             retirement_age_target = 65  # Default
             
             if retirement_goals:
-                retirement_goal = max(float(goal.target_amount) for goal in retirement_goals)
+                retirement_goal = max(safe_float(goal.target_amount, 0) for goal in retirement_goals)
                 # Use actual target date from goal, not hardcoded age
                 for goal in retirement_goals:
                     if goal.target_date:
@@ -334,7 +350,7 @@ Example:
                 ).first()
                 
                 if ss_benefits:
-                    social_security_monthly = float(ss_benefits.estimated_monthly_benefit or 0)
+                    social_security_monthly = safe_float(ss_benefits.estimated_monthly_benefit, 0)
                     social_security_annual = social_security_monthly * 12
                     social_security_age = ss_benefits.full_retirement_age or 67
             except Exception as e:
@@ -356,9 +372,9 @@ Example:
                 ).order_by(UserTaxInfo.tax_year.desc()).first()
                 
                 if tax_info:
-                    tax_bracket = float(tax_info.federal_tax_bracket) if tax_info.federal_tax_bracket else None
+                    tax_bracket = safe_float(tax_info.federal_tax_bracket, 0) if tax_info.federal_tax_bracket else None
                     filing_status = tax_info.filing_status or "Unknown"
-                    state_tax_rate = float(tax_info.state_tax_bracket) if tax_info.state_tax_bracket else None
+                    state_tax_rate = safe_float(tax_info.state_tax_bracket, 0) if tax_info.state_tax_bracket else None
             except Exception as e:
                 logger.warning(f"Could not retrieve tax information: {str(e)}")
             
@@ -497,13 +513,13 @@ Example:
                         # Find matching entry by name and amount
                         entry = db_session.query(FinancialEntry).filter(
                             FinancialEntry.description == name,
-                            FinancialEntry.amount == float(value),
+                            FinancialEntry.amount == safe_float(value, 0),
                             FinancialEntry.subcategory == 'cash_bank_accounts',
                             FinancialEntry.is_active == True
                         ).first()
                         
                         if entry and entry.interest_rate:
-                            interest_rate = float(entry.interest_rate)
+                            interest_rate = safe_float(entry.interest_rate, 0)
                             
                         db_session.close()
                     except Exception as e:
@@ -566,13 +582,13 @@ Example:
                         # Find matching entry by name and amount
                         entry = db_session.query(FinancialEntry).filter(
                             FinancialEntry.description == name,
-                            FinancialEntry.amount == float(value),
+                            FinancialEntry.amount == safe_float(value, 0),
                             FinancialEntry.subcategory == 'cash_bank_accounts',
                             FinancialEntry.is_active == True
                         ).first()
                         
                         if entry and entry.interest_rate:
-                            interest_rate = float(entry.interest_rate)
+                            interest_rate = safe_float(entry.interest_rate, 0)
                             
                         db_session.close()
                     except Exception as e:

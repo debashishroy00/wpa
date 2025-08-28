@@ -3630,16 +3630,36 @@ const CurrentStateStep: React.FC<CurrentStateStepProps> = ({ onNext, manualEntri
             Expenses ({formatCurrency(financialSummary.categorized_data?.totals.monthly_expenses || 0)}/month)
           </h3>
           {financialSummary.categorized_data && 
-           Object.values(financialSummary.categorized_data.categories.expenses).some((items: any) => items.length > 0) ?
-            Object.entries({
-              'Housing': financialSummary.categorized_data.categories.expenses.housing,
-              'Food & Dining': financialSummary.categorized_data.categories.expenses.food,
-              'Transportation': financialSummary.categorized_data.categories.expenses.transportation,
-              'Shopping': financialSummary.categorized_data.categories.expenses.shopping,
-              'Healthcare': financialSummary.categorized_data.categories.expenses.healthcare,
-              'Entertainment': financialSummary.categorized_data.categories.expenses.entertainment,
-              'Other Expenses': financialSummary.categorized_data.categories.expenses.other
-            }).filter(([name, items]) => items.length > 0).map(([categoryName, items], index) => (
+           Object.values(financialSummary.categorized_data.categories.expenses).some((items: any) => items && items.length > 0) ?
+            (() => {
+              const otherEntries = financialSummary.categorized_data.categories.expenses.other || [];
+              
+              // Split 'other' category into Utilities and Personal based on descriptions
+              const utilitiesEntries = otherEntries.filter((entry: any) => 
+                entry.description.toLowerCase().includes('water') || 
+                entry.description.toLowerCase().includes('utilities') ||
+                entry.description.toLowerCase().includes('electric') ||
+                entry.description.toLowerCase().includes('gas') ||
+                entry.description.toLowerCase().includes('internet') ||
+                entry.description.toLowerCase().includes('phone')
+              );
+              
+              const personalEntries = otherEntries.filter((entry: any) => 
+                entry.description.toLowerCase().includes('merchandise') || 
+                entry.description.toLowerCase().includes('entertainment') ||
+                entry.description.toLowerCase().includes('shopping') ||
+                entry.description.toLowerCase().includes('general')
+              );
+              
+              return Object.entries({
+                'Housing': financialSummary.categorized_data.categories.expenses.housing || [],
+                'Utilities': utilitiesEntries,
+                'Transportation': financialSummary.categorized_data.categories.expenses.transportation || [],
+                'Food & Dining': financialSummary.categorized_data.categories.expenses.food || [],
+                'Healthcare': financialSummary.categorized_data.categories.expenses.healthcare || [],
+                'Personal': personalEntries
+              }).filter(([name, items]) => items && items.length > 0);
+            })().map(([categoryName, items], index) => (
               <div key={index} style={{ marginBottom: '15px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #2d2d4e' }}>
                   <span style={{ color: '#94a3b8', fontWeight: '600' }}>{categoryName}</span>

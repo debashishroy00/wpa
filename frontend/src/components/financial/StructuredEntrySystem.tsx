@@ -179,7 +179,7 @@ const StructuredEntrySystem: React.FC<StructuredEntrySystemProps> = ({
   onEditEntry
 }) => {
   const [activeTab, setActiveTab] = useState<EntryCategory>(EntryCategory.ASSETS);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Real Estate', 'Retirement Accounts']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   
   const { data: categorizedData, isLoading, refetch } = useCategorizedEntriesQuery();
   const deleteMutation = useDeleteFinancialEntryMutation();
@@ -189,6 +189,8 @@ const StructuredEntrySystem: React.FC<StructuredEntrySystemProps> = ({
   // Debug logging
   console.log('🏗️ StructuredEntrySystem - Categorized Data:', categorizedData);
   console.log('🏗️ StructuredEntrySystem - Asset Categories:', categorizedData?.categories?.assets);
+  console.log('🏗️ StructuredEntrySystem - Expense Categories:', categorizedData?.categories?.expenses);
+  console.log('🏗️ StructuredEntrySystem - Utilities Entries:', categorizedData?.categories?.expenses?.utilities);
   // Profile debug logging removed
 
   // Extract entries from the new backend categorized structure
@@ -296,8 +298,7 @@ const StructuredEntrySystem: React.FC<StructuredEntrySystemProps> = ({
           ...(expenseCategories.transportation || []),
           ...(expenseCategories.food || []),
           ...(expenseCategories.healthcare || []),
-          ...(expenseCategories.personal || []),
-          ...(expenseCategories.other_expenses || [])
+          ...(expenseCategories.personal || [])
         ];
         break;
       // Profile categories removed - handled by ProfileManagementPage

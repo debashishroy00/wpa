@@ -207,7 +207,18 @@ const FinancialAdvisorChat: React.FC = () => {
             return;
         }
 
-        const sessionId = `chat_${userId}_${Date.now()}`;
+        // Get or create persistent session ID for conversation memory
+        const persistentSessionKey = `current_session_${userId}`;
+        let sessionId = localStorage.getItem(persistentSessionKey);
+        
+        if (!sessionId) {
+            sessionId = `chat_${userId}_${Date.now()}`;
+            localStorage.setItem(persistentSessionKey, sessionId);
+            console.log('🆕 Created new persistent session for memory:', sessionId);
+        } else {
+            console.log('🔄 Using existing persistent session for memory:', sessionId);
+        }
+
         const session: ChatSession = {
             sessionId,
             userId,
@@ -311,11 +322,10 @@ const FinancialAdvisorChat: React.FC = () => {
         try {
             // Send message to backend
             const baseUrl = getApiBaseUrl();
-            // HOTFIX: Hardcode the URL to force production backend
-            const fullUrl = 'https://wealthpath-backend.onrender.com/api/v1/chat/message';
+            // Use the new chat-memory endpoint for conversation persistence
+            const fullUrl = `${baseUrl}/api/v1/chat-memory/message`;
             console.log('🔗 Chat API Base URL:', baseUrl);
-            console.log('🌐 Full Chat URL (HARDCODED):', fullUrl);
-            console.log('🚨 USING HARDCODED URL FOR DEBUGGING');
+            console.log('🌐 Full Chat URL (with memory):', fullUrl);
             
             const response = await fetch(fullUrl, {
                 method: 'POST',
@@ -419,6 +429,10 @@ const FinancialAdvisorChat: React.FC = () => {
         setMessages([]);
         if (currentSession) {
             localStorage.removeItem(`chat_session_${currentSession.sessionId}`);
+            // Clear persistent session to start fresh conversation memory
+            const persistentSessionKey = `current_session_${userId}`;
+            localStorage.removeItem(persistentSessionKey);
+            console.log('🗑️ Cleared persistent session for fresh conversation memory');
         }
         initializeChatSession();
     };

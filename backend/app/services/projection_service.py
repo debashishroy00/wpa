@@ -13,6 +13,7 @@ from dataclasses import dataclass
 import json
 from concurrent.futures import ThreadPoolExecutor
 import time
+from ..utils.safe_conversion import safe_float
 
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -584,20 +585,20 @@ class ComprehensiveProjectionService:
         for entry in entries:
             if entry.category == EntryCategory.assets:
                 category = self._categorize_asset(entry.description.lower())
-                assets[category] = assets.get(category, 0) + float(entry.amount)
+                assets[category] = assets.get(category, 0) + safe_float(entry.amount, 0.0)
             elif entry.category == EntryCategory.liabilities:
                 category = self._categorize_liability(entry.description.lower())
-                liabilities[category] = liabilities.get(category, 0) + float(entry.amount)
+                liabilities[category] = liabilities.get(category, 0) + safe_float(entry.amount, 0.0)
             elif entry.category == EntryCategory.income:
                 if entry.frequency.value == 'annually':
-                    annual_income += float(entry.amount)
+                    annual_income += safe_float(entry.amount, 0.0)
                 elif entry.frequency.value == 'monthly':
-                    annual_income += float(entry.amount) * 12
+                    annual_income += safe_float(entry.amount, 0.0) * 12
             elif entry.category == EntryCategory.expenses:
                 if entry.frequency.value == 'annually':
-                    annual_expenses += float(entry.amount)
+                    annual_expenses += safe_float(entry.amount, 0.0)
                 elif entry.frequency.value == 'monthly':
-                    annual_expenses += float(entry.amount) * 12
+                    annual_expenses += safe_float(entry.amount, 0.0) * 12
         
         total_assets = sum(assets.values())
         total_liabilities = sum(liabilities.values())

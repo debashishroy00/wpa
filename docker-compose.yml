@@ -69,6 +69,7 @@ services:
       - KNOWLEDGE_BASE_PATH=/app/knowledge_base
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
       - DISABLE_VECTOR_DB=false
+      - ADMIN_EMAILS=${ADMIN_EMAILS:-}
     volumes:
       - ./backend:/app
       - ./knowledge_base:/app/knowledge_base  # Mount knowledge base directory

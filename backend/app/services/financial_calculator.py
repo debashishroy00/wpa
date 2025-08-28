@@ -7,8 +7,8 @@ import math
 from decimal import Decimal, ROUND_HALF_UP
 
 
-class FinancialCalculator:
-    """Deterministic financial calculations for precise advice"""
+class AdvancedFinancialCalculator:
+    """Advanced financial calculations for complex scenarios and health scoring"""
     
     @staticmethod
     def calculate_financial_health_score(context: Dict) -> Dict:

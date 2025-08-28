@@ -185,10 +185,8 @@ async def get_comprehensive_summary(
         
         monthly_debt_payments = Decimal(str(mortgage_payment + credit_card_payment + other_debt_payment))
     
-    # Hardcoded fix for user_id=1 (known values)
-    if user_id == 1:
-        monthly_debt_payments = Decimal('2294')  # Known: Mortgage $2264 + CC minimums $30
-        logger.info(f"Applied hardcoded DTI fix for user_id=1: Monthly debt payments = ${monthly_debt_payments}")
+    # REMOVED: Hardcoded values were providing misleading financial data
+    # All debt payments must come from real user data only
     
     # Calculate DTI correctly using monthly debt payments
     debt_to_income_ratio = round((float(monthly_debt_payments) / float(monthly_income)) * 100, 1) if monthly_income > 0 else 0

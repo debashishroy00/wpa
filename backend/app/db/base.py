@@ -9,3 +9,4 @@ from app.models.financial import FinancialAccount, FinancialEntry, AccountBalanc
 from app.models.goal import FinancialGoal, GoalScenario, ActionPlan  # noqa
 from app.models.analytics import ModelPrediction, UserInteraction  # noqa
 from app.models.projection import ProjectionAssumptions, ProjectionSnapshot, ProjectionSensitivity  # noqa
+from app.models.chat import ChatSession, ChatMessage  # noqa
