@@ -35,7 +35,7 @@ class ChatIntelligence(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     # Relationships
-    user = relationship("User")
+    user = relationship("User", back_populates="chat_intelligence")
     
     def __repr__(self):
         return f"<ChatIntelligence(id={self.id}, user_id={self.user_id}, turns={self.conversation_turns}, topics={len(self.topics_discussed)})>"
