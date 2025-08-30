@@ -321,22 +321,13 @@ async def send_chat_message_with_memory(
                    primary_intent=primary_intent,
                    context_weight=context_weight)
         
-        # Step 2: VECTOR-BASED UNIFIED CONTEXT - Single data flow architecture
-        from app.services.vector_sync_service import vector_sync_service
-        
-        # Ensure vector store has current data
-        sync_result = vector_sync_service.sync_user_data(request.user_id, db)
-        
-        if sync_result.get("status") == "success":
-            logger.info(f"Vector sync successful - Metrics: {sync_result.get('metrics', {})}")
-        else:
-            logger.warning(f"Vector sync failed: {sync_result.get('message', 'Unknown error')}")
-        
-        # Get context from vector store (SINGLE source of truth)
-        foundation_context = vector_sync_service.get_user_context(
+        # Step 2: COMPLETE FINANCIAL CONTEXT - Use rich financial data instead of vector store
+        # Use complete financial context instead of vector store
+        context_service = CompleteFinancialContextService(db)
+        foundation_context = context_service.get_enhanced_context(
             user_id=request.user_id,
             query=request.message,
-            limit=3
+            insight_level=request.insight_level if hasattr(request, 'insight_level') else 'balanced'
         )
         
         # Add user question to context
