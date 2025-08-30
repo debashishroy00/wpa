@@ -311,11 +311,28 @@ const FinancialAdvisorChat: React.FC = () => {
         setMessages(updatedMessages);
 
         try {
-            // Send message to backend
+            // Send message to backend - use intelligent chat endpoint if enabled
             const baseUrl = getApiBaseUrl();
-            const fullUrl = `${baseUrl}/api/v1/chat/message`;
+            const endpoint = useIntelligentChat ? '/api/v1/chat/intelligent' : '/api/v1/chat/message';
+            const fullUrl = `${baseUrl}${endpoint}`;
             console.log('🔗 Chat API Base URL:', baseUrl);
             console.log('🌐 Full Chat URL:', fullUrl);
+            console.log('🧠 Using intelligent chat:', useIntelligentChat);
+            
+            const requestBody = useIntelligentChat ? {
+                message: content,
+                session_id: currentSession.sessionId,
+                provider: llmSettings.provider,
+                model_tier: llmSettings.modelTier
+            } : {
+                user_id: userId,
+                message: content,
+                session_id: currentSession.sessionId,
+                provider: llmSettings.provider,
+                model_tier: llmSettings.modelTier,
+                include_context: true,
+                insight_level: llmSettings.insightLevel || 'balanced'
+            };
             
             const response = await fetch(fullUrl, {
                 method: 'POST',
@@ -323,15 +340,7 @@ const FinancialAdvisorChat: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${getAuthToken()}`
                 },
-                body: JSON.stringify({
-                    user_id: userId,
-                    message: content,
-                    session_id: currentSession.sessionId,
-                    provider: llmSettings.provider,
-                    model_tier: llmSettings.modelTier,
-                    include_context: true,
-                    insight_level: llmSettings.insightLevel || 'balanced'
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
