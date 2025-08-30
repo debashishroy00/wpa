@@ -1374,6 +1374,226 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
         except Exception as e:
             logger.warning(f"Failed to sync investment preferences for user {user_id}: {str(e)}")
     
+    def _sync_enhanced_benefits(self, user_id: int, db: Session):
+        """
+        Create Enhanced Benefits Vector Document with Social Security optimization calculations
+        """
+        try:
+            from app.models.user_profile import UserProfile, UserBenefit
+            
+            profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+            if not profile:
+                logger.warning(f"No profile found for user {user_id}")
+                return
+            
+            benefits = db.query(UserBenefit).filter(UserBenefit.profile_id == profile.id).all()
+            
+            # Build enhanced benefits content with advanced Social Security optimization
+            content = "ENHANCED BENEFITS OPTIMIZATION:\n"
+            content += "="*60 + "\n\n"
+            
+            # Social Security Optimization Analysis
+            social_security_benefits = [b for b in benefits if b.benefit_type == 'social_security']
+            
+            if social_security_benefits:
+                for ss_benefit in social_security_benefits:
+                    content += "SOCIAL SECURITY OPTIMIZATION ANALYSIS:\n"
+                    
+                    # Base benefit information
+                    fra = ss_benefit.full_retirement_age or 67
+                    estimated_benefit = float(ss_benefit.social_security_estimated_benefit or ss_benefit.estimated_monthly_benefit or 0)
+                    claiming_age = ss_benefit.social_security_claiming_age or fra
+                    
+                    content += f"• Full Retirement Age (FRA): {fra}\n"
+                    content += f"• Estimated Monthly Benefit at FRA: ${estimated_benefit:,.0f}\n"
+                    content += f"• Planned Claiming Age: {claiming_age}\n"
+                    
+                    # Calculate optimized claiming scenarios
+                    if estimated_benefit > 0:
+                        # Early claiming (age 62)
+                        early_reduction = (fra - 62) * 0.0667  # ~6.67% per year early
+                        early_benefit = estimated_benefit * (1 - early_reduction)
+                        early_annual = early_benefit * 12
+                        
+                        # FRA benefit
+                        fra_annual = estimated_benefit * 12
+                        
+                        # Delayed claiming (age 70)
+                        delay_years = min(70 - fra, 70 - fra)  # Max 3-4 years
+                        delay_increase = delay_years * 0.08  # 8% per year delayed
+                        delayed_benefit = estimated_benefit * (1 + delay_increase)
+                        delayed_annual = delayed_benefit * 12
+                        
+                        content += f"\nCLAIMING SCENARIOS ANALYSIS:\n"
+                        content += f"• Early Claiming (Age 62): ${early_benefit:,.0f}/month (${early_annual:,.0f}/year)\n"
+                        content += f"  - Reduction: {early_reduction*100:.1f}%\n"
+                        content += f"  - Lifetime starting 8 years earlier\n"
+                        
+                        content += f"• Full Retirement Age ({fra}): ${estimated_benefit:,.0f}/month (${fra_annual:,.0f}/year)\n"
+                        content += f"  - Base benefit amount\n"
+                        
+                        content += f"• Delayed Claiming (Age 70): ${delayed_benefit:,.0f}/month (${delayed_annual:,.0f}/year)\n"
+                        content += f"  - Increase: {delay_increase*100:.1f}%\n"
+                        content += f"  - Delayed retirement credits applied\n"
+                        
+                        # Break-even analysis
+                        breakeven_fra_vs_early = (estimated_benefit - early_benefit) * 12 / early_annual
+                        if breakeven_fra_vs_early > 0:
+                            breakeven_age_fra = 62 + breakeven_fra_vs_early
+                            content += f"\n• Break-even Age (62 vs FRA): {breakeven_age_fra:.1f} years old\n"
+                        
+                        breakeven_delayed_vs_fra = (delayed_benefit - estimated_benefit) * 12 / fra_annual
+                        if breakeven_delayed_vs_fra > 0:
+                            breakeven_age_delayed = fra + breakeven_delayed_vs_fra
+                            content += f"• Break-even Age (FRA vs 70): {breakeven_age_delayed:.1f} years old\n"
+                        
+                        # Optimization recommendation based on health/family history
+                        content += f"\nOPTIMIZATION RECOMMENDATIONS:\n"
+                        if claiming_age < fra:
+                            content += f"• Current Strategy: Early claiming reduces lifetime benefit\n"
+                            content += f"• Consider: Delaying to FRA increases monthly benefit by ${estimated_benefit - early_benefit:,.0f}\n"
+                        elif claiming_age == fra:
+                            content += f"• Current Strategy: Full benefit at FRA\n"
+                            content += f"• Consider: Delaying to 70 increases monthly benefit by ${delayed_benefit - estimated_benefit:,.0f}\n"
+                        else:
+                            content += f"• Current Strategy: Maximizing benefit through delayed retirement credits\n"
+                            content += f"• Optimal for longevity planning\n"
+                    
+                    # Spouse benefit analysis
+                    if ss_benefit.spouse_benefit_eligible:
+                        spouse_benefit = float(ss_benefit.spouse_benefit_amount or 0)
+                        if spouse_benefit > 0:
+                            content += f"\nSPOUSE BENEFIT ANALYSIS:\n"
+                            content += f"• Spouse Benefit Amount: ${spouse_benefit:,.0f}/month\n"
+                            content += f"• Annual Spouse Benefit: ${spouse_benefit * 12:,.0f}\n"
+                            content += f"• Combined Household SS Income: ${(estimated_benefit + spouse_benefit) * 12:,.0f}/year\n"
+                            
+                            # File and suspend strategy (if applicable)
+                            content += f"• Strategy: File and suspend options for maximizing household benefits\n"
+            else:
+                content += "SOCIAL SECURITY OPTIMIZATION:\n"
+                content += "• No Social Security information available\n"
+                content += "• Recommendation: Obtain Social Security statement from ssa.gov\n"
+                content += "• Claiming strategy can significantly impact retirement income\n"
+            
+            # 401(k) Optimization Analysis
+            employer_401k_benefits = [b for b in benefits if b.benefit_type in ['401k_match', 'employer_401k']]
+            
+            content += f"\n\n401(K) OPTIMIZATION ANALYSIS:\n"
+            
+            if employer_401k_benefits:
+                for match_benefit in employer_401k_benefits:
+                    match_percentage = float(match_benefit.employer_match_percentage or 0)
+                    match_limit = float(match_benefit.employer_match_limit or 0)
+                    
+                    if match_percentage > 0:
+                        content += f"• Employer Match: {match_percentage}% of salary\n"
+                        if match_limit > 0:
+                            content += f"• Maximum Match: ${match_limit:,.0f} annually\n"
+                        
+                        # Calculate optimization scenarios
+                        if match_benefit.employer_401k_match_formula:
+                            content += f"• Match Formula: {match_benefit.employer_401k_match_formula}\n"
+                        
+                        # Get current user income for optimization
+                        user_data = self._build_user_financial_data(user_id, db)
+                        if user_data:
+                            annual_income = user_data.monthly_income * 12
+                            
+                            # Calculate required contribution to maximize match
+                            if match_limit > 0:
+                                max_contribution_for_match = min(match_limit / (match_percentage / 100), annual_income)
+                                content += f"• Required Contribution for Full Match: ${max_contribution_for_match:,.0f} ({max_contribution_for_match/annual_income*100:.1f}% of income)\n"
+                                content += f"• Free Money from Employer Match: ${min(match_limit, max_contribution_for_match * match_percentage / 100):,.0f}\n"
+                            
+                            # 2025 contribution limits
+                            contribution_limit_2025 = 23000  # Standard limit
+                            catchup_limit_2025 = 7500 if (profile.age or 35) >= 50 else 0
+                            total_limit = contribution_limit_2025 + catchup_limit_2025
+                            
+                            content += f"• 2025 Contribution Limit: ${contribution_limit_2025:,.0f}\n"
+                            if catchup_limit_2025 > 0:
+                                content += f"• Age 50+ Catch-up: ${catchup_limit_2025:,.0f}\n"
+                                content += f"• Total Available Limit: ${total_limit:,.0f}\n"
+                            
+                            # Optimization recommendations
+                            content += f"\nOPTIMIZATION STRATEGY:\n"
+                            content += f"• Priority 1: Contribute enough to get full employer match\n"
+                            content += f"• Priority 2: Max out high-yield savings for emergency fund\n"
+                            content += f"• Priority 3: Consider maxing 401(k) for tax savings\n"
+                            content += f"• Priority 4: Roth IRA for tax diversification\n"
+                        
+                        # Vesting schedule information
+                        if match_benefit.employer_401k_vesting_schedule:
+                            content += f"• Vesting Schedule: {match_benefit.employer_401k_vesting_schedule}\n"
+                            content += f"• Recommendation: Understand vesting before job changes\n"
+            else:
+                content += "• No 401(k) matching information available\n"
+                content += "• Recommendation: Verify employer 401(k) benefits and matching\n"
+            
+            # Pension Optimization (if applicable)
+            pension_benefits = [b for b in benefits if b.benefit_type == 'pension']
+            
+            if pension_benefits:
+                content += f"\n\nPENSION OPTIMIZATION:\n"
+                for pension in pension_benefits:
+                    monthly_payout = float(pension.expected_monthly_payout or 0)
+                    vested_pct = float(pension.vested_percentage or 0)
+                    
+                    content += f"• Expected Monthly Payout: ${monthly_payout:,.0f}\n"
+                    content += f"• Vested Percentage: {vested_pct}%\n"
+                    content += f"• Annual Pension Income: ${monthly_payout * 12:,.0f}\n"
+                    
+                    if pension.lump_sum_option:
+                        content += f"• Lump Sum Option Available: Consider vs. monthly payments\n"
+                        content += f"• Analysis needed: Present value vs. guaranteed income stream\n"
+                    
+                    if pension.pension_details and isinstance(pension.pension_details, dict):
+                        content += f"• Additional Details:\n"
+                        for key, value in pension.pension_details.items():
+                            if value:
+                                content += f"  - {key.replace('_', ' ').title()}: {value}\n"
+            
+            # Health Benefits Optimization
+            health_benefits = [b for b in benefits if b.benefit_type in ['health_insurance', 'hsa']]
+            
+            if health_benefits:
+                content += f"\n\nHEALTH BENEFITS OPTIMIZATION:\n"
+                for health in health_benefits:
+                    if health.health_insurance_premium:
+                        annual_premium = float(health.health_insurance_premium)
+                        content += f"• Health Insurance Premium: ${annual_premium:,.0f}/year\n"
+                        content += f"• Monthly Premium: ${annual_premium/12:,.0f}\n"
+                    
+                    # HSA optimization if available
+                    if health.other_benefits and isinstance(health.other_benefits, dict):
+                        hsa_eligible = health.other_benefits.get('hsa_eligible')
+                        if hsa_eligible:
+                            content += f"• HSA Eligible: Triple tax advantage opportunity\n"
+                            content += f"• 2025 HSA Limits: $4,300 individual, $8,550 family\n"
+                            content += f"• HSA Strategy: Max contribution for retirement healthcare costs\n"
+            
+            # Store enhanced benefits document
+            doc_id = f"user_{user_id}_benefits_enhanced"
+            self.vector_store.add_document(
+                doc_id=doc_id,
+                content=content,
+                metadata={
+                    "user_id": user_id,
+                    "document_type": "benefits_enhanced",
+                    "has_social_security": len(social_security_benefits) > 0,
+                    "has_401k_match": len(employer_401k_benefits) > 0,
+                    "has_pension": len(pension_benefits) > 0,
+                    "optimization_level": "advanced",
+                    "version": "enhanced_v1.0"
+                }
+            )
+            
+            logger.info(f"Enhanced benefits optimization document created for user {user_id}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to sync enhanced benefits for user {user_id}: {str(e)}")
+    
     def get_user_context(self, user_id: int, query: str = "", limit: int = 3) -> str:
         """
         Get user context from vector store - this is the ONLY method chat should use
