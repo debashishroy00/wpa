@@ -1950,6 +1950,24 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
             else:
                 logger.warning(f"No investment preferences document found for user {user_id}")
             
+            # ALWAYS include enhanced benefits document (critical for Social Security and 401k optimization)
+            enhanced_benefits_doc_id = f"user_{user_id}_benefits_enhanced"
+            enhanced_benefits_doc = self.vector_store.get_document(enhanced_benefits_doc_id)
+            if enhanced_benefits_doc:
+                context_parts.append(enhanced_benefits_doc.content)
+                logger.info(f"Enhanced benefits document included for user {user_id}")
+            else:
+                logger.warning(f"No enhanced benefits document found for user {user_id}")
+            
+            # ALWAYS include enhanced tax optimization document (critical for tax strategy advice)
+            enhanced_tax_doc_id = f"user_{user_id}_tax_optimization"
+            enhanced_tax_doc = self.vector_store.get_document(enhanced_tax_doc_id)
+            if enhanced_tax_doc:
+                context_parts.append(enhanced_tax_doc.content)
+                logger.info(f"Enhanced tax optimization document included for user {user_id}")
+            else:
+                logger.warning(f"No enhanced tax optimization document found for user {user_id}")
+            
             # Add query-specific additional context if provided (SECURE USER-ONLY SEARCH)
             if query:
                 additional_results = self.vector_store.search_user_only(query=query, user_id=user_id, limit=limit)
