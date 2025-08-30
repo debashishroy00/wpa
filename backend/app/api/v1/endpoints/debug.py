@@ -97,9 +97,11 @@ async def get_vector_contents(
                 "storage_type": "SimpleVectorStore",
                 "storage_path": vector_store.storage_path,
                 "storage_file_exists": storage_exists,
-                "user_filter": {"user_id": str(user_id)},
+                "user_filter": {"user_id": user_id, "comparison_type": "integer"},
                 "vector_store_stats": stats,
-                "total_docs_in_store": len(vector_store.documents)
+                "total_docs_in_store": len(vector_store.documents),
+                "document_ids_found": [doc["id"] for doc in documents],
+                "all_document_ids": list(vector_store.documents.keys())
             }
         }
         
