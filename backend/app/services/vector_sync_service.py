@@ -759,11 +759,9 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                 content += f"• Filing Status: {tax_info.filing_status or 'Not specified'}\n"
                 content += f"• Federal Tax Bracket: {float(tax_info.federal_tax_bracket or 0):.0f}%\n"
                 
-                # Enhanced state tax information
+                # State tax information
                 if tax_info.state_tax_bracket:
                     content += f"• State Tax Bracket: {float(tax_info.state_tax_bracket):.0f}%\n"
-                if tax_info.state_tax_rate:
-                    content += f"• State Tax Rate: {float(tax_info.state_tax_rate):.1f}%\n"
                 
                 if tax_info.effective_tax_rate:
                     content += f"• Effective Tax Rate: {float(tax_info.effective_tax_rate):.1f}%\n"
