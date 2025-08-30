@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from enum import Enum
 
-from app.db.base import Base
+from app.db.session import Base
 
 
 class PolicyType(str, Enum):
