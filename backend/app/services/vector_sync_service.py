@@ -1562,13 +1562,11 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         content += f"• Health Insurance Premium: ${annual_premium:,.0f}/year\n"
                         content += f"• Monthly Premium: ${annual_premium/12:,.0f}\n"
                     
-                    # HSA optimization if available
-                    if health.other_benefits and isinstance(health.other_benefits, dict):
-                        hsa_eligible = health.other_benefits.get('hsa_eligible')
-                        if hsa_eligible:
-                            content += f"• HSA Eligible: Triple tax advantage opportunity\n"
-                            content += f"• 2025 HSA Limits: $4,300 individual, $8,550 family\n"
-                            content += f"• HSA Strategy: Max contribution for retirement healthcare costs\n"
+                    # HSA optimization (check if HSA benefit type exists)
+                    if health.benefit_type == 'hsa':
+                        content += f"• HSA Available: Triple tax advantage opportunity\n"
+                        content += f"• 2025 HSA Limits: $4,300 individual, $8,550 family\n"
+                        content += f"• HSA Strategy: Max contribution for retirement healthcare costs\n"
             
             # Store enhanced benefits document
             doc_id = f"user_{user_id}_benefits_enhanced"
