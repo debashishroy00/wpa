@@ -1735,46 +1735,31 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                     content += f"  - Tax-free withdrawals for medical expenses\n"
                 
                 # 5. Charitable Giving Optimization
-                charitable_giving = float(tax_info.charitable_giving_annual or 0)
-                if charitable_giving > 0:
+                if tax_info.itemized_deductions and float(tax_info.itemized_deductions) > 0:
+                    itemized = float(tax_info.itemized_deductions)
                     content += f"\nCHARITABLE GIVING OPTIMIZATION:\n"
-                    content += f"• Annual Charitable Giving: ${charitable_giving:,.0f}\n"
-                    content += f"• Tax Deduction Value: ${charitable_giving * current_bracket:,.0f}\n"
+                    content += f"• Current Itemized Deductions: ${itemized:,.0f}\n"
                     
-                    # Donor-advised fund strategy
-                    if charitable_giving >= 5000:
-                        content += f"• Strategy: Donor-Advised Fund for appreciated assets\n"
-                        content += f"• Benefit: Avoid capital gains tax + charitable deduction\n"
-                        
-                        # Bunching strategy
-                        if tax_info.itemized_deductions:
-                            itemized = float(tax_info.itemized_deductions)
-                            standard_deduction_2025 = 15000 if tax_info.filing_status != 'married_filing_jointly' else 30000
-                            if itemized < standard_deduction_2025 * 1.2:  # Close to standard deduction
-                                content += f"• Bunching Strategy: Combine 2-3 years of giving in one year\n"
-                                content += f"• Benefit: Exceed standard deduction threshold\n"
+                    # Bunching strategy
+                    standard_deduction_2025 = 15000 if tax_info.filing_status != 'married_filing_jointly' else 30000
+                    if itemized < standard_deduction_2025 * 1.5:  # Close to standard deduction
+                        content += f"• Strategy: Consider bunching charitable gifts every other year\n"
+                        content += f"• Benefit: Exceed standard deduction threshold: ${standard_deduction_2025:,.0f}\n"
                 
-                # 6. Business Income Optimization
-                if tax_info.business_income_details:
-                    business_details = tax_info.business_income_details
-                    if isinstance(business_details, dict) and any(business_details.values()):
-                        content += f"\nBUSINESS INCOME OPTIMIZATION:\n"
-                        
-                        # Solo 401(k) strategy
-                        content += f"• Solo 401(k) Strategy:\n"
-                        content += f"  - Employee contribution limit: $23,000\n"
-                        content += f"  - Employer contribution: 25% of net self-employment income\n"
-                        content += f"  - Total limit: $70,000 (or $77,500 if 50+)\n"
-                        
-                        # SEP-IRA alternative
-                        content += f"• SEP-IRA Alternative:\n"
-                        content += f"  - Contribute 25% of net self-employment income\n"
-                        content += f"  - Simpler administration than Solo 401(k)\n"
-                        
-                        # QBI Deduction (Section 199A)
-                        content += f"• QBI Deduction (Section 199A):\n"
-                        content += f"  - Up to 20% deduction on qualified business income\n"
-                        content += f"  - Strategy: Optimize income levels to maximize deduction\n"
+                # 6. Business Income Optimization (if high income suggests business ownership)
+                if agi > 150000:
+                    content += f"\nBUSINESS INCOME OPTIMIZATION:\n"
+                    
+                    # Solo 401(k) strategy for self-employed
+                    content += f"• Solo 401(k) Strategy (if self-employed):\n"
+                    content += f"  - Employee contribution limit: $23,000\n"
+                    content += f"  - Employer contribution: 25% of net self-employment income\n"
+                    content += f"  - Total limit: $70,000 (or $77,500 if 50+)\n"
+                    
+                    # QBI Deduction (Section 199A)
+                    content += f"• QBI Deduction (Section 199A):\n"
+                    content += f"  - Up to 20% deduction on qualified business income\n"
+                    content += f"  - Strategy: Optimize income levels to maximize deduction\n"
                 
                 # 7. Multi-Year Tax Planning
                 content += f"\nMULTI-YEAR TAX PLANNING STRATEGIES:\n"
