@@ -329,7 +329,27 @@ const DebugView: React.FC = () => {
                       <span className="text-gray-400">Last Updated:</span>
                       <span className="ml-2 font-mono text-xs">{formatTimestamp(vectorData.last_updated)}</span>
                     </div>
+                    {vectorData.debug_info && (
+                      <>
+                        <div>
+                          <span className="text-gray-400">Storage File:</span>
+                          <span className={`ml-2 font-mono text-xs ${vectorData.debug_info.storage_file_exists ? 'text-green-400' : 'text-red-400'}`}>
+                            {vectorData.debug_info.storage_file_exists ? '✓ Exists' : '✗ Missing'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Store Total:</span>
+                          <span className="ml-2 font-mono">{vectorData.debug_info.total_docs_in_store || 0}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
+                  {vectorData.debug_info?.storage_path && (
+                    <div className="mt-2 text-xs text-gray-400">
+                      <span>Path: </span>
+                      <code className="bg-gray-800 px-1 rounded">{vectorData.debug_info.storage_path}</code>
+                    </div>
+                  )}
                 </div>
 
                 {/* Search */}
