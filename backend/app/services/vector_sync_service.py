@@ -804,8 +804,6 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         content += f"• Standard Deduction: ${float(tax_info.standard_deduction):,.0f}\n"
                     if tax_info.itemized_deductions:
                         content += f"• Itemized Deductions: ${float(tax_info.itemized_deductions):,.0f}\n"
-                    if tax_info.itemized_deduction_total:
-                        content += f"• Total Itemized Deductions: ${float(tax_info.itemized_deduction_total):,.0f}\n"
                     if tax_info.tax_credits:
                         content += f"• Tax Credits: ${float(tax_info.tax_credits):,.0f}\n"
                 
