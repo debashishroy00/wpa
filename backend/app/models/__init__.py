@@ -21,5 +21,5 @@ __all__ = [
     "Goal", "GoalHistory", "GoalRelationship", "GoalProgress", "UserPreferences",
     "ProjectionAssumptions", "ProjectionSnapshot",
     "UserInteraction", "ModelPrediction",
-    "ChatIntelligence"
+    "ChatIntelligence", "UserEstatePlanning", "UserInsurancePolicy", "UserInvestmentPreferences"
 ]
