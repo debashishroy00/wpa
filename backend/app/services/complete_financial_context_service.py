@@ -161,6 +161,18 @@ ASSET ALLOCATION ANALYSIS:
 -------------------------
 {self._format_asset_allocation(financial_data)}
 
+ESTATE PLANNING DOCUMENTS:
+-------------------------
+{self._format_estate_planning(financial_data.get('estate_planning', []))}
+
+INSURANCE COVERAGE:
+------------------
+{self._format_insurance_policies(financial_data.get('insurance_policies', []))}
+
+INVESTMENT PREFERENCES:
+----------------------
+{self._format_investment_preferences(financial_data.get('investment_preferences', {}))}
+
 USER QUESTION: "{user_query}"
 
 RESPONSE FOCUS:
