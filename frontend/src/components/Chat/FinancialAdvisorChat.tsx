@@ -558,6 +558,17 @@ const FinancialAdvisorChat: React.FC = () => {
                             Context & Usage
                         </Button>
                         
+                        {/* Intelligent Chat Toggle */}
+                        <Button
+                            onClick={() => setUseIntelligentChat(!useIntelligentChat)}
+                            variant={useIntelligentChat ? "primary" : "outline"}
+                            size="sm"
+                            leftIcon={<span className="text-purple-400">🧠</span>}
+                            className={useIntelligentChat ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500 text-purple-400 hover:bg-purple-500/10'}
+                        >
+                            {useIntelligentChat ? 'AI Memory On' : 'AI Memory Off'}
+                        </Button>
+                        
                         <Button
                             onClick={clearChat}
                             variant="outline"
