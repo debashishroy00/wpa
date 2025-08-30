@@ -362,6 +362,12 @@ const FinancialAdvisorChat: React.FC = () => {
 
             const data = await response.json();
 
+            // Store intelligence metrics if available
+            if (useIntelligentChat && data.intelligence_metrics) {
+                setIntelligenceMetrics(data.intelligence_metrics);
+                console.log('🧠 Intelligence metrics:', data.intelligence_metrics);
+            }
+
             // Create assistant message
             const assistantMessage: Message = {
                 id: `msg_${Date.now()}_assistant`,
