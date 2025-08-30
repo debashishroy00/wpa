@@ -127,24 +127,24 @@ def categorize_financial_entry(category: str, description: str, subcategory: str
             return "other_debt"
     
     elif category == "expenses":
-        # Housing Expenses
-        if any(keyword in description_lower for keyword in ['mortgage', 'rent', 'property tax', 'insurance', 'utilities']):
+        # Housing Expenses (remove utilities from here)
+        if any(keyword in description_lower for keyword in ['mortgage', 'rent', 'property tax', 'insurance', 'hoa']) and not any(keyword in description_lower for keyword in ['electricity', 'gas', 'water', 'internet', 'phone', 'trash', 'sewer']):
             return "housing"
-        # Food & Dining
-        elif any(keyword in description_lower for keyword in ['restaurant', 'food', 'grocery', 'dining', 'meal']):
-            return "food"
+        # Utilities (separate from housing)
+        elif any(keyword in description_lower for keyword in ['electricity', 'gas', 'water', 'internet', 'phone', 'trash', 'sewer', 'utilities', 'electric', 'cable', 'wifi']):
+            return "utilities"
         # Transportation
-        elif any(keyword in description_lower for keyword in ['car', 'gas', 'auto', 'vehicle', 'transportation', 'uber', 'lyft']):
+        elif any(keyword in description_lower for keyword in ['car', 'gas', 'auto', 'vehicle', 'transportation', 'uber', 'lyft', 'taxi', 'bus', 'train', 'parking']):
             return "transportation"
-        # Shopping
-        elif any(keyword in description_lower for keyword in ['merchandise', 'shopping', 'clothing', 'amazon', 'retail']):
-            return "shopping"
+        # Food & Dining (changed from "food" to match frontend)
+        elif any(keyword in description_lower for keyword in ['restaurant', 'food', 'grocery', 'dining', 'meal', 'coffee', 'lunch', 'dinner', 'breakfast']):
+            return "food"
         # Healthcare
-        elif any(keyword in description_lower for keyword in ['medical', 'health', 'doctor', 'prescription', 'dental']):
+        elif any(keyword in description_lower for keyword in ['medical', 'health', 'doctor', 'prescription', 'dental', 'vision', 'hospital', 'clinic']):
             return "healthcare"
-        # Entertainment
-        elif any(keyword in description_lower for keyword in ['entertainment', 'movie', 'subscription', 'netflix', 'spotify']):
-            return "entertainment"
+        # Personal (combines shopping and entertainment)
+        elif any(keyword in description_lower for keyword in ['merchandise', 'shopping', 'clothing', 'amazon', 'retail', 'entertainment', 'movie', 'subscription', 'netflix', 'spotify', 'personal care', 'beauty', 'gym', 'fitness', 'travel', 'vacation']):
+            return "personal"
         else:
             return "other_expenses"
     
