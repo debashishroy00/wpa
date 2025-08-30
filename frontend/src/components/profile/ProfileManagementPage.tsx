@@ -33,10 +33,10 @@ const ProfileManagementPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
-    'personal': true,
-    'family': true,
-    'benefits': true,
-    'tax': true
+    'personal': false,
+    'family': false,
+    'benefits': false,
+    'tax': false
   });
 
   // Fetch complete profile data
