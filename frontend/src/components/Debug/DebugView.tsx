@@ -366,30 +366,45 @@ const DebugView: React.FC = () => {
 
                 {/* Documents */}
                 <div className="max-h-96 overflow-y-auto space-y-2">
-                  {filteredDocuments.map((doc, index) => (
-                    <details key={doc.id} className="bg-gray-700 rounded">
-                      <summary className="p-3 cursor-pointer hover:bg-gray-600 rounded flex items-center justify-between">
-                        <span className="font-mono text-sm text-blue-400">{doc.id}</span>
-                        <span className="text-xs text-gray-400">
-                          {doc.content.substring(0, 50)}...
-                        </span>
-                      </summary>
-                      <div className="px-3 pb-3">
-                        <div className="mb-2">
-                          <span className="text-xs text-gray-400">Content:</span>
-                          <pre className="text-xs bg-gray-800 p-2 rounded mt-1 whitespace-pre-wrap break-words">
-                            {doc.content}
-                          </pre>
+                  {filteredDocuments.map((doc, index) => {
+                    const docType = doc.metadata?.type || 'unknown';
+                    const category = doc.metadata?.category || 'unknown';
+                    
+                    return (
+                      <details key={doc.id} className="bg-gray-700 rounded">
+                        <summary className="p-3 cursor-pointer hover:bg-gray-600 rounded flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm text-blue-400">{doc.id}</span>
+                            <Badge variant="outline" className="text-xs text-purple-400 border-purple-400">
+                              {docType}
+                            </Badge>
+                            {category !== 'unknown' && (
+                              <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400">
+                                {category}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-400 max-w-48 truncate">
+                            {doc.content.substring(0, 50)}...
+                          </span>
+                        </summary>
+                        <div className="px-3 pb-3">
+                          <div className="mb-2">
+                            <span className="text-xs text-gray-400">Content:</span>
+                            <pre className="text-xs bg-gray-800 p-2 rounded mt-1 whitespace-pre-wrap break-words max-h-32 overflow-y-auto">
+                              {doc.content}
+                            </pre>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-400">Metadata:</span>
+                            <pre className="text-xs bg-gray-800 p-2 rounded mt-1">
+                              {JSON.stringify(doc.metadata, null, 2)}
+                            </pre>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-xs text-gray-400">Metadata:</span>
-                          <pre className="text-xs bg-gray-800 p-2 rounded mt-1">
-                            {JSON.stringify(doc.metadata, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
-                    </details>
-                  ))}
+                      </details>
+                    );
+                  })}
                 </div>
 
                 {searchTerm && filteredDocuments.length === 0 && (
