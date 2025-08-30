@@ -379,6 +379,68 @@ Example:
             except Exception as e:
                 logger.warning(f"Could not retrieve family information: {str(e)}")
             
+            # Get enhanced categories - Estate Planning, Insurance, Investment Preferences
+            estate_planning = []
+            insurance_policies = []
+            investment_preferences = {}
+            
+            try:
+                from ..models.estate_planning import UserEstatePlanning
+                estate_docs = db.query(UserEstatePlanning).filter(
+                    UserEstatePlanning.user_id == user_id
+                ).all()
+                
+                for doc in estate_docs:
+                    estate_planning.append({
+                        'document_type': doc.document_type,
+                        'document_name': doc.document_name,
+                        'status': doc.status,
+                        'last_updated': doc.last_updated.isoformat() if doc.last_updated else None,
+                        'attorney_contact': doc.attorney_contact,
+                        'document_location': doc.document_location,
+                        'document_details': doc.document_details
+                    })
+            except Exception as e:
+                logger.warning(f"Could not retrieve estate planning information: {str(e)}")
+            
+            try:
+                from ..models.insurance import UserInsurancePolicy
+                insurance_docs = db.query(UserInsurancePolicy).filter(
+                    UserInsurancePolicy.user_id == user_id
+                ).all()
+                
+                for policy in insurance_docs:
+                    insurance_policies.append({
+                        'policy_type': policy.policy_type,
+                        'policy_name': policy.policy_name,
+                        'provider': policy.provider,
+                        'coverage_amount': float(policy.coverage_amount) if policy.coverage_amount else 0,
+                        'premium_amount': float(policy.premium_amount) if policy.premium_amount else 0,
+                        'premium_frequency': policy.premium_frequency,
+                        'status': policy.status,
+                        'policy_details': policy.policy_details
+                    })
+            except Exception as e:
+                logger.warning(f"Could not retrieve insurance information: {str(e)}")
+            
+            try:
+                from ..models.investment_preferences import UserInvestmentPreferences
+                inv_prefs = db.query(UserInvestmentPreferences).filter(
+                    UserInvestmentPreferences.user_id == user_id
+                ).first()
+                
+                if inv_prefs:
+                    investment_preferences = {
+                        'risk_tolerance': inv_prefs.risk_tolerance,
+                        'investment_horizon': inv_prefs.investment_horizon,
+                        'investment_goals': inv_prefs.investment_goals,
+                        'preferred_sectors': inv_prefs.preferred_sectors,
+                        'esg_preferences': inv_prefs.esg_preferences,
+                        'liquidity_needs': inv_prefs.liquidity_needs
+                    }
+            except Exception as e:
+                logger.warning(f"Could not retrieve investment preferences: {str(e)}")
+            
             return {
                 'name': name,
                 'age': age,
