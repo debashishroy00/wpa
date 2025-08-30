@@ -811,48 +811,7 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                 content += f"\nTAX OPTIMIZATION STRATEGIES:\n"
                 content += f"• Tax professional support available for advanced strategies\n"
                 
-                # Business income details from JSON field
-                if tax_info.business_income_details:
-                    business_details = tax_info.business_income_details
-                    if isinstance(business_details, dict):
-                        content += f"\nBUSINESS INCOME DETAILS:\n"
-                        for key, value in business_details.items():
-                            if value:
-                                key_formatted = key.replace('_', ' ').title()
-                                if isinstance(value, (int, float)):
-                                    content += f"• {key_formatted}: ${float(value):,.0f}\n"
-                                else:
-                                    content += f"• {key_formatted}: {value}\n"
-                
-                # State-specific tax deductions from JSON field
-                if tax_info.state_tax_deductions:
-                    state_deductions = tax_info.state_tax_deductions
-                    if isinstance(state_deductions, dict):
-                        content += f"\nSTATE TAX DEDUCTIONS:\n"
-                        for key, value in state_deductions.items():
-                            if value:
-                                key_formatted = key.replace('_', ' ').title()
-                                if isinstance(value, (int, float)):
-                                    content += f"• {key_formatted}: ${float(value):,.0f}\n"
-                                else:
-                                    content += f"• {key_formatted}: {value}\n"
-                
-                # Tax planning strategies from JSON field
-                if tax_info.tax_planning_strategies:
-                    planning_strategies = tax_info.tax_planning_strategies
-                    if isinstance(planning_strategies, dict):
-                        content += f"\nMULTI-YEAR TAX PLANNING STRATEGIES:\n"
-                        for strategy, details in planning_strategies.items():
-                            if details:
-                                strategy_formatted = strategy.replace('_', ' ').title()
-                                content += f"• {strategy_formatted}:\n"
-                                if isinstance(details, dict):
-                                    for detail_key, detail_value in details.items():
-                                        if detail_value:
-                                            detail_formatted = detail_key.replace('_', ' ').title()
-                                            content += f"  - {detail_formatted}: {detail_value}\n"
-                                else:
-                                    content += f"  - Details: {details}\n"
+                # Advanced tax strategies would be added here if additional model fields existed
                 
                 # Tax professional information
                 if tax_info.has_tax_professional:
