@@ -1548,11 +1548,8 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         content += f"• Lump Sum Option Available: Consider vs. monthly payments\n"
                         content += f"• Analysis needed: Present value vs. guaranteed income stream\n"
                     
-                    if pension.pension_details and isinstance(pension.pension_details, dict):
-                        content += f"• Additional Details:\n"
-                        for key, value in pension.pension_details.items():
-                            if value:
-                                content += f"  - {key.replace('_', ' ').title()}: {value}\n"
+                    # Additional pension details would go here if model had pension_details JSON field
+                    content += f"• Pension Type: {pension.pension_type or 'Not specified'}\n"
             
             # Health Benefits Optimization
             health_benefits = [b for b in benefits if b.benefit_type in ['health_insurance', 'hsa']]
