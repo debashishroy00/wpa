@@ -80,8 +80,5 @@ class ChatMessage(Base):
         return f"<ChatMessage(id={self.id}, role='{self.role}', content='{self.content[:50]}...', intent='{self.intent_detected}')>"
 
 
-# Add this to User model relationship (you'll need to add to user.py)
-"""
-Add to User model in user.py:
-    chat_sessions = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")
-"""
+# Note: ChatSession has a simple relationship to User without back_populates
+# The User model does not need a chat_sessions relationship since we use ChatIntelligence instead
