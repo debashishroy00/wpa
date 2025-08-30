@@ -753,15 +753,7 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         if benefit.vesting_schedule:
                             content += f"• Vesting Schedule: {benefit.vesting_schedule}\n"
                     
-                    # Other benefits details from JSON field
-                    if benefit.other_benefits:
-                        other_benefits = benefit.other_benefits
-                        if isinstance(other_benefits, dict):
-                            content += f"• Additional Benefits:\n"
-                            for key, value in other_benefits.items():
-                                if value:
-                                    key_formatted = key.replace('_', ' ').title()
-                                    content += f"  - {key_formatted}: {value}\n"
+                    # Note: other_benefits field would be added here if it existed in the model
                     
                     # Health insurance and other employer contributions
                     if benefit.health_insurance_premium:
