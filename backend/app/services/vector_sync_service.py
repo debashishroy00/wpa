@@ -732,15 +732,7 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         if benefit.lump_sum_option:
                             content += f"• Lump Sum Option Available: Yes\n"
                         
-                        # Enhanced pension details from JSON field
-                        if benefit.pension_details:
-                            pension_details = benefit.pension_details
-                            if isinstance(pension_details, dict):
-                                content += f"• Pension Plan Details:\n"
-                                for key, value in pension_details.items():
-                                    if value:
-                                        key_formatted = key.replace('_', ' ').title()
-                                        content += f"  - {key_formatted}: {value}\n"
+                        # Note: pension_details field would be added here if it existed in the model
                     
                     # Enhanced 401(k) and Employer Benefits
                     if benefit.benefit_type in ['401k_match', 'employer_401k']:
