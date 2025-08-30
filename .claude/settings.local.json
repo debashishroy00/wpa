@@ -103,7 +103,8 @@
       "Read(\\mnt\\c\\projects/**)",
       "Read(\\mnt\\c\\projects/**)",
       "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_click"
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_type"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
