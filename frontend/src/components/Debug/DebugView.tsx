@@ -131,6 +131,50 @@ const DebugView: React.FC = () => {
     }
   };
 
+  const triggerVectorSync = async () => {
+    setSyncLoading(true);
+    setError(null);
+    
+    try {
+      const authTokens = localStorage.getItem('auth_tokens');
+      const token = authTokens ? JSON.parse(authTokens).access_token : null;
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in.');
+      }
+      
+      if (!userId || userId === 0) {
+        throw new Error('User not authenticated. Please log in.');
+      }
+      
+      console.log('🔄 Triggering vector sync for user:', userId);
+      
+      const response = await fetch(`/api/v1/debug/trigger-vector-sync/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setSyncResult(result);
+        console.log('✅ Vector sync completed:', result);
+        
+        // Refresh vector contents after successful sync
+        await fetchVectorContents();
+      } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        throw new Error(`Sync failed: ${errorData.detail || response.status}`);
+      }
+    } catch (err) {
+      setError(`Vector Sync Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   const refreshAll = async () => {
     setLoading(true);
     setError(null);
