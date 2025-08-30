@@ -63,6 +63,12 @@ def categorize_financial_entry(category: str, description: str, subcategory: str
             print(f"✅ Using existing subcategory: {subcategory}")
             return subcategory
     
+    # Check for valid expense subcategories
+    if subcategory and category == "expenses":
+        if subcategory in ['housing', 'utilities', 'transportation', 'food', 'healthcare', 'personal']:
+            print(f"✅ Using existing expense subcategory: {subcategory}")
+            return subcategory
+    
     if category == "assets":
         # Retirement Accounts (check first - highest priority)
         if any(keyword in description_lower for keyword in ['401k', '401(k)', '401 k', 'ira', 'roth', 'retirement', 'pension', 'sep', '403b', 'tsp', '529']):
