@@ -1524,8 +1524,8 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                             content += f"• Priority 4: Roth IRA for tax diversification\n"
                         
                         # Vesting schedule information
-                        if match_benefit.employer_401k_vesting_schedule:
-                            content += f"• Vesting Schedule: {match_benefit.employer_401k_vesting_schedule}\n"
+                        if match_benefit.vesting_schedule:
+                            content += f"• Vesting Schedule: {match_benefit.vesting_schedule}\n"
                             content += f"• Recommendation: Understand vesting before job changes\n"
             else:
                 content += "• No 401(k) matching information available\n"
