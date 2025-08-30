@@ -843,7 +843,7 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                     "has_tax_info": tax_info is not None,
                     "has_social_security_optimization": any(b.estimated_monthly_benefit for b in benefits if b.benefit_type == 'social_security'),
                     "has_401k_matching_details": any(b.employer_match_percentage for b in benefits if b.benefit_type in ['401k_match', 'employer_401k']),
-                    "has_advanced_tax_strategies": bool(tax_info and (tax_info.backdoor_roth_eligible or tax_info.tax_loss_harvesting_enabled)),
+                    "has_advanced_tax_strategies": bool(tax_info and tax_info.has_tax_professional),
                     "version": "enhanced_v1.0"
                 }
             )
