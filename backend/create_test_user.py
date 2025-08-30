@@ -15,19 +15,19 @@ from app.models.user import User
 from app.models.financial import FinancialEntry, EntryCategory
 
 def create_test_user_with_data():
-    """Create test@gmail.com with sample financial data"""
+    """Create debashishroy@gmail.com with sample financial data"""
     db = SessionLocal()
     
     try:
         print("🔍 Creating test user with sample financial data...")
         
-        # Check if test user exists
-        test_user = db.query(User).filter(User.email == "test@gmail.com").first()
+        # Check if debashishroy user exists
+        test_user = db.query(User).filter(User.email == "debashishroy@gmail.com").first()
         
         if not test_user:
             # Create test user
             test_user = User(
-                email="test@gmail.com",
+                email="debashishroy@gmail.com",
                 first_name="Test",
                 last_name="User",
                 password_hash=get_password_hash("password123"),

@@ -51,8 +51,15 @@ certificates/
 *.key
 
 # Environment files
-.env.*
+.env
+.env.local
+.env.*.local
+.env.production.local
+.env.development.local
+
+# Keep example files
 !.env.example
+!frontend/.env.example
 
 # Vector database
 chromadb/

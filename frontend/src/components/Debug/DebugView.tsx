@@ -18,7 +18,7 @@ import {
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
-import { useAuthUser } from '../../stores/auth-store';
+import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 
 interface VectorDocument {
   id: string;
@@ -62,7 +62,7 @@ const DebugView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const user = useAuthUser();
+  const user = useUnifiedAuthStore((state) => state.user);
   const userId = user?.id || 0;
 
   const fetchVectorContents = async () => {

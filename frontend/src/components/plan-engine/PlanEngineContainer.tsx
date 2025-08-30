@@ -9,9 +9,9 @@ import Button from '../ui/Button';
 import PlanEngineToggle, { ViewMode } from './PlanEngineToggle';
 import RawDataView from './RawDataView';
 import AdvisoryView from './AdvisoryView';
-import { useAuthUser } from '../../stores/auth-store';
+import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 import { FinancialDataService } from '../../services/FinancialDataService';
-import { apiClientFixed as apiClient } from '../../utils/api-fixed';
+import { apiClient } from '../../utils/api-simple';
 
 interface PlanEngineContainerProps {
   className?: string;
@@ -22,7 +22,7 @@ const PlanEngineContainer: React.FC<PlanEngineContainerProps> = ({
   className = '', 
   onNext 
 }) => {
-  const user = useAuthUser();
+  const user = useUnifiedAuthStore((state) => state.user);
   const [currentView, setCurrentView] = useState<ViewMode>('advisory_report');
   const [planOutput, setPlanOutput] = useState<any>(null);
   const [advisoryOutput, setAdvisoryOutput] = useState<any>(null);

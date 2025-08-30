@@ -27,10 +27,10 @@ import Button from '../ui/Button';
 import ComprehensiveSummaryService from '../../services/ComprehensiveSummaryService';
 import VectorDBService, { VectorStatus } from '../../services/VectorDBService';
 import { ComprehensiveSummary } from '../../types/financial.types';
-import { useAuthUser } from '../../stores/auth-store';
+import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 
 const ComprehensiveSummaryDisplay: React.FC = () => {
-  const user = useAuthUser();
+  const user = useUnifiedAuthStore((state) => state.user);
   const [summary, setSummary] = useState<ComprehensiveSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

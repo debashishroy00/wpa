@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import FinancialEntryForm from '../FinancialEntryForm';
 import { EntryCategory, FrequencyType } from '../../../types/financial';
-import { apiClient } from '../../../utils/api';
+import { apiClient } from '../../../utils/api-simple';
 
 // Mock API client
 vi.mock('../../../utils/api', () => ({

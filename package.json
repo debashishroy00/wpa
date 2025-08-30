@@ -1,0 +1,21 @@
+
+{
+  "dependencies": {
+    "playwright": "^1.55.0",
+    "playwright-chromium": "^1.55.0"
+  },
+  "name": "wpa",
+  "version": "1.0.0",
+  "description": "> **Optimized from 14.6GB to 396MB - Production-Ready Architecture**",
+  "main": "test_playwright.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,53 +1,165 @@
-# Claude Code Development Guide
+# CLAUDE.md
 
-## 🎯 Purpose
-This file provides Claude Code with essential technical context for WealthPath AI development - now optimized from 14.6GB to 396MB!
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🏗️ Optimized System Architecture (396MB Docker Image!)
+## Architecture Overview
 
-### Core Stack
-- **Backend**: FastAPI + PostgreSQL + Redis (15 packages only)
-- **Frontend**: React 18 + TypeScript + Vite  
-- **Admin**: 5-section dashboard with real data integration
-- **AI**: Multi-LLM (OpenAI/Gemini/Claude) with simple JSON vector store
-- **Vector Storage**: Simple JSON store (pure Python, no ML dependencies)
-- **Memory**: <256MB runtime (perfect for cloud free tiers)
+WealthPath AI is an optimized financial planning platform with a FastAPI backend and React frontend, designed for maximum efficiency:
 
-### Key Directories
+- **Backend**: FastAPI + PostgreSQL + Redis (15 core packages only, 396MB Docker image)
+- **Frontend**: React 18 + TypeScript + Vite with Tailwind CSS
+- **Database**: PostgreSQL with Alembic migrations
+- **Cache**: Redis for session management and caching
+- **Vector Storage**: Simple JSON-based vector store (no ML dependencies)
+- **LLM Integration**: Multi-provider support (OpenAI, Gemini, Anthropic)
+- **Deployment**: Optimized for cloud platforms (Railway, Render)
+
+## Key Development Commands
+
+### Backend Development
+```bash
+# Setup virtual environment
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Database migrations
+alembic revision --autogenerate -m "Description"
+alembic upgrade head
+
+# Run backend (development)
+uvicorn app.main:app --reload --port 8000
+
+# Run backend (production)
+gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+# Run tests
+pytest
+pytest --cov=app  # With coverage
 ```
-backend/app/api/v1/endpoints/    # API endpoints
-backend/app/services/            # Business logic (optimized)
-├── simple_vector_store.py       # JSON-based vector store
-├── smart_context_selector.py    # Keyword-based context selection
-└── ml_fallbacks.py              # Pure Python ML replacements
-frontend/src/components/         # React components
-frontend/src/components/admin/   # Admin dashboard
+
+### Frontend Development
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Development server
+npm run dev
+
+# Type checking
+npm run type-check
+
+# Build for production
+npm run build
+
+# Linting
+npm run lint
+
+# Tests
+npm test
+npm run test:coverage
 ```
 
-## 🚨 Critical Development Rules
+### Docker Development
+```bash
+# Start all services (recommended)
+docker-compose up
 
-### NEVER Break These
-1. **Admin Isolation**: Admin changes must not affect main app
-2. **Authentication**: Always verify `debashishroy@gmail.com` for admin
-3. **Real Data**: Replace mock data with actual database queries
-4. **Error Handling**: Graceful fallbacks for all API failures
-5. **NO ML Dependencies**: Never add numpy, pandas, torch, chromadb, etc.
-6. **Simple Vector Store**: Use JSON store, not ChromaDB
+# Start with monitoring (Prometheus/Grafana)
+docker-compose --profile monitoring up
 
-### Always Follow These Patterns
+# Build without cache
+docker-compose build --no-cache
+
+# Stop services
+docker-compose down
+
+# Clean up (remove volumes)
+docker-compose down -v
+
+# View logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
+
+## Project Structure
+
+### Backend (`/backend/`)
+```
+app/
+├── api/v1/endpoints/     # API endpoints
+│   ├── auth.py          # Authentication
+│   ├── advisory.py      # LLM advisory engine
+│   ├── financial.py     # Financial data
+│   ├── admin.py         # Admin dashboard
+│   └── health.py        # Health checks
+├── core/                # Core configuration
+│   ├── config.py        # Settings management
+│   ├── security.py      # JWT authentication
+│   └── cache.py         # Redis cache utilities
+├── models/              # SQLAlchemy models
+│   ├── user.py         # User models
+│   ├── financial.py    # Financial data models
+│   └── goal.py         # Goal tracking
+├── schemas/             # Pydantic schemas
+├── services/            # Business logic
+│   ├── simple_vector_store.py      # JSON vector storage
+│   ├── ml_fallbacks.py            # Pure Python ML replacements
+│   ├── advisory_engine.py         # LLM advisory service
+│   └── chat_memory_service.py     # Conversation memory
+└── middleware/          # Custom middleware
+```
+
+### Frontend (`/frontend/`)
+```
+src/
+├── components/          # React components
+│   ├── Chat/           # Chat interface
+│   ├── Dashboard/      # Main dashboard
+│   ├── admin/          # Admin components
+│   └── ui/             # Reusable UI components
+├── pages/              # Page components
+├── hooks/              # Custom React hooks
+├── stores/             # Zustand state management
+├── services/           # API clients
+└── utils/              # Utility functions
+```
+
+## Critical Development Rules
+
+### Never Break These
+1. **No ML Dependencies**: Never add numpy, pandas, torch, chromadb, or any ML packages
+2. **Use Simple Vector Store**: Always use `simple_vector_store.py` for vector operations
+3. **Admin Authentication**: Admin endpoints must verify `debashishroy@gmail.com`
+4. **Docker Size Limit**: Keep Docker image under 500MB (currently 396MB)
+5. **Memory Limit**: Maintain <256MB runtime memory usage
+
+### Authentication Patterns
 ```python
-# Admin endpoint pattern
+# Standard user authentication
+@router.get("/endpoint")
+async def endpoint(current_user: User = Depends(get_current_user)):
+    pass
+
+# Admin-only endpoint
 @router.get("/admin/endpoint")
-async def admin_function(
+async def admin_endpoint(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     if current_user.email != "debashishroy@gmail.com":
         raise HTTPException(status_code=403, detail="Admin access required")
+    # Admin logic here
 ```
 
+### Vector Store Usage
 ```python
-# Vector store usage (NO ChromaDB!)
 from app.services.simple_vector_store import simple_vector_store
 
 # Add documents
@@ -55,139 +167,225 @@ simple_vector_store.add_document("doc_id", "content", {"metadata": "value"})
 
 # Search documents  
 results = simple_vector_store.search("query", limit=5)
+
+# Get document
+doc = simple_vector_store.get_document("doc_id")
 ```
 
-```typescript
-// Frontend data fetching pattern
-const [data, setData] = useState(null);
-const [loading, setLoading] = useState(true);
+## Database Patterns
 
-useEffect(() => {
-  fetchData();
-  const interval = setInterval(fetchData, 30000); // Auto-refresh
-  return () => clearInterval(interval);
-}, []);
-```
-
-## 📊 Admin Dashboard Status
-
-### Completed Sections (All with Real Data)
-- ✅ **User Management** - Real user data from PostgreSQL
-- ✅ **System Health** - Real service monitoring
-- ✅ **Auth Monitor** - Real session tracking
-- ✅ **Debug Tools** - Real system metrics (using simple vector store)
-- ✅ **Data Integrity** - Real database validation
-
-## 🔌 Key API Endpoints
-
-### Admin APIs (All require admin auth)
-```
-GET /api/v1/admin/users         # User management
-GET /api/v1/admin/health        # System health
-GET /api/v1/admin/sessions      # Active sessions
-GET /api/v1/admin/debug/logs    # System logs
-GET /api/v1/admin/data-integrity # DB validation
-GET /api/v1/admin/debug/vector-contents/{user_id} # Vector store debug
-```
-
-### Main App APIs
-```
-POST /api/v1/advisory           # AI financial advice
-GET /api/v1/financial/summary   # User financial data
-POST /api/v1/auth/login         # User authentication
-POST /api/v1/sync-finances      # Financial data sync
-```
-
-## 🎨 UI Styling Standards
-
-### Dark Theme (Consistent across all admin)
-```typescript
-// Card styling
-className="bg-gray-800 border border-gray-700 text-gray-100"
-
-// Text styling  
-className="text-white"           // Headers
-className="text-gray-300"        // Labels  
-className="text-gray-400"        // Descriptions
-
-// Status colors (preserve these)
-className="text-green-500"       // Healthy
-className="text-red-500"         // Error
-className="text-yellow-500"      // Warning
-```
-
-## 🧪 Testing Requirements
-
-### Before Any Deployment
+### Alembic Migration Workflow
 ```bash
-# Backend tests
-cd backend && pytest --cov=app
+# Create new migration after model changes
+alembic revision --autogenerate -m "Add new table"
 
-# Frontend compilation
-cd frontend && npm run build
+# Review generated migration file in alembic/versions/
+# Edit if necessary, then apply
+alembic upgrade head
 
-# Admin functionality
-python test_data_integrity_endpoint.py
+# Check current migration status
+alembic current
 
-# Docker build test (should be ~396MB)
-docker build -t wpa-test .
+# Rollback one migration
+alembic downgrade -1
 ```
 
-## 🚀 Architecture Optimization Details
+## API Endpoint Patterns
 
-### **Before (14.6GB Monster)**
-- Dependencies: 56+ packages (torch, numpy, pandas, chromadb)
-- Docker Image: 14.6GB with CUDA/ML packages
-- Memory: >2GB runtime usage
-- Build Time: 10+ minutes
-- Deployment: Impossible on free tiers
+### Standard CRUD Operations
+```python
+@router.get("/items", response_model=List[ItemResponse])
+async def get_items(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    items = db.query(Item).filter(Item.user_id == current_user.id).offset(skip).limit(limit).all()
+    return items
 
-### **After (396MB Beast)**
-- Dependencies: 15 essential packages only
-- Docker Image: 396MB (97% reduction!)
-- Memory: <256MB runtime usage  
-- Build Time: ~30 seconds
-- Deployment: Perfect for free tiers
+@router.post("/items", response_model=ItemResponse)
+async def create_item(
+    item: ItemCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_item = Item(**item.dict(), user_id=current_user.id)
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+```
 
-### **Key Services (Optimized)**
-1. **SimpleVectorStore**: JSON-based, no ChromaDB
-2. **SmartContextSelector**: Keyword-based, prevents repetition
-3. **MLFallbacks**: Pure Python, no numpy/pandas
-4. **OpenAI Embeddings**: API-based, no local models
+## Frontend Patterns
 
-## 📝 Recent Changes (Massive Optimization)
-- ✅ ChromaDB → Simple JSON Vector Store
-- ✅ All ML dependencies removed (torch, numpy, pandas)
-- ✅ Dead code cleanup (200KB+ files removed)
-- ✅ Docker optimization (14.6GB → 396MB)
-- ✅ File consolidation (6 Dockerfiles → 1, 6 requirements → 1)
-- ✅ Admin dashboard fully operational with real data
-- ✅ All functionality verified working
+### Component Structure
+```typescript
+// Standard component with TypeScript
+interface ComponentProps {
+  data: DataType[];
+  onUpdate: (id: string) => void;
+}
 
-## 🎯 Current Development Focus
-- ✅ **System ready for production deployment**
-- ✅ **Documentation updated** 
-- ✅ **Massive optimization completed**
-- **No new features** - focus on deployment and stability
-- **Maintain <256MB memory usage**
+export const Component: React.FC<ComponentProps> = ({ data, onUpdate }) => {
+  const [loading, setLoading] = useState(false);
+  
+  // API calls with error handling
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await api.getData();
+      // Handle response
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-## ⚠️ Development Warnings
+  return (
+    <div className="bg-gray-800 border border-gray-700 text-gray-100">
+      {/* Component content */}
+    </div>
+  );
+};
+```
 
-### NEVER Do These
-- ❌ Add ML packages (numpy, pandas, torch, chromadb)
-- ❌ Use ChromaDB collection methods
-- ❌ Import sentence_transformers or similar
-- ❌ Create multiple Dockerfiles/requirements files
-- ❌ Break the 396MB Docker image size
+### State Management with Zustand
+```typescript
+interface StoreState {
+  data: DataType[];
+  loading: boolean;
+  setData: (data: DataType[]) => void;
+  setLoading: (loading: boolean) => void;
+}
 
-### ALWAYS Do These  
-- ✅ Use simple_vector_store for all vector operations
-- ✅ Test Docker build size regularly
-- ✅ Verify memory usage <256MB
-- ✅ Use fallback implementations for math operations
-- ✅ Keep admin auth restricted to debashishroy@gmail.com
+export const useStore = create<StoreState>((set) => ({
+  data: [],
+  loading: false,
+  setData: (data) => set({ data }),
+  setLoading: (loading) => set({ loading }),
+}));
+```
 
----
+## Environment Configuration
 
-*This file is specifically for Claude Code development context.*  
-*System optimized from 14.6GB to 396MB - Production ready! 🚀*
+### Backend Environment Variables
+```bash
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/wealthpath_db
+
+# Authentication
+JWT_SECRET_KEY=your-secret-key
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+
+# LLM Providers
+OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=...
+ANTHROPIC_API_KEY=...
+LLM_DEFAULT_PROVIDER=openai
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# Development
+DEBUG=true
+ENVIRONMENT=development
+```
+
+### Frontend Environment Variables
+```bash
+# API Configuration
+VITE_API_BASE_URL=http://localhost:8000
+VITE_ENVIRONMENT=development
+```
+
+## Testing Guidelines
+
+### Backend Testing
+```python
+# Test file structure: test_*.py
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+
+client = TestClient(app)
+
+def test_endpoint():
+    response = client.get("/api/v1/test")
+    assert response.status_code == 200
+    assert "expected_field" in response.json()
+```
+
+### Frontend Testing
+```typescript
+// Component testing with React Testing Library
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Component } from './Component';
+
+test('renders component correctly', () => {
+  render(<Component />);
+  expect(screen.getByText('Expected Text')).toBeInTheDocument();
+});
+```
+
+## Performance Optimizations
+
+### Backend Optimizations
+- Use Redis caching for frequent database queries
+- Implement pagination for large datasets
+- Use database indexing for search queries
+- Keep vector operations in JSON format (no ChromaDB)
+
+### Frontend Optimizations
+- Use React.memo for expensive components
+- Implement virtual scrolling for large lists
+- Lazy load heavy components
+- Optimize bundle size with code splitting
+
+## Deployment
+
+### Docker Build Process
+```bash
+# Backend Dockerfile optimized for small size
+# Currently builds to 396MB production image
+docker build -t wpa-backend .
+
+# Frontend optimized build
+docker build -t wpa-frontend -f Dockerfile.optimized .
+```
+
+### Production Checklist
+- [ ] Environment variables configured
+- [ ] Database migrations applied
+- [ ] Redis connection verified
+- [ ] LLM API keys configured
+- [ ] Docker image size under 500MB
+- [ ] Memory usage under 256MB
+- [ ] Health endpoints responding
+- [ ] CORS configured for production domain
+
+## Common Issues and Solutions
+
+### Import Errors
+- Ensure virtual environment is activated
+- Check that all dependencies are in requirements.txt
+- Verify Python interpreter selection in IDE
+
+### Database Connection Issues
+- Check DATABASE_URL format
+- Ensure PostgreSQL service is running
+- Verify user permissions and database exists
+
+### Docker Issues
+- Clear Docker cache: `docker system prune -a`
+- Check port conflicts: `docker ps`
+- Verify environment variables in docker-compose.yml
+
+### Frontend Build Issues
+- Clear node_modules: `rm -rf node_modules && npm install`
+- Check TypeScript errors: `npm run type-check`
+- Verify API base URL configuration
+
+This codebase is optimized for production deployment with minimal resource usage while maintaining full functionality.

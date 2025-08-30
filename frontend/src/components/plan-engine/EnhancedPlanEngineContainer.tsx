@@ -12,7 +12,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Loader2, FileText, BarChart3, Settings, RefreshCw, Shield } from 'lucide-react';
 import ComprehensiveSummaryDisplay from '../financial/ComprehensiveSummaryDisplay';
-import { useAuthUser } from '../../stores/auth-store';
+import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface AdvisoryState {
@@ -42,7 +42,7 @@ const EnhancedPlanEngineContainer: React.FC = () => {
   let user;
   try {
     console.log('📍 About to call useAuthUser hook...');
-    user = useAuthUser();
+    user = useUnifiedAuthStore((state) => state.user);
     console.log('👤 User from auth store:', user);
     console.log('🔑 Auth token exists:', !!localStorage.getItem('auth_tokens'));
     console.log('📋 LocalStorage auth_tokens:', localStorage.getItem('auth_tokens'));
