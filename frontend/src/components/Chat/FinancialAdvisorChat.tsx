@@ -77,6 +77,8 @@ const FinancialAdvisorChat: React.FC = () => {
     const [syncStatus, setSyncStatus] = useState<'synced' | 'pending' | 'syncing' | 'error'>('synced');
     const [syncInfo, setSyncInfo] = useState<{unsynced: number; total: number; dti_ratio?: number; last_sync?: string} | null>(null);
     const [syncMetrics, setSyncMetrics] = useState<any>(null);
+    const [useIntelligentChat, setUseIntelligentChat] = useState(true);
+    const [intelligenceMetrics, setIntelligenceMetrics] = useState<any>(null);
 
     // Get user ID from auth context
     const userId = user?.id;
