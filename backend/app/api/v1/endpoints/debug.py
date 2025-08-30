@@ -214,8 +214,8 @@ async def trigger_vector_sync(
         from app.services.vector_sync_service import VectorSyncService
         import os
         
-        # Initialize sync service
-        sync_service = VectorSyncService(db)
+        # Initialize sync service (doesn't take db parameter)
+        sync_service = VectorSyncService()
         
         logger.info(f"Starting vector sync for user {user_id}, force_rebuild={force_rebuild}")
         
