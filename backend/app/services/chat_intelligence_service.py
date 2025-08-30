@@ -67,7 +67,8 @@ class ChatIntelligenceService:
                 key_decisions=[],
                 action_items=[],
                 financial_insights={},
-                topics_discussed=[]
+                topics_discussed=[],
+                conversation_turns=0  # Initialize to 0 to prevent NoneType error
             )
             self.db.add(intelligence)
         
