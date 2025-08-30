@@ -39,3 +39,7 @@ api_router.include_router(verification_test.router, prefix="/verify", tags=["ver
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 # Hybrid embedding system endpoints
 api_router.include_router(embeddings.router, prefix="/embeddings", tags=["hybrid-embeddings"])
+# Estate planning, insurance, and investment preferences endpoints
+api_router.include_router(estate_planning.router, prefix="/estate-planning", tags=["estate-planning"])
+api_router.include_router(insurance.router, prefix="/insurance", tags=["insurance"])
+api_router.include_router(investment_preferences.router, prefix="/investment-preferences", tags=["investment-preferences"])
