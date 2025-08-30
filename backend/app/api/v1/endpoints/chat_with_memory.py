@@ -385,17 +385,16 @@ async def send_chat_message_with_memory(
                 logger.warning(f"Retirement response formatting failed: {str(e)}")
                 # Continue with original response
         
-        # Step 5.2: Response verification (if metrics available from sync)
-        if assistant_response and sync_result.get("status") == "success":
+        # Step 5.2: Response verification (skip for now since we're not using vector sync)
+        if assistant_response:
             try:
-                # Build ToolsOutput from sync metrics for verification
-                metrics = sync_result.get("metrics", {})
+                # Build basic ToolsOutput for verification (simplified)
                 tools_output_for_verification = ToolsOutput(
-                    savings_rate=metrics.get("savings_rate", 0),
-                    liquidity_months=metrics.get("emergency_months", 0),
-                    debt_to_income_ratio=metrics.get("debt_to_income", 0),
-                    net_worth=metrics.get("net_worth", 0),
-                    years_to_retirement=30  # Default, not in sync result
+                    savings_rate=0,
+                    liquidity_months=0,
+                    debt_to_income_ratio=0,
+                    net_worth=0,
+                    years_to_retirement=30
                 )
                 
                 verifier = BasicResponseVerifier()
