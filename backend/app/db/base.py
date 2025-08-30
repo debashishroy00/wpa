@@ -10,7 +10,5 @@ from app.models.goal import FinancialGoal, GoalScenario, ActionPlan  # noqa
 from app.models.analytics import ModelPrediction, UserInteraction  # noqa
 from app.models.projection import ProjectionAssumptions, ProjectionSnapshot, ProjectionSensitivity  # noqa
 
-# Import newer models with proper relationship dependencies
-from app.models.estate_planning import UserEstatePlanning  # noqa
-from app.models.insurance import UserInsurancePolicy  # noqa
-from app.models.investment_preferences import UserInvestmentPreferences  # noqa
+# NOTE: Newer models (estate_planning, insurance, investment_preferences) 
+# are imported in their respective endpoint files to avoid circular dependencies
