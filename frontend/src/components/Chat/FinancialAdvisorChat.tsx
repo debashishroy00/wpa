@@ -25,7 +25,7 @@ import SuggestedQuestions from './SuggestedQuestions';
 import ContextPanel from './ContextPanel';
 import LLMProviderSettings from './LLMProviderSettings';
 import LLMSettingsService, { ChatSettings } from '../../services/LLMSettingsService';
-import { useAuthUser } from '../../stores/auth-store';
+import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface Message {
@@ -59,7 +59,7 @@ const FinancialAdvisorChat: React.FC = () => {
     let user;
     try {
         console.log('📍 About to call useAuthUser hook in Chat...');
-        user = useAuthUser();
+        user = useUnifiedAuthStore((state) => state.user);
         console.log('👤 Chat user from auth store:', user);
         console.log('🔑 Chat auth token exists:', !!localStorage.getItem('auth_tokens'));
     } catch (error) {
@@ -311,11 +311,9 @@ const FinancialAdvisorChat: React.FC = () => {
         try {
             // Send message to backend
             const baseUrl = getApiBaseUrl();
-            // HOTFIX: Hardcode the URL to force production backend
-            const fullUrl = 'https://wealthpath-backend.onrender.com/api/v1/chat/message';
+            const fullUrl = `${baseUrl}/api/v1/chat/message`;
             console.log('🔗 Chat API Base URL:', baseUrl);
-            console.log('🌐 Full Chat URL (HARDCODED):', fullUrl);
-            console.log('🚨 USING HARDCODED URL FOR DEBUGGING');
+            console.log('🌐 Full Chat URL:', fullUrl);
             
             const response = await fetch(fullUrl, {
                 method: 'POST',

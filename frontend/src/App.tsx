@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 
 // Utilities
 import { apiClient } from './utils/api-simple' // Use simplified API client
-import { useAuthStore } from './stores/auth-store'
+import { useUnifiedAuthStore } from './stores/unified-auth-store'
 import { getApiBaseUrl } from './utils/getApiBaseUrl'
 
 // Components
@@ -38,7 +38,9 @@ function App() {
   const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'wealthpath' | 'projections'>('home')
   
   // Use auth store instead of local state
-  const { user, login, logout } = useAuthStore()
+  const user = useUnifiedAuthStore((state) => state.user)
+  const setAuth = useUnifiedAuthStore((state) => state.setAuth)
+  const clearAuth = useUnifiedAuthStore((state) => state.clearAuth)
 
   useEffect(() => {
     const initialize = async () => {
@@ -77,7 +79,7 @@ function App() {
               userId: userData.id,
               userEmail: userData.email
             })
-            login(tokens, userData)
+            setAuth(tokens, userData)
             console.log('✅ Auth store populated successfully')
           } else {
             console.log('❌ Cannot populate auth store - missing tokens or user data')
@@ -102,7 +104,7 @@ function App() {
                 const data = await response.json()
                 
                 // Use auth store login function to properly store user and tokens
-                login(
+                setAuth(
                   {
                     access_token: data.access_token,
                     refresh_token: data.refresh_token,
@@ -115,14 +117,14 @@ function App() {
                 console.log('Auto-login successful:', data.user)
               } else {
                 console.log('Auto-login failed, user needs to login manually')
-                logout()
+                clearAuth()
               }
             } catch (autoLoginErr) {
               console.log('Auto-login error:', autoLoginErr)
-              logout()
+              clearAuth()
             }
           } else {
-            logout()
+            clearAuth()
           }
         }
         
@@ -145,19 +147,19 @@ function App() {
   const handleLogin = (loginData: any) => {
     // If loginData contains tokens, use auth store login
     if (loginData.tokens && loginData.user) {
-      login(loginData.tokens, loginData.user)
+      setAuth(loginData.tokens, loginData.user)
     } else if (loginData.user) {
       // For backward compatibility, just use the user data
       // Tokens should already be set by the calling code
       const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}')
       if (tokens.access_token) {
-        login(tokens, loginData.user || loginData)
+        setAuth(tokens, loginData.user || loginData)
       }
     } else {
       // Fallback: treat entire loginData as user data
       const tokens = JSON.parse(localStorage.getItem('auth_tokens') || '{}')
       if (tokens.access_token) {
-        login(tokens, loginData)
+        setAuth(tokens, loginData)
       }
     }
     
@@ -165,7 +167,7 @@ function App() {
   }
   
   const handleLogout = () => {
-    logout()
+    clearAuth()
     setCurrentView('home')
   }
 
@@ -391,7 +393,7 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ onBack, user, onLogout })
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               {/* Admin Link - Only visible to admin users */}
               {(() => {
-                const authUser = useAuthStore.getState().user;
+                const authUser = useUnifiedAuthStore.getState().user;
                 return isCurrentUserAdmin(authUser || user);
               })() && (
                 <button 
@@ -573,7 +575,7 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ onBack, user, onLogout })
       </div>
 
       {/* Admin Dashboard Overlay - Completely Isolated */}
-      {showAdminDashboard && isCurrentUserAdmin(useAuthStore.getState().user || user) && (
+      {showAdminDashboard && isCurrentUserAdmin(useUnifiedAuthStore.getState().user || user) && (
         <div style={{
           position: 'fixed',
           top: 0,
