@@ -1656,9 +1656,9 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                 # Advanced tax strategy analysis
                 content += f"\nADVANCED TAX STRATEGIES:\n"
                 
-                # 1. Backdoor Roth IRA Strategy
-                backdoor_eligible = tax_info.backdoor_roth_eligible
-                content += f"• Backdoor Roth IRA Eligible: {'Yes' if backdoor_eligible else 'No'}\n"
+                # 1. Backdoor Roth IRA Strategy (determine eligibility based on income)
+                backdoor_eligible = agi > 138000 if agi > 0 else False  # Approximate 2025 limit
+                content += f"• Backdoor Roth IRA Eligible: {'Yes (based on income)' if backdoor_eligible else 'No (income under limit)'}\n"
                 if backdoor_eligible:
                     content += f"  - Strategy: Contribute $7,000 to non-deductible Traditional IRA\n"
                     content += f"  - Then convert to Roth IRA for tax-free growth\n"
