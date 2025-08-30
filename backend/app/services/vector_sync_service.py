@@ -749,11 +749,9 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         if benefit.employer_match_limit:
                             content += f"• Match Limit: ${float(benefit.employer_match_limit):,.0f}\n"
                         
-                        # Enhanced 401(k) matching formula
-                        if benefit.employer_401k_match_formula:
-                            content += f"• Match Formula: {benefit.employer_401k_match_formula}\n"
-                        if benefit.employer_401k_vesting_schedule:
-                            content += f"• Vesting Schedule: {benefit.employer_401k_vesting_schedule}\n"
+                        # Enhanced 401(k) matching formula (using available fields)
+                        if benefit.vesting_schedule:
+                            content += f"• Vesting Schedule: {benefit.vesting_schedule}\n"
                     
                     # Other benefits details from JSON field
                     if benefit.other_benefits:
