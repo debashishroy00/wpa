@@ -26,7 +26,7 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',  // Changed for local development
+        target: 'http://backend:8000',  // Use Docker service name
         changeOrigin: true,
         secure: false,
         ws: true,
