@@ -789,6 +789,80 @@ This should be your most detailed, thorough response mode.
         
         return instructions.get(insight_level, instructions["balanced"])
 
+    def _format_estate_planning(self, estate_planning: List[Dict]) -> str:
+        """Format estate planning documents"""
+        if not estate_planning:
+            return "  • No estate planning documents on record"
+        
+        formatted = []
+        for doc in estate_planning:
+            doc_type = doc.get('document_type', 'Unknown')
+            doc_name = doc.get('document_name', 'Unnamed')
+            status = doc.get('status', 'Unknown')
+            last_updated = doc.get('last_updated', 'Not specified')
+            
+            formatted.append(f"  • {doc_type.title()}: {doc_name} (Status: {status})")
+            if last_updated != 'Not specified':
+                formatted.append(f"    Last Updated: {last_updated[:10]}")
+            
+            if doc.get('attorney_contact'):
+                formatted.append(f"    Attorney: {doc['attorney_contact']}")
+        
+        return '\n'.join(formatted)
+    
+    def _format_insurance_policies(self, insurance_policies: List[Dict]) -> str:
+        """Format insurance policies"""
+        if not insurance_policies:
+            return "  • No insurance policies on record"
+        
+        formatted = []
+        for policy in insurance_policies:
+            policy_type = policy.get('policy_type', 'Unknown')
+            policy_name = policy.get('policy_name', 'Unnamed')
+            provider = policy.get('provider', 'Unknown Provider')
+            coverage = policy.get('coverage_amount', 0)
+            premium = policy.get('premium_amount', 0)
+            frequency = policy.get('premium_frequency', 'Unknown')
+            status = policy.get('status', 'Unknown')
+            
+            formatted.append(f"  • {policy_type.title()}: {policy_name} ({provider})")
+            formatted.append(f"    Coverage: ${coverage:,.0f}, Premium: ${premium:,.0f}/{frequency} (Status: {status})")
+        
+        return '\n'.join(formatted)
+    
+    def _format_investment_preferences(self, investment_preferences: Dict) -> str:
+        """Format investment preferences"""
+        if not investment_preferences:
+            return "  • No investment preferences specified"
+        
+        formatted = []
+        
+        risk_tolerance = investment_preferences.get('risk_tolerance', 'Not specified')
+        investment_horizon = investment_preferences.get('investment_horizon', 'Not specified')
+        investment_goals = investment_preferences.get('investment_goals', [])
+        preferred_sectors = investment_preferences.get('preferred_sectors', [])
+        esg_preferences = investment_preferences.get('esg_preferences', 'Not specified')
+        liquidity_needs = investment_preferences.get('liquidity_needs', 'Not specified')
+        
+        formatted.append(f"  • Risk Tolerance: {risk_tolerance}")
+        formatted.append(f"  • Investment Horizon: {investment_horizon}")
+        formatted.append(f"  • Liquidity Needs: {liquidity_needs}")
+        
+        if isinstance(investment_goals, list) and investment_goals:
+            formatted.append(f"  • Investment Goals: {', '.join(investment_goals)}")
+        elif investment_goals:
+            formatted.append(f"  • Investment Goals: {investment_goals}")
+        
+        if isinstance(preferred_sectors, list) and preferred_sectors:
+            formatted.append(f"  • Preferred Sectors: {', '.join(preferred_sectors)}")
+        elif preferred_sectors:
+            formatted.append(f"  • Preferred Sectors: {preferred_sectors}")
+        
+        if esg_preferences != 'Not specified':
+            formatted.append(f"  • ESG Preferences: {esg_preferences}")
+        
+        return '\n'.join(formatted)
+
 
 # Global instance
 complete_financial_context = CompleteFinancialContextService()
