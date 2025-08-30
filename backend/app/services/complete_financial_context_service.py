@@ -839,29 +839,27 @@ This should be your most detailed, thorough response mode.
         
         formatted = []
         
-        risk_tolerance = investment_preferences.get('risk_tolerance', 'Not specified')
-        investment_horizon = investment_preferences.get('investment_horizon', 'Not specified')
-        investment_goals = investment_preferences.get('investment_goals', [])
-        preferred_sectors = investment_preferences.get('preferred_sectors', [])
-        esg_preferences = investment_preferences.get('esg_preferences', 'Not specified')
-        liquidity_needs = investment_preferences.get('liquidity_needs', 'Not specified')
+        risk_score = investment_preferences.get('risk_tolerance_score', 'Not specified')
+        timeline_years = investment_preferences.get('investment_timeline_years', 'Not specified')
+        philosophy = investment_preferences.get('investment_philosophy', 'Not specified')
+        esg_level = investment_preferences.get('esg_preference_level', 'Not specified')
+        sectors = investment_preferences.get('sector_preferences', 'Not specified')
+        rebalancing = investment_preferences.get('rebalancing_frequency', 'Not specified')
+        alternatives = investment_preferences.get('alternative_investment_interest', 'Not specified')
         
-        formatted.append(f"  • Risk Tolerance: {risk_tolerance}")
-        formatted.append(f"  • Investment Horizon: {investment_horizon}")
-        formatted.append(f"  • Liquidity Needs: {liquidity_needs}")
+        formatted.append(f"  • Risk Tolerance Score: {risk_score}")
+        formatted.append(f"  • Investment Timeline: {timeline_years} years")
+        formatted.append(f"  • Investment Philosophy: {philosophy}")
+        formatted.append(f"  • Rebalancing Frequency: {rebalancing}")
         
-        if isinstance(investment_goals, list) and investment_goals:
-            formatted.append(f"  • Investment Goals: {', '.join(investment_goals)}")
-        elif investment_goals:
-            formatted.append(f"  • Investment Goals: {investment_goals}")
+        if esg_level != 'Not specified':
+            formatted.append(f"  • ESG Preference Level: {esg_level}")
         
-        if isinstance(preferred_sectors, list) and preferred_sectors:
-            formatted.append(f"  • Preferred Sectors: {', '.join(preferred_sectors)}")
-        elif preferred_sectors:
-            formatted.append(f"  • Preferred Sectors: {preferred_sectors}")
+        if sectors != 'Not specified' and sectors:
+            formatted.append(f"  • Sector Preferences: {sectors}")
         
-        if esg_preferences != 'Not specified':
-            formatted.append(f"  • ESG Preferences: {esg_preferences}")
+        if alternatives != 'Not specified':
+            formatted.append(f"  • Alternative Investment Interest: {alternatives}")
         
         return '\n'.join(formatted)
 
