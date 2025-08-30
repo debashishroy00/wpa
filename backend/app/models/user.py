@@ -53,6 +53,11 @@ class User(Base):
     # New V2 Goals relationships
     goals = relationship("Goal", back_populates="user")
     preferences = relationship("UserPreferences", back_populates="user", uselist=False)
+    
+    # Estate planning, insurance, and investment preferences relationships
+    estate_planning_documents = relationship("UserEstatePlanning", back_populates="user")
+    insurance_policies = relationship("UserInsurancePolicy", back_populates="user")
+    investment_preferences = relationship("UserInvestmentPreferences", back_populates="user", uselist=False)
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', status='{self.status.value}')>"
