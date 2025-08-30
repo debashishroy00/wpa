@@ -772,3 +772,155 @@ async def clear_chat_session(
         "success": success,
         "message": "Session cleared successfully" if success else "Session not found"
     }
+
+# NEW INTELLIGENT CHAT ENDPOINT
+class IntelligentChatRequest(BaseModel):
+    message: str
+    session_id: str = None
+    provider: str = 'gemini'
+    model_tier: str = 'dev'
+
+class IntelligentChatResponse(BaseModel):
+    message: Dict[str, Any]
+    tokens_used: Dict[str, int]
+    cost_breakdown: Dict[str, float]
+    intelligence_metrics: Dict[str, Any]
+    suggested_questions: List[str]
+    conversation_context: Dict[str, Any]
+
+@router.post("/intelligent", response_model=IntelligentChatResponse)
+async def chat_with_intelligence(
+    request: IntelligentChatRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Enhanced chat endpoint with intelligence extraction for vector store sync
+    """
+    
+    start_time = time.time()
+    
+    try:
+        # Generate session_id if not provided
+        if not request.session_id:
+            request.session_id = f"session_{uuid.uuid4().hex[:8]}_{int(time.time())}"
+        
+        # Initialize services
+        memory_service = ChatMemoryService(db)
+        intelligence_service = ChatIntelligenceService(db)
+        
+        # Get or create chat session
+        session = memory_service.get_or_create_session(
+            user_id=current_user.id,
+            session_id=request.session_id
+        )
+        
+        # Get previous intelligence context
+        intelligence_context = await intelligence_service.get_session_context(
+            current_user.id, request.session_id
+        )
+        
+        logger.info("Intelligence context loaded", 
+                   has_context=intelligence_context['has_context'],
+                   turns=intelligence_context['conversation_turns'])
+        
+        # Get conversation memory
+        conversation_context = memory_service.get_conversation_context(session)
+        
+        # Enhanced intent detection
+        detected_intents = enhanced_intent_classifier.classify_intents(request.message)
+        primary_intent = enhanced_intent_classifier.get_primary_intent(detected_intents)
+        
+        # Vector-based context retrieval
+        from app.services.vector_sync_service import vector_sync_service
+        
+        sync_result = vector_sync_service.sync_user_data(current_user.id, db)
+        foundation_context = vector_sync_service.get_user_context(
+            user_id=current_user.id,
+            query=request.message,
+            limit=3
+        )
+        
+        # Build enhanced prompt with intelligence context
+        enhanced_context_parts = [foundation_context]
+        
+        if intelligence_context['has_context']:
+            intelligence_summary = intelligence_context['context_summary']
+            enhanced_context_parts.insert(0, f"🧠 PREVIOUS CONVERSATION INTELLIGENCE:\n{intelligence_summary}\n")
+        
+        # Add conversation memory
+        conversation_text = memory_service.format_context_for_prompt(conversation_context)
+        if conversation_text:
+            enhanced_context_parts.append(f"🧠 CONVERSATION MEMORY:\n{conversation_text}\n")
+        
+        enhanced_context_parts.append(f"\nUSER QUESTION: \"{request.message}\"\n\nIMPORTANT: Use the exact financial metrics provided above in your response.")
+        
+        optimized_context = '\n'.join(enhanced_context_parts)
+        
+        # Call LLM
+        response_data = await call_llm_with_memory(
+            prompt_context=optimized_context,
+            provider=request.provider,
+            model_tier=request.model_tier,
+            has_conversation_memory=True,
+            user_message=request.message,
+            user_id=current_user.id,
+            session_id=request.session_id,
+            primary_intent=primary_intent
+        )
+        
+        # Get response data
+        assistant_response = response_data.get("message", {}).get("content", "")
+        tokens_used = response_data.get("tokens_used", {}).get("total", 0)
+        
+        # Process intelligence extraction
+        intelligence_metrics = await intelligence_service.process_conversation_turn(
+            user_id=current_user.id,
+            session_id=request.session_id,
+            user_message=request.message,
+            ai_response=assistant_response
+        )
+        
+        # Save conversation to memory
+        memory_service.add_message_pair(
+            session=session,
+            user_message=request.message,
+            assistant_response=assistant_response,
+            intent_detected=primary_intent,
+            context_used={
+                "financial_data_included": bool(foundation_context and "Error loading" not in foundation_context),
+                "conversation_context_included": bool(conversation_context.get("recent_messages")),
+                "intelligence_context_included": intelligence_context['has_context']
+            },
+            tokens_used=tokens_used,
+            model_used=request.model_tier,
+            provider=request.provider
+        )
+        
+        response_time = (time.time() - start_time) * 1000
+        
+        # Build enhanced conversation context
+        conversation_response_context = {
+            "message_count": conversation_context.get("message_count", 0) + 2,
+            "session_summary": conversation_context.get("session_summary"),
+            "last_intent": primary_intent,
+            "response_time_ms": int(response_time),
+            "conversation_turn": (conversation_context.get("message_count", 0) // 2) + 1,
+            "intelligence_extracted": intelligence_metrics['insights_extracted'] > 0
+        }
+        
+        return IntelligentChatResponse(
+            message=response_data.get("message", {}),
+            tokens_used=response_data.get("tokens_used", {}),
+            cost_breakdown=response_data.get("cost_breakdown", {}),
+            intelligence_metrics=intelligence_metrics,
+            suggested_questions=generate_contextual_suggestions(primary_intent, conversation_context, detected_intents),
+            conversation_context=conversation_response_context
+        )
+        
+    except Exception as e:
+        logger.error("Intelligent chat failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Intelligent chat processing failed: {str(e)}"
+        )
