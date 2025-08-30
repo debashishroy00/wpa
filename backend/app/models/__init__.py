@@ -9,6 +9,9 @@ from .goals_v2 import Goal, GoalHistory, GoalRelationship, GoalProgress, UserPre
 from .projection import ProjectionAssumptions, ProjectionSnapshot
 from .analytics import UserInteraction, ModelPrediction
 from .chat_intelligence import ChatIntelligence
+from .estate_planning import UserEstatePlanning
+from .insurance import UserInsurancePolicy
+from .investment_preferences import UserInvestmentPreferences
 
 __all__ = [
     "User", "UserProfile", "UserSession", "UserActivityLog",
