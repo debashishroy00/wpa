@@ -61,18 +61,28 @@ async def get_vector_contents(
         # Check if storage file exists
         storage_exists = os.path.exists(vector_store.storage_path)
         
-        # Get all documents for this user
+        # Get all documents for this user - Fix filtering logic
         documents = []
+        logger.info(f"Getting vector contents for user {user_id}")
+        logger.info(f"Total documents in vector store: {len(vector_store.documents)}")
+        
         for doc_id, doc in vector_store.documents.items():
-            if doc.metadata.get("user_id") == str(user_id):
+            # Fix: Compare integers properly, not string vs int
+            doc_user_id = doc.metadata.get("user_id")
+            logger.info(f"Checking document {doc_id}: user_id in metadata = {doc_user_id} (type: {type(doc_user_id)})")
+            
+            if doc_user_id == user_id:  # Compare integers directly
+                logger.info(f"Found matching document: {doc_id}")
                 documents.append({
                     "id": doc.doc_id,
                     "content": doc.content[:500] + "..." if len(doc.content) > 500 else doc.content,
                     "metadata": doc.metadata,
-                    "doc_type": doc.metadata.get("type", "unknown"),
+                    "doc_type": doc.metadata.get("document_type", "unknown"),
                     "category": doc.metadata.get("category", "unknown"),
                     "created_at": getattr(doc, 'created_at', None)
                 })
+        
+        logger.info(f"Filtered to {len(documents)} documents for user {user_id}")
         
         # Get vector store stats
         stats = vector_store.get_stats()
