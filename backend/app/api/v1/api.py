@@ -6,6 +6,8 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, projections, goals_v2, intelligence, advisor_data, plan_engine, advisory, financial_clean, vector_db, chat_new as chat, debug, profile, verification_test, admin, embeddings
 # Keep original LLM endpoints for Step 5 (working yesterday)
 from app.api.v1.endpoints import llm
+# Import the missing endpoints
+from app.api.v1.endpoints import estate_planning, insurance, investment_preferences
 
 # Create API router
 api_router = APIRouter()
