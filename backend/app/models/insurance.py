@@ -50,11 +50,11 @@ class UserInsurancePolicy(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
-    # Relationship to user with proper configuration
+    # Relationship to user (using viewonly to prevent circular issues)
     user = relationship(
         "User", 
-        back_populates="insurance_policies",
-        lazy="select"
+        lazy="select",
+        viewonly=True
     )
     
     def __repr__(self):
