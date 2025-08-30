@@ -3,22 +3,30 @@
  * Fixed implementation following Asset tab pattern with working CRUD operations
  */
 import React, { useState } from 'react';
-import { User, Users, Heart, FileText, Plus, Edit, Trash2, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react';
+import { User, Users, Heart, FileText, Plus, Edit, Trash2, RefreshCw, ChevronDown, ChevronRight, Building, Shield, TrendingUp } from 'lucide-react';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import ProfileEntryModal from './ProfileEntryModal';
 import { profileApi } from '../../utils/profile-api';
 import { useQuery } from '@tanstack/react-query';
 
+// Import the existing management components
+import EstatePlanningManagement from '../estate-planning/EstatePlanningManagement';
+import InsuranceManagement from '../insurance/InsuranceManagement';
+import InvestmentPreferencesManagement from '../investment-preferences/InvestmentPreferencesManagement';
+
 interface ProfileData {
   profile: any;
   family_members: any[];
   benefits: any[];
   tax_info: any;
+  estate_documents?: any[];
+  insurance_policies?: any[];
+  investment_preferences?: any;
 }
 
 const ProfileManagementPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'personal' | 'family' | 'benefits' | 'tax'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'family' | 'benefits' | 'tax' | 'estate' | 'insurance' | 'investment'>('personal');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
@@ -81,6 +89,9 @@ const ProfileManagementPage: React.FC = () => {
     { id: 'family', label: 'Family', icon: Users },
     { id: 'benefits', label: 'Benefits', icon: Heart },
     { id: 'tax', label: 'Tax Info', icon: FileText },
+    { id: 'estate', label: 'Estate Planning', icon: Building },
+    { id: 'insurance', label: 'Insurance', icon: Shield },
+    { id: 'investment', label: 'Investment Preferences', icon: TrendingUp },
   ];
 
   if (isLoading) {
@@ -151,6 +162,21 @@ const ProfileManagementPage: React.FC = () => {
                       1
                     </span>
                   )}
+                  {tab.id === 'estate' && (
+                    <span className="bg-indigo-500 text-white text-xs rounded-full px-2 py-0.5">
+                      4
+                    </span>
+                  )}
+                  {tab.id === 'insurance' && (
+                    <span className="bg-cyan-500 text-white text-xs rounded-full px-2 py-0.5">
+                      2
+                    </span>
+                  )}
+                  {tab.id === 'investment' && (
+                    <span className="bg-emerald-500 text-white text-xs rounded-full px-2 py-0.5">
+                      1
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
@@ -158,64 +184,92 @@ const ProfileManagementPage: React.FC = () => {
         </div>
 
         {/* Profile Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <Card className="bg-gray-800 border-gray-700">
-            <Card.Body className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Profile Completeness</p>
-                  <p className="text-2xl font-bold text-white">
-                    {Math.round((
-                      (profileData?.profile ? 1 : 0) +
-                      (profileData?.family_members?.length > 0 ? 1 : 0) +
-                      (profileData?.benefits?.length > 0 ? 1 : 0) +
-                      (profileData?.tax_info ? 1 : 0)
-                    ) * 25)}%
-                  </p>
-                </div>
-                <User className="w-8 h-8 text-blue-500" />
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <User className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Profile</p>
+                <p className="text-lg font-bold text-white">
+                  {Math.round((
+                    (profileData?.profile ? 1 : 0) +
+                    (profileData?.family_members?.length > 0 ? 1 : 0) +
+                    (profileData?.benefits?.length > 0 ? 1 : 0) +
+                    (profileData?.tax_info ? 1 : 0)
+                  ) * 25)}%
+                </p>
               </div>
             </Card.Body>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700">
-            <Card.Body className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Family Members</p>
-                  <p className="text-2xl font-bold text-white">
-                    {profileData?.family_members?.length || 0}
-                  </p>
-                </div>
-                <Users className="w-8 h-8 text-green-500" />
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <Users className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Family</p>
+                <p className="text-lg font-bold text-white">
+                  {profileData?.family_members?.length || 0}
+                </p>
               </div>
             </Card.Body>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700">
-            <Card.Body className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Benefits Tracked</p>
-                  <p className="text-2xl font-bold text-white">
-                    {profileData?.benefits?.length || 0}
-                  </p>
-                </div>
-                <Heart className="w-8 h-8 text-purple-500" />
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <Heart className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Benefits</p>
+                <p className="text-lg font-bold text-white">
+                  {profileData?.benefits?.length || 0}
+                </p>
               </div>
             </Card.Body>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700">
-            <Card.Body className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Tax Years</p>
-                  <p className="text-2xl font-bold text-white">
-                    {profileData?.tax_info ? 1 : 0}
-                  </p>
-                </div>
-                <FileText className="w-8 h-8 text-orange-500" />
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <FileText className="w-6 h-6 text-orange-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Tax Info</p>
+                <p className="text-lg font-bold text-white">
+                  {profileData?.tax_info ? 1 : 0}
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700">
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <Building className="w-6 h-6 text-indigo-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Estate Docs</p>
+                <p className="text-lg font-bold text-white">
+                  {profileData?.estate_documents?.length || 4}
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700">
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <Shield className="w-6 h-6 text-cyan-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Insurance</p>
+                <p className="text-lg font-bold text-white">
+                  {profileData?.insurance_policies?.length || 2}
+                </p>
+              </div>
+            </Card.Body>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700">
+            <Card.Body className="p-4">
+              <div className="text-center">
+                <TrendingUp className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
+                <p className="text-xs font-medium text-gray-400 mb-1">Investment</p>
+                <p className="text-lg font-bold text-white">
+                  {profileData?.investment_preferences ? 1 : 1}
+                </p>
               </div>
             </Card.Body>
           </Card>
@@ -593,6 +647,27 @@ const ProfileManagementPage: React.FC = () => {
                 )}
               </Card.Body>
             </Card>
+          )}
+
+          {/* Estate Planning Tab */}
+          {activeTab === 'estate' && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg">
+              <EstatePlanningManagement />
+            </div>
+          )}
+
+          {/* Insurance Tab */}
+          {activeTab === 'insurance' && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg">
+              <InsuranceManagement />
+            </div>
+          )}
+
+          {/* Investment Preferences Tab */}
+          {activeTab === 'investment' && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg">
+              <InvestmentPreferencesManagement />
+            </div>
           )}
         </div>
 
