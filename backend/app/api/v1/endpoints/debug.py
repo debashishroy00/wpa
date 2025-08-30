@@ -54,7 +54,12 @@ async def get_vector_contents(
     try:
         # Use simple vector store instead of ChromaDB
         from app.services.simple_vector_store import get_vector_store
+        import os
+        
         vector_store = get_vector_store()
+        
+        # Check if storage file exists
+        storage_exists = os.path.exists(vector_store.storage_path)
         
         # Get all documents for this user
         documents = []
@@ -63,8 +68,14 @@ async def get_vector_contents(
                 documents.append({
                     "id": doc.doc_id,
                     "content": doc.content[:500] + "..." if len(doc.content) > 500 else doc.content,
-                    "metadata": doc.metadata
+                    "metadata": doc.metadata,
+                    "doc_type": doc.metadata.get("type", "unknown"),
+                    "category": doc.metadata.get("category", "unknown"),
+                    "created_at": getattr(doc, 'created_at', None)
                 })
+        
+        # Get vector store stats
+        stats = vector_store.get_stats()
         
         return {
             "status": "success",
@@ -74,7 +85,11 @@ async def get_vector_contents(
             "documents": documents,
             "debug_info": {
                 "storage_type": "SimpleVectorStore",
-                "user_filter": {"user_id": str(user_id)}
+                "storage_path": vector_store.storage_path,
+                "storage_file_exists": storage_exists,
+                "user_filter": {"user_id": str(user_id)},
+                "vector_store_stats": stats,
+                "total_docs_in_store": len(vector_store.documents)
             }
         }
         
