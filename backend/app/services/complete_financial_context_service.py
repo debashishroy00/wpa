@@ -442,12 +442,13 @@ Example:
                 
                 if inv_prefs:
                     investment_preferences = {
-                        'risk_tolerance': inv_prefs.risk_tolerance,
-                        'investment_horizon': inv_prefs.investment_horizon,
-                        'investment_goals': inv_prefs.investment_goals,
-                        'preferred_sectors': inv_prefs.preferred_sectors,
-                        'esg_preferences': inv_prefs.esg_preferences,
-                        'liquidity_needs': inv_prefs.liquidity_needs
+                        'risk_tolerance_score': inv_prefs.risk_tolerance_score,
+                        'investment_timeline_years': inv_prefs.investment_timeline_years,
+                        'investment_philosophy': inv_prefs.investment_philosophy,
+                        'esg_preference_level': inv_prefs.esg_preference_level,
+                        'sector_preferences': inv_prefs.sector_preferences,
+                        'rebalancing_frequency': inv_prefs.rebalancing_frequency,
+                        'alternative_investment_interest': inv_prefs.alternative_investment_interest
                     }
             except Exception as e:
                 logger.warning(f"Could not retrieve investment preferences: {str(e)}")
