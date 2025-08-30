@@ -133,7 +133,7 @@ class VectorSyncService:
                 "status": "success",
                 "user_id": user_id,
                 "documents_removed": removed_count,
-                "documents_synced": 8,
+                "documents_synced": 11,
                 "metrics": {
                     "savings_rate": tools_output.savings_rate,
                     "emergency_months": tools_output.liquidity_months,
