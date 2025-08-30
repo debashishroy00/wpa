@@ -432,7 +432,7 @@ async def chat_with_intelligence(
         # Call LLM using the same approach as the working endpoint
         assistant_response = await call_llm_api(
             system_prompt=optimized_context,
-            user_message="Please provide a comprehensive response based on the complete financial data provided.",
+            user_message=request.message,  # ✅ FIXED: Pass the actual user question!
             provider=request.provider,
             model_tier=request.model_tier,
             user_id=current_user.id,
