@@ -231,7 +231,7 @@ async def send_chat_message(
         logger.info(f"🎯 Step 3: Calling LLM API...")
         response_content = await call_llm_api(
             system_prompt=system_prompt,
-            user_message="Please provide a comprehensive response based on the complete financial data provided.",
+            user_message=request.message,  # ✅ FIXED: Pass the actual user question!
             provider=request.provider,
             model_tier=request.model_tier,
             user_id=request.user_id,
