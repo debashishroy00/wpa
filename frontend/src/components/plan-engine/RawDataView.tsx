@@ -77,7 +77,7 @@ interface RawDataViewProps {
 
 const RawDataView: React.FC<RawDataViewProps> = ({ planOutput, className = '' }) => {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['gap_analysis']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   const handleCopySection = async (sectionKey: string, data: any) => {
     try {
