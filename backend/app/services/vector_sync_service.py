@@ -1594,6 +1594,272 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
         except Exception as e:
             logger.warning(f"Failed to sync enhanced benefits for user {user_id}: {str(e)}")
     
+    def _sync_enhanced_tax_optimization(self, user_id: int, db: Session):
+        """
+        Create Enhanced Tax Optimization Vector Document with advanced tax strategies
+        """
+        try:
+            from app.models.user_profile import UserProfile, UserTaxInfo
+            
+            profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+            if not profile:
+                logger.warning(f"No profile found for user {user_id}")
+                return
+            
+            tax_info = db.query(UserTaxInfo).filter(UserTaxInfo.profile_id == profile.id).first()
+            
+            # Get user financial data for tax optimization calculations
+            user_data = self._build_user_financial_data(user_id, db)
+            annual_income = user_data.monthly_income * 12 if user_data else 0
+            
+            # Build enhanced tax optimization content
+            content = "ENHANCED TAX OPTIMIZATION STRATEGIES:\n"
+            content += "="*60 + "\n\n"
+            
+            if tax_info:
+                # Current tax situation analysis
+                content += "CURRENT TAX SITUATION ANALYSIS:\n"
+                content += f"• Tax Year: {tax_info.tax_year}\n"
+                content += f"• Filing Status: {tax_info.filing_status or 'Not specified'}\n"
+                content += f"• Federal Tax Bracket: {float(tax_info.federal_tax_bracket or 0):.0f}%\n"
+                content += f"• Effective Tax Rate: {float(tax_info.effective_tax_rate or 0):.1f}%\n"
+                content += f"• Marginal Tax Rate: {float(tax_info.marginal_tax_rate or 0):.1f}%\n"
+                
+                if tax_info.adjusted_gross_income:
+                    agi = float(tax_info.adjusted_gross_income)
+                    content += f"• Adjusted Gross Income: ${agi:,.0f}\n"
+                    
+                    # Tax bracket optimization analysis
+                    content += f"\nTAX BRACKET OPTIMIZATION:\n"
+                    
+                    # 2025 tax brackets (married filing jointly example)
+                    if tax_info.filing_status == 'married_filing_jointly':
+                        tax_brackets_2025 = [
+                            (23200, 0.10), (94300, 0.12), (201050, 0.22), 
+                            (383900, 0.24), (487450, 0.32), (731200, 0.35), (float('inf'), 0.37)
+                        ]
+                    else:  # Single filer brackets
+                        tax_brackets_2025 = [
+                            (11600, 0.10), (47150, 0.12), (100525, 0.22), 
+                            (191950, 0.24), (243725, 0.32), (609350, 0.35), (float('inf'), 0.37)
+                        ]
+                    
+                    current_bracket = 0.22  # Default
+                    next_bracket_threshold = 0
+                    for threshold, rate in tax_brackets_2025:
+                        if agi <= threshold:
+                            current_bracket = rate
+                            break
+                        next_bracket_threshold = threshold
+                    
+                    content += f"• Current Marginal Bracket: {current_bracket*100:.0f}%\n"
+                    if next_bracket_threshold > agi:
+                        room_in_bracket = next_bracket_threshold - agi
+                        content += f"• Room in Current Bracket: ${room_in_bracket:,.0f}\n"
+                        content += f"• Strategy: Maximize deductions within current bracket\n"
+                
+                # Advanced tax strategy analysis
+                content += f"\nADVANCED TAX STRATEGIES:\n"
+                
+                # 1. Backdoor Roth IRA Strategy
+                backdoor_eligible = tax_info.backdoor_roth_eligible
+                content += f"• Backdoor Roth IRA Eligible: {'Yes' if backdoor_eligible else 'No'}\n"
+                if backdoor_eligible:
+                    content += f"  - Strategy: Contribute $7,000 to non-deductible Traditional IRA\n"
+                    content += f"  - Then convert to Roth IRA for tax-free growth\n"
+                    content += f"  - Benefit: Bypass Roth IRA income limits\n"
+                    
+                    # Calculate tax savings
+                    if annual_income > 0:
+                        marginal_rate = float(tax_info.marginal_tax_rate or 22) / 100
+                        roth_benefit = 7000 * marginal_rate * 20  # Assume 20 years of growth
+                        content += f"  - Estimated 20-year tax savings: ${roth_benefit:,.0f}\n"
+                
+                # 2. Mega Backdoor Roth Strategy
+                mega_backdoor_available = tax_info.mega_backdoor_roth_available
+                content += f"• Mega Backdoor Roth Available: {'Yes' if mega_backdoor_available else 'No'}\n"
+                if mega_backdoor_available:
+                    content += f"  - Strategy: After-tax 401(k) contributions up to $70,000 total limit\n"
+                    content += f"  - Convert after-tax contributions to Roth 401(k)\n"
+                    content += f"  - Benefit: Massive Roth accumulation for high earners\n"
+                
+                # 3. Tax Loss Harvesting
+                tax_loss_harvesting = tax_info.tax_loss_harvesting_enabled
+                content += f"• Tax Loss Harvesting: {'Enabled' if tax_loss_harvesting else 'Disabled'}\n"
+                if tax_loss_harvesting:
+                    content += f"  - Strategy: Realize investment losses to offset gains\n"
+                    content += f"  - Annual limit: $3,000 loss deduction against ordinary income\n"
+                    content += f"  - Benefit: Reduce current year tax liability\n"
+                    
+                    # Estimate potential savings
+                    if user_data and user_data.portfolio_value > 0:
+                        portfolio_value = user_data.portfolio_value
+                        potential_harvest = min(portfolio_value * 0.02, 3000)  # 2% of portfolio or $3k max
+                        marginal_rate = float(tax_info.marginal_tax_rate or 22) / 100
+                        annual_savings = potential_harvest * marginal_rate
+                        content += f"  - Estimated annual tax savings: ${annual_savings:,.0f}\n"
+                else:
+                    content += f"  - Recommendation: Enable tax loss harvesting in investment accounts\n"
+                
+                # 4. Tax-Advantaged Account Optimization
+                content += f"\nTAX-ADVANTAGED ACCOUNT OPTIMIZATION:\n"
+                
+                # Traditional vs Roth analysis
+                current_bracket = float(tax_info.marginal_tax_rate or 22) / 100
+                retirement_age = profile.retirement_age or 65
+                current_age = profile.age or 35
+                years_to_retirement = retirement_age - current_age
+                
+                content += f"• Traditional vs Roth Analysis:\n"
+                content += f"  - Current Tax Bracket: {current_bracket*100:.0f}%\n"
+                content += f"  - Years to Retirement: {years_to_retirement}\n"
+                
+                if current_bracket >= 0.22:  # 22% bracket or higher
+                    content += f"  - Recommendation: Prioritize Traditional 401(k) for immediate deduction\n"
+                    content += f"  - Benefit: ${23000 * current_bracket:,.0f} immediate tax savings (max contribution)\n"
+                else:
+                    content += f"  - Recommendation: Consider Roth 401(k) for tax-free retirement income\n"
+                    content += f"  - Benefit: Tax-free growth over {years_to_retirement} years\n"
+                
+                # HSA Triple Tax Advantage
+                content += f"\nHSA TRIPLE TAX ADVANTAGE STRATEGY:\n"
+                hsa_contribution = float(tax_info.hsa_contribution or 0)
+                max_hsa_2025 = 4300 if tax_info.filing_status != 'married_filing_jointly' else 8550
+                
+                content += f"• Current HSA Contribution: ${hsa_contribution:,.0f}\n"
+                content += f"• 2025 HSA Limit: ${max_hsa_2025:,.0f}\n"
+                
+                if hsa_contribution < max_hsa_2025:
+                    additional_hsa = max_hsa_2025 - hsa_contribution
+                    tax_savings = additional_hsa * current_bracket
+                    content += f"• Additional HSA Room: ${additional_hsa:,.0f}\n"
+                    content += f"• Immediate Tax Savings: ${tax_savings:,.0f}\n"
+                    content += f"• Strategy: Max HSA first - triple tax advantage\n"
+                    content += f"  - Deductible contributions\n"
+                    content += f"  - Tax-free growth\n"
+                    content += f"  - Tax-free withdrawals for medical expenses\n"
+                
+                # 5. Charitable Giving Optimization
+                charitable_giving = float(tax_info.charitable_giving_annual or 0)
+                if charitable_giving > 0:
+                    content += f"\nCHARITABLE GIVING OPTIMIZATION:\n"
+                    content += f"• Annual Charitable Giving: ${charitable_giving:,.0f}\n"
+                    content += f"• Tax Deduction Value: ${charitable_giving * current_bracket:,.0f}\n"
+                    
+                    # Donor-advised fund strategy
+                    if charitable_giving >= 5000:
+                        content += f"• Strategy: Donor-Advised Fund for appreciated assets\n"
+                        content += f"• Benefit: Avoid capital gains tax + charitable deduction\n"
+                        
+                        # Bunching strategy
+                        if tax_info.itemized_deductions:
+                            itemized = float(tax_info.itemized_deductions)
+                            standard_deduction_2025 = 15000 if tax_info.filing_status != 'married_filing_jointly' else 30000
+                            if itemized < standard_deduction_2025 * 1.2:  # Close to standard deduction
+                                content += f"• Bunching Strategy: Combine 2-3 years of giving in one year\n"
+                                content += f"• Benefit: Exceed standard deduction threshold\n"
+                
+                # 6. Business Income Optimization
+                if tax_info.business_income_details:
+                    business_details = tax_info.business_income_details
+                    if isinstance(business_details, dict) and any(business_details.values()):
+                        content += f"\nBUSINESS INCOME OPTIMIZATION:\n"
+                        
+                        # Solo 401(k) strategy
+                        content += f"• Solo 401(k) Strategy:\n"
+                        content += f"  - Employee contribution limit: $23,000\n"
+                        content += f"  - Employer contribution: 25% of net self-employment income\n"
+                        content += f"  - Total limit: $70,000 (or $77,500 if 50+)\n"
+                        
+                        # SEP-IRA alternative
+                        content += f"• SEP-IRA Alternative:\n"
+                        content += f"  - Contribute 25% of net self-employment income\n"
+                        content += f"  - Simpler administration than Solo 401(k)\n"
+                        
+                        # QBI Deduction (Section 199A)
+                        content += f"• QBI Deduction (Section 199A):\n"
+                        content += f"  - Up to 20% deduction on qualified business income\n"
+                        content += f"  - Strategy: Optimize income levels to maximize deduction\n"
+                
+                # 7. Multi-Year Tax Planning
+                content += f"\nMULTI-YEAR TAX PLANNING STRATEGIES:\n"
+                
+                # Roth conversion ladder
+                if years_to_retirement > 10:
+                    content += f"• Roth Conversion Ladder Strategy:\n"
+                    content += f"  - Convert Traditional IRA to Roth in low-income years\n"
+                    content += f"  - Target: Fill up lower tax brackets\n"
+                    content += f"  - Benefit: Tax-free retirement income\n"
+                
+                # Tax location optimization
+                content += f"• Tax Location Optimization:\n"
+                content += f"  - Hold tax-inefficient investments in tax-advantaged accounts\n"
+                content += f"  - Hold tax-efficient investments in taxable accounts\n"
+                content += f"  - Municipal bonds in high tax bracket years\n"
+                
+                # Estate planning tax strategies
+                if user_data and user_data.total_assets > 1000000:  # High net worth
+                    content += f"• Estate Planning Tax Strategies:\n"
+                    content += f"  - Annual gift tax exclusion: $18,000 per recipient (2025)\n"
+                    content += f"  - Lifetime estate/gift tax exemption: $13.61M (2025)\n"
+                    content += f"  - Strategy: Annual gifting to reduce estate tax\n"
+                
+                # Tax planning notes from user
+                if tax_info.tax_strategy_notes:
+                    content += f"\nCUSTOM TAX STRATEGY NOTES:\n"
+                    content += f"{tax_info.tax_strategy_notes}\n"
+                
+                # Action items summary
+                content += f"\nIMMEDIATE ACTION ITEMS:\n"
+                action_items = []
+                
+                if backdoor_eligible:
+                    action_items.append("• Execute Backdoor Roth IRA conversion")
+                if hsa_contribution < max_hsa_2025:
+                    action_items.append(f"• Increase HSA contribution by ${max_hsa_2025 - hsa_contribution:,.0f}")
+                if not tax_loss_harvesting:
+                    action_items.append("• Enable tax loss harvesting in investment accounts")
+                if charitable_giving > 0 and not tax_info.tax_professional_name:
+                    action_items.append("• Consider donor-advised fund for charitable giving")
+                
+                if action_items:
+                    content += "\n".join(action_items)
+                else:
+                    content += "• Review current strategies - optimization appears comprehensive\n"
+                    
+            else:
+                # No tax info available - provide general optimization framework
+                content += "TAX OPTIMIZATION FRAMEWORK:\n"
+                content += "• Complete tax information assessment for personalized strategies\n"
+                content += "• Priority optimization areas to explore:\n"
+                content += "  - Backdoor Roth IRA eligibility\n"
+                content += "  - HSA maximization\n"
+                content += "  - Tax loss harvesting\n"
+                content += "  - 401(k) traditional vs Roth allocation\n"
+                content += "  - Charitable giving optimization\n"
+                content += "  - Business income tax strategies\n"
+            
+            # Store enhanced tax optimization document
+            doc_id = f"user_{user_id}_tax_optimization"
+            self.vector_store.add_document(
+                doc_id=doc_id,
+                content=content,
+                metadata={
+                    "user_id": user_id,
+                    "document_type": "tax_optimization",
+                    "has_tax_info": tax_info is not None,
+                    "backdoor_roth_eligible": bool(tax_info and tax_info.backdoor_roth_eligible),
+                    "tax_loss_harvesting": bool(tax_info and tax_info.tax_loss_harvesting_enabled),
+                    "optimization_level": "advanced",
+                    "version": "enhanced_v1.0"
+                }
+            )
+            
+            logger.info(f"Enhanced tax optimization document created for user {user_id}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to sync enhanced tax optimization for user {user_id}: {str(e)}")
+    
     def get_user_context(self, user_id: int, query: str = "", limit: int = 3) -> str:
         """
         Get user context from vector store - this is the ONLY method chat should use
