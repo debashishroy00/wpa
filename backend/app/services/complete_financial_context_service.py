@@ -425,11 +425,10 @@ Example:
                     insurance_policies.append({
                         'policy_type': policy.policy_type,
                         'policy_name': policy.policy_name,
-                        'provider': policy.provider,
                         'coverage_amount': float(policy.coverage_amount) if policy.coverage_amount else 0,
-                        'premium_amount': float(policy.premium_amount) if policy.premium_amount else 0,
-                        'premium_frequency': policy.premium_frequency,
-                        'status': policy.status,
+                        'annual_premium': float(policy.annual_premium) if policy.annual_premium else 0,
+                        'beneficiary_primary': policy.beneficiary_primary,
+                        'beneficiary_secondary': policy.beneficiary_secondary,
                         'policy_details': policy.policy_details
                     })
             except Exception as e:
