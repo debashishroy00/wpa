@@ -123,6 +123,10 @@ class VectorSyncService:
             # Sync investment preferences and risk profile
             self._sync_investment_preferences(user_id, db)
             
+            # Sync enhanced benefits and tax optimization (priority documents)
+            self._sync_enhanced_benefits(user_id, db)
+            self._sync_enhanced_tax_optimization(user_id, db)
+            
             logger.info(f"Vector sync complete for user {user_id} - Metrics: Savings {tools_output.savings_rate:.1f}%, Emergency {tools_output.liquidity_months:.1f} months")
             
             return {
