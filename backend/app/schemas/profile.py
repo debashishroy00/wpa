@@ -268,5 +268,8 @@ class CompleteProfileResponse(BaseModel):
     family_members: List[FamilyMemberResponse]
     benefits: List[UserBenefitResponse]
     tax_info: Optional[UserTaxInfoResponse]
+    estate_documents: List[dict] = []  # Estate planning documents
+    insurance_policies: List[dict] = []  # Insurance policies
+    investment_preferences: Optional[dict] = None  # Investment preferences
     
     model_config = {"from_attributes": True}
