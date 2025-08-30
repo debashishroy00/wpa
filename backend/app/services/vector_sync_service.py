@@ -689,16 +689,17 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         if benefit.full_retirement_age:
                             content += f"• Full Retirement Age: {benefit.full_retirement_age}\n"
                         
-                        # Enhanced Social Security planning fields
-                        if benefit.social_security_estimated_benefit:
-                            content += f"• Enhanced SS Benefit Estimate: ${float(benefit.social_security_estimated_benefit):,.0f}\n"
-                        if benefit.social_security_claiming_age:
-                            content += f"• Planned Claiming Age: {benefit.social_security_claiming_age}\n"
+                        # Enhanced Social Security planning fields from profile
+                        if benefit.estimated_monthly_benefit:
+                            base_benefit = float(benefit.estimated_monthly_benefit)
+                            content += f"• Current SS Benefit Estimate: ${base_benefit:,.0f}\n"
                             
-                            # Calculate benefit adjustment based on claiming age
-                            claiming_age = benefit.social_security_claiming_age
+                            # Use FRA as default claiming age since claiming_age field doesn't exist
+                            claiming_age = benefit.full_retirement_age or 67
+                            content += f"• Default Claiming Age: {claiming_age} (FRA)\n"
+                            
+                            # Calculate benefit adjustment scenarios
                             fra = benefit.full_retirement_age or 67
-                            base_benefit = float(benefit.social_security_estimated_benefit or benefit.estimated_monthly_benefit or 0)
                             
                             if base_benefit > 0:
                                 adjustment_factor = 1
