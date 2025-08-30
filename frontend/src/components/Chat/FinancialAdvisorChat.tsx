@@ -570,6 +570,18 @@ const FinancialAdvisorChat: React.FC = () => {
                         </Button>
                         
                         <Button
+                            onClick={() => {
+                                setIntelligenceMetrics(null);
+                                initializeChatSession();
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-400 border-blue-500/50 hover:bg-blue-900/20"
+                        >
+                            New Conversation
+                        </Button>
+                        
+                        <Button
                             onClick={clearChat}
                             variant="outline"
                             size="sm"
