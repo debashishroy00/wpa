@@ -1492,9 +1492,8 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         if match_limit > 0:
                             content += f"• Maximum Match: ${match_limit:,.0f} annually\n"
                         
-                        # Calculate optimization scenarios
-                        if match_benefit.employer_401k_match_formula:
-                            content += f"• Match Formula: {match_benefit.employer_401k_match_formula}\n"
+                        # Match formula note (field doesn't exist in current model)
+                        content += f"• Match Formula: {match_percentage}% of employee contribution\n"
                         
                         # Get current user income for optimization
                         user_data = self._build_user_financial_data(user_id, db)
