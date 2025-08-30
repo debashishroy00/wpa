@@ -190,3 +190,76 @@ async def clear_stored_payloads(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to clear payloads: {str(e)}"
         )
+
+@router.post("/trigger-vector-sync/{user_id}")
+async def trigger_vector_sync(
+    user_id: int,
+    force_rebuild: bool = True,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Debug endpoint to trigger vector database sync for a specific user
+    This will sync all 10 document types from PostgreSQL to vector store
+    """
+    
+    # Verify user access
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    try:
+        from app.services.vector_sync_service import VectorSyncService
+        import os
+        
+        # Initialize sync service
+        sync_service = VectorSyncService(db)
+        
+        logger.info(f"Starting vector sync for user {user_id}, force_rebuild={force_rebuild}")
+        
+        # Get vector store info before sync
+        from app.services.simple_vector_store import get_vector_store
+        vector_store = get_vector_store()
+        pre_sync_stats = {
+            "storage_exists": os.path.exists(vector_store.storage_path),
+            "total_docs": len(vector_store.documents),
+            "user_docs": len([d for d in vector_store.documents.values() 
+                            if d.metadata.get("user_id") == str(user_id)])
+        }
+        
+        # Perform sync
+        if force_rebuild:
+            logger.info(f"Force rebuilding vector data for user {user_id}")
+            sync_service._clear_user_vector_data(user_id)
+        
+        sync_result = sync_service.sync_user_data(user_id)
+        
+        # Get vector store info after sync
+        post_sync_stats = {
+            "storage_exists": os.path.exists(vector_store.storage_path),
+            "total_docs": len(vector_store.documents),
+            "user_docs": len([d for d in vector_store.documents.values() 
+                            if d.metadata.get("user_id") == str(user_id)])
+        }
+        
+        return {
+            "status": "success",
+            "user_id": user_id,
+            "force_rebuild": force_rebuild,
+            "sync_result": sync_result,
+            "pre_sync_stats": pre_sync_stats,
+            "post_sync_stats": post_sync_stats,
+            "documents_added": post_sync_stats["user_docs"] - pre_sync_stats["user_docs"],
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        import traceback
+        logger.error(f"Vector sync failed for user {user_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Vector sync failed: {str(e)}"
+        )
