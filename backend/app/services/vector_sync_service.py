@@ -1670,17 +1670,17 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                         roth_benefit = 7000 * marginal_rate * 20  # Assume 20 years of growth
                         content += f"  - Estimated 20-year tax savings: ${roth_benefit:,.0f}\n"
                 
-                # 2. Mega Backdoor Roth Strategy
-                mega_backdoor_available = tax_info.mega_backdoor_roth_available
-                content += f"• Mega Backdoor Roth Available: {'Yes' if mega_backdoor_available else 'No'}\n"
+                # 2. Mega Backdoor Roth Strategy (determine availability based on high income)
+                mega_backdoor_available = agi > 200000 if agi > 0 else False
+                content += f"• Mega Backdoor Roth Available: {'Yes (high earner)' if mega_backdoor_available else 'No (moderate income)'}\n"
                 if mega_backdoor_available:
                     content += f"  - Strategy: After-tax 401(k) contributions up to $70,000 total limit\n"
                     content += f"  - Convert after-tax contributions to Roth 401(k)\n"
                     content += f"  - Benefit: Massive Roth accumulation for high earners\n"
                 
-                # 3. Tax Loss Harvesting
-                tax_loss_harvesting = tax_info.tax_loss_harvesting_enabled
-                content += f"• Tax Loss Harvesting: {'Enabled' if tax_loss_harvesting else 'Disabled'}\n"
+                # 3. Tax Loss Harvesting (assume available for high income investors)
+                tax_loss_harvesting = agi > 100000 if agi > 0 else False
+                content += f"• Tax Loss Harvesting: {'Recommended' if tax_loss_harvesting else 'Not needed at current income'}\n"
                 if tax_loss_harvesting:
                     content += f"  - Strategy: Realize investment losses to offset gains\n"
                     content += f"  - Annual limit: $3,000 loss deduction against ordinary income\n"
