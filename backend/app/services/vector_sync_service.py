@@ -1828,8 +1828,8 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                     "user_id": user_id,
                     "document_type": "tax_optimization",
                     "has_tax_info": tax_info is not None,
-                    "backdoor_roth_eligible": bool(tax_info and tax_info.backdoor_roth_eligible),
-                    "tax_loss_harvesting": bool(tax_info and tax_info.tax_loss_harvesting_enabled),
+                    "backdoor_roth_eligible": backdoor_eligible,
+                    "tax_loss_harvesting": tax_loss_harvesting,
                     "optimization_level": "advanced",
                     "version": "enhanced_v1.0"
                 }
