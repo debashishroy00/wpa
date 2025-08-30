@@ -127,6 +127,9 @@ class VectorSyncService:
             self._sync_enhanced_benefits(user_id, db)
             self._sync_enhanced_tax_optimization(user_id, db)
             
+            # Sync chat intelligence (NEW - completes 100% vector coverage)
+            self._sync_chat_intelligence(user_id, db)
+            
             logger.info(f"Vector sync complete for user {user_id} - Metrics: Savings {tools_output.savings_rate:.1f}%, Emergency {tools_output.liquidity_months:.1f} months")
             
             return {
