@@ -50,8 +50,12 @@ class UserInsurancePolicy(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
-    # Relationship to user (temporarily disabled to fix SQLAlchemy issues)  
-    # user = relationship("User", back_populates="insurance_policies")
+    # Relationship to user with proper configuration
+    user = relationship(
+        "User", 
+        back_populates="insurance_policies",
+        lazy="select"
+    )
     
     def __repr__(self):
         return f"<UserInsurancePolicy(id={self.id}, user_id={self.user_id}, type={self.policy_type}, name={self.policy_name})>"
