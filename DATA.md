@@ -222,9 +222,11 @@
 ### 🎯 STRENGTHS FOR ADVISORY
 - **Data Depth**: 200+ distinct data points across all financial domains
 - **Real-time Calculations**: Live metrics for cash flow, savings rate, debt analysis
-- **Advanced Tax Planning**: Backdoor Roth, tax-loss harvesting, state tax optimization
-- **Social Security Optimization**: Claiming age strategies with benefit projections
-- **Comprehensive Context**: 10 different vector store documents per user
+- **Advanced Tax Planning**: Backdoor Roth, Mega Backdoor Roth, tax-loss harvesting, bracket optimization
+- **Social Security Optimization**: Claiming scenarios analysis, break-even calculations, spouse benefits
+- **401k Optimization**: Employer match analysis, vesting strategies, contribution limits
+- **Comprehensive Context**: 12 different vector store documents per user with enhanced optimization
+- **HSA Planning**: Triple tax advantage strategies, contribution optimization
 - **Audit Trail**: Complete change tracking for goals and major updates
 - **Integration**: All data feeds into LLM for sophisticated advisory responses
 
