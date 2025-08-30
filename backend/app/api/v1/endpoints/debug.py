@@ -234,7 +234,7 @@ async def trigger_vector_sync(
             logger.info(f"Force rebuilding vector data for user {user_id}")
             sync_service._clear_user_vector_data(user_id)
         
-        sync_result = sync_service.sync_user_data(user_id)
+        sync_result = sync_service.sync_user_data(user_id, db)
         
         # Get vector store info after sync
         post_sync_stats = {
