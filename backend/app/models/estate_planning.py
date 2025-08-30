@@ -56,8 +56,8 @@ class UserEstatePlanning(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
-    # Relationship to user
-    user = relationship("User", back_populates="estate_planning_documents")
+    # Relationship to user (temporarily disabled to fix SQLAlchemy issues)
+    # user = relationship("User", back_populates="estate_planning_documents")
     
     def __repr__(self):
         return f"<UserEstatePlanning(id={self.id}, user_id={self.user_id}, type={self.document_type}, name={self.document_name})>"
