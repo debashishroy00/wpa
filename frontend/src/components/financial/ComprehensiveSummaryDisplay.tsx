@@ -36,10 +36,10 @@ const ComprehensiveSummaryDisplay: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showFullJson, setShowFullJson] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
-    preferences: true,
-    financial: true,
-    goals: true,
-    recommendations: true
+    preferences: false,
+    financial: false,
+    goals: false,
+    recommendations: false
   });
 
   // Vector database states
