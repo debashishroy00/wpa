@@ -476,6 +476,14 @@ const FinancialAdvisorChat: React.FC = () => {
                                 </Badge>
                             )}
                             
+                            {/* Intelligence Metrics Display */}
+                            {useIntelligentChat && intelligenceMetrics && (
+                                <div className="flex items-center gap-2 text-purple-400">
+                                    <span>🧠</span>
+                                    <span>AI Memory: {intelligenceMetrics.insights_extracted} insights captured</span>
+                                </div>
+                            )}
+                            
                             {/* Enhanced Sync Status Indicator */}
                             <div className="flex items-center gap-2">
                                 <Database className="w-4 h-4" />
