@@ -179,7 +179,7 @@ const StructuredEntrySystem: React.FC<StructuredEntrySystemProps> = ({
   onEditEntry
 }) => {
   const [activeTab, setActiveTab] = useState<EntryCategory>(EntryCategory.ASSETS);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['Real Estate', 'Retirement Accounts']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   
   const { data: categorizedData, isLoading, refetch } = useCategorizedEntriesQuery();
   const deleteMutation = useDeleteFinancialEntryMutation();
