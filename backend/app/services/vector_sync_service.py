@@ -807,13 +807,9 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                     if tax_info.tax_credits:
                         content += f"• Tax Credits: ${float(tax_info.tax_credits):,.0f}\n"
                 
-                # Enhanced tax optimization strategies
-                content += f"\nADVANCED TAX OPTIMIZATION STRATEGIES:\n"
-                if tax_info.charitable_giving_annual:
-                    content += f"• Annual Charitable Giving: ${float(tax_info.charitable_giving_annual):,.0f}\n"
-                content += f"• Tax Loss Harvesting: {'Enabled' if tax_info.tax_loss_harvesting_enabled else 'Disabled'}\n"
-                content += f"• Backdoor Roth IRA Eligible: {'Yes' if tax_info.backdoor_roth_eligible else 'No'}\n"
-                content += f"• Mega Backdoor Roth Available: {'Yes' if tax_info.mega_backdoor_roth_available else 'No'}\n"
+                # Enhanced tax optimization strategies (using available fields)
+                content += f"\nTAX OPTIMIZATION STRATEGIES:\n"
+                content += f"• Tax professional support available for advanced strategies\n"
                 
                 # Business income details from JSON field
                 if tax_info.business_income_details:
