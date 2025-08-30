@@ -130,11 +130,11 @@ def categorize_financial_entry(category: str, description: str, subcategory: str
         # Housing Expenses (remove utilities from here)
         if any(keyword in description_lower for keyword in ['mortgage', 'rent', 'property tax', 'insurance', 'hoa']) and not any(keyword in description_lower for keyword in ['electricity', 'gas', 'water', 'internet', 'phone', 'trash', 'sewer']):
             return "housing"
-        # Utilities (separate from housing)
-        elif any(keyword in description_lower for keyword in ['electricity', 'gas', 'water', 'internet', 'phone', 'trash', 'sewer', 'utilities', 'electric', 'cable', 'wifi']):
+        # Utilities (separate from housing) - be more specific with gas
+        elif any(keyword in description_lower for keyword in ['electricity', 'electric', 'water', 'internet', 'phone', 'trash', 'sewer', 'utilities', 'cable', 'wifi']) or ('gas' in description_lower and any(keyword in description_lower for keyword in ['bill', 'utility', 'home', 'house', 'heating', 'natural'])):
             return "utilities"
-        # Transportation
-        elif any(keyword in description_lower for keyword in ['car', 'gas', 'auto', 'vehicle', 'transportation', 'uber', 'lyft', 'taxi', 'bus', 'train', 'parking']):
+        # Transportation - gas for cars goes here
+        elif any(keyword in description_lower for keyword in ['car', 'auto', 'vehicle', 'transportation', 'uber', 'lyft', 'taxi', 'bus', 'train', 'parking']) or ('gas' in description_lower and any(keyword in description_lower for keyword in ['station', 'fuel', 'gasoline', 'car', 'vehicle', 'auto'])):
             return "transportation"
         # Food & Dining (changed from "food" to match frontend)
         elif any(keyword in description_lower for keyword in ['restaurant', 'food', 'grocery', 'dining', 'meal', 'coffee', 'lunch', 'dinner', 'breakfast']):
