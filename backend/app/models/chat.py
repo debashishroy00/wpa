@@ -37,7 +37,7 @@ class ChatSession(Base):
     last_message_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
-    user = relationship("User", back_populates="chat_sessions")
+    user = relationship("User")
     messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan")
 
     def __repr__(self):
