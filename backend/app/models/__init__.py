@@ -17,5 +17,6 @@ __all__ = [
     "FinancialGoal", "GoalScenario", "ActionPlan", "GoalMilestone", "GoalPerformanceMetric",
     "Goal", "GoalHistory", "GoalRelationship", "GoalProgress", "UserPreferences",
     "ProjectionAssumptions", "ProjectionSnapshot",
-    "UserInteraction", "ModelPrediction"
+    "UserInteraction", "ModelPrediction",
+    "ChatIntelligence"
 ]
