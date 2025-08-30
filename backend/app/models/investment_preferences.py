@@ -64,8 +64,8 @@ class UserInvestmentPreferences(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
     
-    # Relationships
-    user = relationship("User", back_populates="investment_preferences")
+    # Relationships (temporarily disabled to fix SQLAlchemy issues)
+    # user = relationship("User", back_populates="investment_preferences")
 
     def __repr__(self):
         return f"<UserInvestmentPreferences(user_id={self.user_id}, risk_score={self.risk_tolerance_score})>"
