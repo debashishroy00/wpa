@@ -8,6 +8,7 @@ from .goal import FinancialGoal, GoalScenario, ActionPlan, GoalMilestone, GoalPe
 from .goals_v2 import Goal, GoalHistory, GoalRelationship, GoalProgress, UserPreferences
 from .projection import ProjectionAssumptions, ProjectionSnapshot
 from .analytics import UserInteraction, ModelPrediction
+from .chat_intelligence import ChatIntelligence
 
 __all__ = [
     "User", "UserProfile", "UserSession", "UserActivityLog",
