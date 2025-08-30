@@ -320,6 +320,29 @@
 **Coverage:** ✅ Complete - Full investment preference profile
 **Contains:** Moderate-Aggressive profile, 15-year timeline, balanced philosophy
 
+#### 10. user_1_benefits_enhanced (1,247 chars) 🚀 NEW ENHANCED
+**PostgreSQL Sources:**
+- user_benefits table (Social Security, pension, 401k data)
+- user_profiles table (age, retirement timeline)
+- Calculated Social Security optimization scenarios
+**Coverage:** ✅ Complete - Advanced Social Security and benefits optimization
+**Contains:** Claiming scenarios (early/FRA/delayed), break-even analysis, 401k optimization strategies, HSA planning
+
+#### 11. user_1_tax_optimization (1,891 chars) 🚀 NEW ENHANCED  
+**PostgreSQL Sources:**
+- user_tax_info table (tax rates, AGI, filing status)
+- user_profiles table (age for contribution limits)
+- Calculated tax optimization strategies
+**Coverage:** ✅ Complete - Advanced tax planning and optimization
+**Contains:** Tax bracket analysis, Backdoor Roth eligibility, Mega Backdoor Roth strategies, tax-loss harvesting, HSA optimization
+
+#### 12. user_1_benefits_tax_enhanced (1,456 chars) ✅ LEGACY ENHANCED
+**PostgreSQL Sources:**
+- user_benefits + user_tax_info tables (combined legacy document)
+- Social Security and tax information in single document
+**Coverage:** ✅ Complete - Combined benefits and tax data (legacy format)
+**Contains:** Social Security details, tax information, comprehensive benefits overview
+
 ### Missing from Vector Store ❌
 - **Chat conversation history** (98 chat sessions, 686 chat messages)
   - Critical context for continuity in advisory conversations
