@@ -323,10 +323,11 @@ async def send_chat_message_with_memory(
         
         # Step 2: COMPLETE FINANCIAL CONTEXT - Use rich financial data instead of vector store
         # Use complete financial context instead of vector store
-        context_service = CompleteFinancialContextService(db)
-        foundation_context = context_service.get_enhanced_context(
+        context_service = CompleteFinancialContextService()
+        foundation_context = context_service.build_complete_context(
             user_id=request.user_id,
-            query=request.message,
+            db=db,
+            user_query=request.message,
             insight_level=request.insight_level if hasattr(request, 'insight_level') else 'balanced'
         )
         
