@@ -823,13 +823,12 @@ async def chat_with_intelligence(
         detected_intents = enhanced_intent_classifier.classify_intents(request.message)
         primary_intent = enhanced_intent_classifier.get_primary_intent(detected_intents)
         
-        # Vector-based context retrieval
-        from app.services.vector_sync_service import vector_sync_service
-        
-        sync_result = vector_sync_service.sync_user_data(current_user.id, db)
-        foundation_context = vector_sync_service.get_user_context(
+        # Complete financial context retrieval (fixed for frontend)
+        context_service = CompleteFinancialContextService()
+        foundation_context = context_service.build_complete_context(
             user_id=current_user.id,
-            query=request.message,
+            db=db,
+            user_query=request.message,
             limit=3
         )
         
