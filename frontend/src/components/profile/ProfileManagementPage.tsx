@@ -14,6 +14,9 @@ import { useQuery } from '@tanstack/react-query';
 import EstatePlanningManagement from '../estate-planning/EstatePlanningManagement';
 import InsuranceManagement from '../insurance/InsuranceManagement';
 import InvestmentPreferencesManagement from '../investment-preferences/InvestmentPreferencesManagement';
+// Import enhanced versions
+import EnhancedBenefitsManagement from '../benefits/EnhancedBenefitsManagement';
+import EnhancedTaxManagement from '../tax/EnhancedTaxManagement';
 
 interface ProfileData {
   profile: any;
