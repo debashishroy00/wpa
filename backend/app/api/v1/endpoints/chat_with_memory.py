@@ -18,6 +18,7 @@ from app.models.chat import ChatSession, ChatMessage
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.services.chat_memory_service import ChatMemoryService
 from app.services.chat_intelligence_service import ChatIntelligenceService
+from app.services.complete_financial_context_service import CompleteFinancialContextService
 from app.services.token_manager import token_manager
 from app.services.enhanced_intent_classifier import enhanced_intent_classifier
 from app.services.basic_financial_calculator import FinancialCalculator
