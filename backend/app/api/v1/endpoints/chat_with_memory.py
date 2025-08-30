@@ -829,7 +829,7 @@ async def chat_with_intelligence(
             user_id=current_user.id,
             db=db,
             user_query=request.message,
-            limit=3
+            insight_level='balanced'
         )
         
         # Build enhanced prompt with intelligence context
