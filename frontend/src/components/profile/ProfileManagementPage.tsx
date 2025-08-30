@@ -477,98 +477,11 @@ const ProfileManagementPage: React.FC = () => {
             </div>
           )}
 
-          {/* Tax Info Tab */}
+          {/* Tax Info Tab - Enhanced Version */}
           {activeTab === 'tax' && (
-            <Card className="bg-gray-800 border-gray-700">
-              <Card.Body className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold text-white">Tax Information</h2>
-                  <Button
-                    onClick={() => {
-                      setEditingItem({ type: 'tax' });
-                      setShowAddModal(true);
-                    }}
-                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Tax Info
-                  </Button>
-                </div>
-                
-                {profileData?.tax_info ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gray-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-lg font-medium text-white">Tax Year {profileData.tax_info.tax_year}</h3>
-                          {profileData.tax_info.filing_status && (
-                            <p className="text-sm text-gray-300">{profileData.tax_info.filing_status}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(profileData.tax_info, 'tax')}
-                            className="p-2"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(profileData.tax_info.id, 'tax')}
-                            className="p-2 text-red-400 hover:text-red-300"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm">
-                        {profileData.tax_info.adjusted_gross_income && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">AGI:</span>
-                            <span className="text-white">${profileData.tax_info.adjusted_gross_income.toLocaleString()}</span>
-                          </div>
-                        )}
-                        {profileData.tax_info.federal_tax_bracket && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Fed Bracket:</span>
-                            <span className="text-white">{profileData.tax_info.federal_tax_bracket}%</span>
-                          </div>
-                        )}
-                        {profileData.tax_info.effective_tax_rate && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Effective Rate:</span>
-                            <span className="text-white">{profileData.tax_info.effective_tax_rate}%</span>
-                          </div>
-                        )}
-                        {profileData.tax_info.notes && (
-                          <div className="mt-2 pt-2 border-t border-gray-600">
-                            <p className="text-gray-300">{profileData.tax_info.notes}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <FileText className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">No tax information added</p>
-                    <Button
-                      onClick={() => {
-                        setEditingItem({ type: 'tax' });
-                        setShowAddModal(true);
-                      }}
-                      className="bg-purple-600 hover:bg-purple-700"
-                    >
-                      Add Tax Information
-                    </Button>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <EnhancedTaxManagement />
+            </div>
           )}
 
           {/* Estate Planning Tab */}
