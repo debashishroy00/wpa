@@ -13,6 +13,10 @@ import structlog
 from app.models.architecture_contracts import UserFinancialData, ToolsOutput
 from app.models.user import User
 from app.models.financial import FinancialEntry, EntryCategory
+# Import all related models to ensure SQLAlchemy can resolve relationships
+from app.models.estate_planning import UserEstatePlanning
+from app.models.insurance import UserInsurancePolicy  
+from app.models.investment_preferences import UserInvestmentPreferences
 from app.services.simple_vector_store import SimpleVectorStore, SimpleDocument, get_vector_store
 from app.services.basic_financial_calculator import FinancialCalculator
 from app.services.financial_summary_service import financial_summary_service
