@@ -263,6 +263,44 @@ const DebugView: React.FC = () => {
           </Card>
         )}
 
+        {syncResult && (
+          <Card className="mb-6 bg-green-900/30 border-green-500">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-green-400">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">Vector Sync Completed Successfully</span>
+              </div>
+              <Button
+                onClick={() => setSyncResult(null)}
+                className="text-gray-400 hover:text-white text-sm"
+                variant="ghost"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="text-sm text-gray-300">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-400">Documents Before:</span>
+                  <span className="ml-2 font-mono">{syncResult.pre_sync_stats?.user_docs || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Documents After:</span>
+                  <span className="ml-2 font-mono">{syncResult.post_sync_stats?.user_docs || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Documents Added:</span>
+                  <span className="ml-2 font-mono text-green-400">+{syncResult.documents_added || 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Sync Time:</span>
+                  <span className="ml-2 font-mono text-xs">{formatTimestamp(syncResult.timestamp)}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Vector Database Contents Panel */}
           <Card className="bg-gray-800 border-gray-700">
