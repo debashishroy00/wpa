@@ -101,7 +101,8 @@
       "Bash(git push:*)",
       "Bash(lsof:*)",
       "Read(\\mnt\\c\\projects/**)",
-      "Read(\\mnt\\c\\projects/**)"
+      "Read(\\mnt\\c\\projects/**)",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
