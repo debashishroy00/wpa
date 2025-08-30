@@ -224,14 +224,25 @@ const DebugView: React.FC = () => {
             </p>
           </div>
           
-          <Button
-            onClick={refreshAll}
-            disabled={loading || !userId || userId === 0}
-            leftIcon={loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {loading ? 'Refreshing...' : 'Refresh All'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={triggerVectorSync}
+              disabled={syncLoading || !userId || userId === 0}
+              leftIcon={syncLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {syncLoading ? 'Syncing...' : 'Sync Vector DB'}
+            </Button>
+            
+            <Button
+              onClick={refreshAll}
+              disabled={loading || !userId || userId === 0}
+              leftIcon={loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? 'Refreshing...' : 'Refresh All'}
+            </Button>
+          </div>
         </div>
 
         {error && (
