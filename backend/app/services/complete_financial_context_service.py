@@ -819,14 +819,16 @@ This should be your most detailed, thorough response mode.
         for policy in insurance_policies:
             policy_type = policy.get('policy_type', 'Unknown')
             policy_name = policy.get('policy_name', 'Unnamed')
-            provider = policy.get('provider', 'Unknown Provider')
             coverage = policy.get('coverage_amount', 0)
-            premium = policy.get('premium_amount', 0)
-            frequency = policy.get('premium_frequency', 'Unknown')
-            status = policy.get('status', 'Unknown')
+            annual_premium = policy.get('annual_premium', 0)
+            beneficiary_primary = policy.get('beneficiary_primary', 'Not specified')
+            beneficiary_secondary = policy.get('beneficiary_secondary', 'Not specified')
             
-            formatted.append(f"  • {policy_type.title()}: {policy_name} ({provider})")
-            formatted.append(f"    Coverage: ${coverage:,.0f}, Premium: ${premium:,.0f}/{frequency} (Status: {status})")
+            formatted.append(f"  • {policy_type.title()}: {policy_name}")
+            formatted.append(f"    Coverage: ${coverage:,.0f}, Annual Premium: ${annual_premium:,.0f}")
+            formatted.append(f"    Primary Beneficiary: {beneficiary_primary}")
+            if beneficiary_secondary != 'Not specified':
+                formatted.append(f"    Secondary Beneficiary: {beneficiary_secondary}")
         
         return '\n'.join(formatted)
     
