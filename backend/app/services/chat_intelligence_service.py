@@ -77,7 +77,7 @@ class ChatIntelligenceService:
         
         # Update intelligence record
         self._merge_insights(intelligence, turn_insights)
-        intelligence.conversation_turns += 1
+        intelligence.conversation_turns = (intelligence.conversation_turns or 0) + 1
         intelligence.last_intent = self._classify_intent(user_message)
         
         self.db.commit()
