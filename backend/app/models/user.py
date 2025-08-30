@@ -72,6 +72,13 @@ class User(Base):
         uselist=False,
         lazy="select"
     )
+    
+    # Chat intelligence relationship
+    chat_intelligence = relationship(
+        "ChatIntelligence",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', status='{self.status.value}')>"
