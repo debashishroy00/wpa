@@ -429,16 +429,17 @@ async def chat_with_intelligence(
         
         optimized_context = '\n'.join(enhanced_context_parts)
         
-        # Call LLM
-        from app.services.complete_financial_context_service import complete_financial_context
-        llm_response = await complete_financial_context.call_llm_service(
-            context=optimized_context,
+        # Call LLM using the same approach as the working endpoint
+        assistant_response = await call_llm_api(
+            system_prompt=optimized_context,
+            user_message="Please provide a comprehensive response based on the complete financial data provided.",
             provider=request.provider,
-            model_tier=request.model_tier
+            model_tier=request.model_tier,
+            user_id=current_user.id,
+            temperature=0.1,
+            force_json=False,
+            query=request.message
         )
-        
-        # Get response data
-        assistant_response = llm_response.get("content", "")
         
         # Estimate tokens and cost
         input_tokens = int(estimate_tokens(optimized_context + request.message))
