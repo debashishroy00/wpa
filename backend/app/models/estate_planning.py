@@ -56,11 +56,11 @@ class UserEstatePlanning(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
-    # Relationship to user (using viewonly to prevent circular issues)
+    # Relationship to user
     user = relationship(
         "User", 
-        lazy="select",
-        viewonly=True
+        back_populates="estate_planning_documents",
+        lazy="select"
     )
     
     def __repr__(self):
