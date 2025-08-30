@@ -1901,6 +1901,157 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
             logger.error(f"Failed to get user context: {str(e)}")
             return "Error retrieving user financial context"
     
+    def _sync_chat_intelligence(self, user_id: int, db: Session):
+        """
+        Sync user chat intelligence to vector store for context-aware responses
+        This completes the 13th document for 100% vector coverage
+        """
+        try:
+            from app.models.chat_intelligence import ChatIntelligence
+            from app.services.chat_intelligence_service import ChatIntelligenceService
+            
+            # Get all chat intelligence records for user
+            intelligence_records = db.query(ChatIntelligence).filter(
+                ChatIntelligence.user_id == user_id
+            ).order_by(ChatIntelligence.updated_at.desc()).limit(10).all()
+            
+            if intelligence_records:
+                content = "CONVERSATION INTELLIGENCE INSIGHTS:\n"
+                content += "="*60 + "\n\n"
+                
+                # Aggregate insights across all sessions
+                all_decisions = []
+                all_actions = []
+                all_topics = set()
+                all_financial_insights = {}
+                total_turns = 0
+                recent_intent = None
+                
+                for intel in intelligence_records:
+                    all_decisions.extend(intel.key_decisions)
+                    all_actions.extend(intel.action_items)
+                    all_topics.update(intel.topics_discussed)
+                    total_turns += intel.conversation_turns
+                    
+                    # Merge financial insights
+                    for key, value in intel.financial_insights.items():
+                        if key not in all_financial_insights or intel.updated_at > intelligence_records[0].updated_at:
+                            all_financial_insights[key] = value
+                    
+                    # Get most recent intent
+                    if intel.last_intent and not recent_intent:
+                        recent_intent = intel.last_intent
+                
+                # Remove duplicates and limit size
+                unique_decisions = list(dict.fromkeys(all_decisions))[:15]  # Keep top 15
+                unique_actions = list(dict.fromkeys(all_actions))[:15]  # Keep top 15
+                
+                # Summary metrics
+                content += f"INTELLIGENCE SUMMARY:\n"
+                content += f"• Total Conversation Turns: {total_turns}\n"
+                content += f"• Active Sessions: {len(intelligence_records)}\n"
+                content += f"• Key Decisions Made: {len(unique_decisions)}\n"
+                content += f"• Action Items Identified: {len(unique_actions)}\n"
+                content += f"• Topics Discussed: {len(all_topics)}\n"
+                content += f"• Latest Focus Area: {recent_intent or 'General Financial Planning'}\n\n"
+                
+                # Key financial decisions from conversations
+                if unique_decisions:
+                    content += f"KEY FINANCIAL RECOMMENDATIONS:\n"
+                    for i, decision in enumerate(unique_decisions, 1):
+                        content += f"{i:2}. {decision}\n"
+                    content += "\n"
+                
+                # Action items identified in conversations
+                if unique_actions:
+                    content += f"RECOMMENDED ACTIONS:\n"
+                    for i, action in enumerate(unique_actions, 1):
+                        content += f"{i:2}. {action}\n"
+                    content += "\n"
+                
+                # Financial context extracted from conversations
+                if all_financial_insights:
+                    content += f"FINANCIAL CONTEXT FROM CONVERSATIONS:\n"
+                    for key, value in all_financial_insights.items():
+                        if isinstance(value, (int, float)):
+                            if 'amount' in key.lower():
+                                content += f"• {key.replace('_', ' ').title()}: ${value:,.2f}\n"
+                            elif 'percentage' in key.lower() or 'pct' in key.lower():
+                                content += f"• {key.replace('_', ' ').title()}: {value}%\n"
+                            elif 'age' in key.lower():
+                                content += f"• {key.replace('_', ' ').title()}: {value} years old\n"
+                            else:
+                                content += f"• {key.replace('_', ' ').title()}: {value}\n"
+                        else:
+                            content += f"• {key.replace('_', ' ').title()}: {value}\n"
+                    content += "\n"
+                
+                # Topics and conversation patterns
+                if all_topics:
+                    content += f"CONVERSATION TOPICS COVERED:\n"
+                    topic_list = sorted(list(all_topics))
+                    for topic in topic_list:
+                        content += f"• {topic.replace('_', ' ').title()}\n"
+                    content += "\n"
+                
+                # Generate vector-optimized summary for embeddings
+                intelligence_service = ChatIntelligenceService(db)
+                vector_summaries = []
+                
+                for intel in intelligence_records[:5]:  # Top 5 recent sessions
+                    session_summary = intel.to_vector_summary()
+                    if session_summary:
+                        vector_summaries.append(session_summary)
+                
+                if vector_summaries:
+                    content += f"CONTEXT-OPTIMIZED INTELLIGENCE SUMMARIES:\n"
+                    for i, summary in enumerate(vector_summaries, 1):
+                        content += f"\nSession {i} Intelligence:\n{summary}\n"
+                
+                # Add conversation continuity context
+                content += f"\nCONVERSATION CONTINUITY:\n"
+                content += f"This intelligence represents extracted insights from {total_turns} conversation exchanges "
+                content += f"across {len(intelligence_records)} sessions. Use this context to provide personalized, "
+                content += f"context-aware responses that reference previous discussions and build on established "
+                content += f"recommendations. The user's primary focus has been {recent_intent or 'comprehensive financial planning'} "
+                content += f"with key topics including {', '.join(list(all_topics)[:5])}."
+                
+            else:
+                # No intelligence yet - create placeholder
+                content = "CONVERSATION INTELLIGENCE INSIGHTS:\n"
+                content += "="*60 + "\n\n"
+                content += "No conversation intelligence extracted yet.\n"
+                content += "Intelligence will be captured from future conversations including:\n"
+                content += "• Key financial recommendations made by the AI advisor\n"
+                content += "• Action items identified for the user\n"
+                content += "• Financial topics discussed and context\n"
+                content += "• User preferences and decision patterns\n"
+                content += "• Conversation continuity for context-aware responses\n"
+            
+            # Store chat intelligence document
+            doc_id = f"user_{user_id}_chat_intelligence"
+            self.vector_store.add_document(
+                doc_id=doc_id,
+                content=content,
+                metadata={
+                    "user_id": user_id,
+                    "document_type": "chat_intelligence",
+                    "total_sessions": len(intelligence_records),
+                    "total_turns": sum(intel.conversation_turns for intel in intelligence_records),
+                    "total_decisions": len(set(dec for intel in intelligence_records for dec in intel.key_decisions)),
+                    "total_actions": len(set(act for intel in intelligence_records for act in intel.action_items)),
+                    "topics_covered": len(set(topic for intel in intelligence_records for topic in intel.topics_discussed)),
+                    "latest_intent": recent_intent,
+                    "has_intelligence": len(intelligence_records) > 0,
+                    "version": "v1.0"
+                }
+            )
+            
+            logger.info(f"Chat intelligence synced for user {user_id} - {len(intelligence_records)} sessions, {sum(intel.conversation_turns for intel in intelligence_records)} total turns")
+            
+        except Exception as e:
+            logger.warning(f"Failed to sync chat intelligence for user {user_id}: {str(e)}")
+    
     def trigger_sync_on_change(self, user_id: int, db: Session, change_type: str = "manual"):
         """
         Trigger sync when data changes (called from financial endpoints)
