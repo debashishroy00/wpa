@@ -108,7 +108,8 @@
       "mcp__playwright__browser_console_messages",
       "Read(\\mnt\\c\\projects/**)",
       "mcp__playwright__browser_evaluate",
-      "Read(\\mnt\\c\\projects/**)"
+      "Read(\\mnt\\c\\projects/**)",
+      "Bash(timeout 30s docker-compose logs backend -f --tail 30)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
