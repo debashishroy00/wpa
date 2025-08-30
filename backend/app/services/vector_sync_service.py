@@ -1798,9 +1798,9 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                 if hsa_contribution < max_hsa_2025:
                     action_items.append(f"• Increase HSA contribution by ${max_hsa_2025 - hsa_contribution:,.0f}")
                 if not tax_loss_harvesting:
-                    action_items.append("• Enable tax loss harvesting in investment accounts")
-                if charitable_giving > 0 and not tax_info.tax_professional_name:
-                    action_items.append("• Consider donor-advised fund for charitable giving")
+                    action_items.append("• Consider enabling tax loss harvesting in investment accounts")
+                if tax_info.itemized_deductions and not tax_info.tax_professional_name:
+                    action_items.append("• Consider professional tax advice for complex strategies")
                 
                 if action_items:
                     content += "\n".join(action_items)
