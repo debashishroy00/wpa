@@ -1401,8 +1401,8 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
                     
                     # Base benefit information
                     fra = ss_benefit.full_retirement_age or 67
-                    estimated_benefit = float(ss_benefit.social_security_estimated_benefit or ss_benefit.estimated_monthly_benefit or 0)
-                    claiming_age = ss_benefit.social_security_claiming_age or fra
+                    estimated_benefit = float(ss_benefit.estimated_monthly_benefit or 0)
+                    claiming_age = fra  # Default to FRA since model doesn't have claiming_age field
                     
                     content += f"• Full Retirement Age (FRA): {fra}\n"
                     content += f"• Estimated Monthly Benefit at FRA: ${estimated_benefit:,.0f}\n"
