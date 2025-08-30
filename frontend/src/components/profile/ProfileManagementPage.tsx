@@ -470,92 +470,11 @@ const ProfileManagementPage: React.FC = () => {
             </Card>
           )}
 
-          {/* Benefits Tab */}
+          {/* Benefits Tab - Enhanced Version */}
           {activeTab === 'benefits' && (
-            <Card className="bg-gray-800 border-gray-700">
-              <Card.Body className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold text-white">Benefits & Social Security</h2>
-                  <Button
-                    onClick={() => {
-                      setEditingItem({ type: 'benefit' });
-                      setShowAddModal(true);
-                    }}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Benefit
-                  </Button>
-                </div>
-                
-                {profileData?.benefits && profileData.benefits.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {profileData.benefits.map((benefit) => (
-                      <div key={benefit.id} className="bg-gray-700 p-4 rounded-lg">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="text-lg font-medium text-white">{benefit.benefit_name}</h3>
-                            <p className="text-sm text-gray-300 capitalize">{benefit.benefit_type.replace('_', ' ')}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(benefit, 'benefit')}
-                              className="p-2"
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDelete(benefit.id, 'benefit')}
-                              className="p-2 text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2 text-sm">
-                          {benefit.estimated_monthly_benefit && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Monthly Benefit:</span>
-                              <span className="text-white">${benefit.estimated_monthly_benefit.toLocaleString()}</span>
-                            </div>
-                          )}
-                          {benefit.eligibility_date && (
-                            <div className="flex justify-between">
-                              <span className="text-gray-400">Eligible From:</span>
-                              <span className="text-white">{formatDate(benefit.eligibility_date)}</span>
-                            </div>
-                          )}
-                          {benefit.notes && (
-                            <div className="mt-2 pt-2 border-t border-gray-600">
-                              <p className="text-gray-300">{benefit.notes}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Heart className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">No benefits information added</p>
-                    <Button
-                      onClick={() => {
-                        setEditingItem({ type: 'benefit' });
-                        setShowAddModal(true);
-                      }}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Add Benefits Information
-                    </Button>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+              <EnhancedBenefitsManagement />
+            </div>
           )}
 
           {/* Tax Info Tab */}
