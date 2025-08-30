@@ -55,25 +55,22 @@ class User(Base):
     preferences = relationship("UserPreferences", back_populates="user", uselist=False)
     
     # Estate planning, insurance, and investment preferences relationships
-    # Using viewonly relationships to prevent circular dependency issues
+    # Using simple relationships with lazy loading - models imported in endpoints
     estate_planning_documents = relationship(
         "UserEstatePlanning", 
-        foreign_keys="UserEstatePlanning.user_id",
-        lazy="select",
-        viewonly=True
+        back_populates="user",
+        lazy="dynamic"  # Load as query object
     )
     insurance_policies = relationship(
         "UserInsurancePolicy", 
-        foreign_keys="UserInsurancePolicy.user_id",
-        lazy="select",
-        viewonly=True
+        back_populates="user",
+        lazy="dynamic"
     )
     investment_preferences = relationship(
         "UserInvestmentPreferences", 
-        foreign_keys="UserInvestmentPreferences.user_id",
+        back_populates="user", 
         uselist=False,
-        lazy="select",
-        viewonly=True
+        lazy="select"
     )
 
     def __repr__(self):
