@@ -59,7 +59,9 @@ const DebugView: React.FC = () => {
   const [vectorData, setVectorData] = useState<VectorContents | null>(null);
   const [llmPayload, setLlmPayload] = useState<LLMPayload | null>(null);
   const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const user = useUnifiedAuthStore((state) => state.user);
