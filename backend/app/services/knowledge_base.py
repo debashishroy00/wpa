@@ -172,7 +172,8 @@ class KnowledgeBaseService:
         """Search knowledge base using simple vector store and smart context selection"""
         
         # Get smart filtering recommendations
-        filter_recommendations = self.context_selector.get_relevant_document_filters(query)
+        # Use simplified filtering since context_selector was removed
+        filter_recommendations = {'categories': ['financial', 'tax', 'investment']}
         
         try:
             # First try text search
