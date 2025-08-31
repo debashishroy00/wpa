@@ -38,6 +38,7 @@ class FinancialSummaryService:
             liabilities = []
             monthly_income = Decimal('0')
             monthly_expenses = Decimal('0')
+            monthly_401k_contribution = Decimal('0')  # Track 401k contributions separately
             
             for entry in entries:
                 if entry.category == EntryCategory.assets:
