@@ -485,11 +485,11 @@ async def get_tax_insights_for_dashboard(
             'filing_status': 'married'
         }
         
-        # Get tax optimization service analysis
-        tax_service = TaxOptimizationService(db, llm_service)
-        tax_analysis = await tax_service.analyze_tax_opportunities(
+        # Get tax analysis using unified TaxCalculations service
+        tax_analysis = tax_calculations.analyze_comprehensive_tax_opportunities(
             user_id=current_user.id,
-            financial_context=financial_context
+            financial_context=financial_context,
+            db=db
         )
         
         # Format for frontend
