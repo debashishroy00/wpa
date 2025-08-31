@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from .simple_vector_store import get_vector_store, SimpleDocument
-from .smart_context_selector import get_context_selector
+# smart_context_selector was removed during cleanup - using simplified context selection
 
 
 @dataclass
