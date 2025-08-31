@@ -96,6 +96,9 @@ class TaxIntelligenceFormatter:
             opportunities = tax_calculations.get_quick_tax_opportunities(user_id, financial_summary)
             
             if not opportunities:
+                # If no financial data, try with some defaults
+                if not financial_summary:
+                    return "\n\n💡 **Complete your financial profile to see personalized tax optimization opportunities with specific dollar amounts.**"
                 return ""
             
             # Format with real numbers
