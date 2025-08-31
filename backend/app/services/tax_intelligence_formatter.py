@@ -42,24 +42,29 @@ class TaxIntelligenceFormatter:
                 logger.warning(f"No tax opportunities found for user {user_id}")
                 return self._format_fallback_response(financial_context)
             
-            # 2. Use global LLM to format insights intelligently
-            prompt = self._build_insight_prompt(calculations, question)
-            
-            llm_request = LLMRequest(
-                provider='gemini',
-                model_tier='dev', 
-                system_prompt="You are a CPA and tax strategist. Format tax analysis into clear, actionable insights with specific dollar amounts.",
-                user_prompt=prompt,
-                temperature=0.2,
-                max_tokens=1500
-            )
-            
-            # Use global LLM service (no new instances)
-            llm_response = await llm_service.generate(llm_request)
-            ai_formatted_response = llm_response.content
-            
-            # 3. Combine AI formatting with structured real data
-            final_response = self._structure_enhanced_response(calculations, ai_formatted_response)
+            # 2. Try LLM formatting first, fallback to direct formatting
+            try:
+                prompt = self._build_insight_prompt(calculations, question)
+                
+                llm_request = LLMRequest(
+                    provider='gemini',
+                    model_tier='dev', 
+                    system_prompt="You are a CPA and tax strategist. Format tax analysis into clear, actionable insights with specific dollar amounts.",
+                    user_prompt=prompt,
+                    temperature=0.2,
+                    max_tokens=1500
+                )
+                
+                # Use global LLM service (no new instances)
+                llm_response = await llm_service.generate(llm_request)
+                ai_formatted_response = llm_response.content
+                
+                # 3. Combine AI formatting with structured real data
+                final_response = self._structure_enhanced_response(calculations, ai_formatted_response)
+                
+            except Exception as llm_error:
+                logger.warning(f"LLM formatting failed, using direct formatting: {llm_error}")
+                final_response = self._format_direct_response(calculations)
             
             logger.info(f"Tax intelligence formatted successfully", 
                        user_id=user_id, 
