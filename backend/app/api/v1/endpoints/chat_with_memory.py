@@ -24,7 +24,7 @@ from app.services.enhanced_intent_classifier import enhanced_intent_classifier
 # Basic calculations now handled by CompleteFinancialContextService and formula_library
 from app.services.basic_response_verifier import BasicResponseVerifier
 from app.services.retirement_response_formatter import retirement_formatter
-from app.services.tax_optimization_service import TaxOptimizationService
+# TaxOptimizationService removed - using TaxIntelligenceFormatter instead
 from app.models.architecture_contracts import UserFinancialData, ToolsOutput
 
 logger = structlog.get_logger()
