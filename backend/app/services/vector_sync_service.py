@@ -18,7 +18,7 @@ from app.models.estate_planning import UserEstatePlanning
 from app.models.insurance import UserInsurancePolicy  
 from app.models.investment_preferences import UserInvestmentPreferences
 from app.services.simple_vector_store import SimpleVectorStore, SimpleDocument, get_vector_store
-from app.services.basic_financial_calculator import FinancialCalculator
+# Basic calculations now handled by CompleteFinancialContextService
 from app.services.financial_summary_service import financial_summary_service
 
 logger = structlog.get_logger()
