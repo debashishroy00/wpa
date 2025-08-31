@@ -423,6 +423,10 @@ class TaxCalculations:
             age = financial_context.get('age', 35)
             filing_status = financial_context.get('filing_status', 'married')
             
+            # DEBUG: Log extracted values
+            logger.error(f"DEBUG TAX CALC: current_401k extracted: {current_401k} from context: {financial_context.get('annual_401k', 'NOT_FOUND')}")
+            logger.error(f"DEBUG TAX CALC: annual_income: {annual_income}, age: {age}")
+            
             # Calculate mortgage interest estimate (assume 6.5% rate)
             mortgage_interest = mortgage_balance * 0.065 if mortgage_balance > 0 else 0
             
