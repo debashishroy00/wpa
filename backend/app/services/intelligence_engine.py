@@ -14,20 +14,9 @@ from enum import Enum
 from app.models.goals_v2 import Goal, UserPreferences
 from app.models.financial import FinancialEntry, NetWorthSnapshot
 from app.schemas.goals_v2 import GoalResponse
-from app.services.financial_calculations import (
-    calculate_early_payoff_savings,
-    calculate_401k_tax_savings,
-    calculate_employer_match_benefit,
-    calculate_investment_fee_savings,
-    calculate_subscription_optimization,
-    calculate_success_impact,
-    calculate_mortgage_payoff_timeline,
-    calculate_refinance_savings,
-    calculate_priority_score,
-    calculate_portfolio_optimization_impact,
-    calculate_portfolio_risk,
-    calculate_tax_optimization_savings
-)
+# Financial calculation functions now handled by formula_library and tax_calculations
+from app.services.formula_library import formula_library
+from app.services.tax_calculations import tax_calculations
 
 
 class ConflictType(str, Enum):
