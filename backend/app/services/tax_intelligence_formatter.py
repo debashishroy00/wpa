@@ -69,6 +69,18 @@ class TaxIntelligenceFormatter:
             
         except Exception as e:
             logger.error(f"Tax intelligence formatting failed", error=str(e), user_id=user_id)
+            # Try direct formatting without LLM
+            try:
+                calculations = tax_calculations.analyze_comprehensive_tax_opportunities(
+                    user_id=user_id,
+                    financial_context=financial_context,
+                    db=self.db
+                )
+                if calculations.get('calculated_opportunities'):
+                    return self._format_direct_response(calculations)
+            except Exception as e2:
+                logger.error(f"Direct formatting also failed", error=str(e2))
+            
             return self._format_fallback_response(financial_context)
     
     def format_quick_opportunities(self, user_id: int, financial_summary: Dict) -> str:
