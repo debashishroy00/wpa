@@ -24,7 +24,7 @@ from app.schemas.financial import (
 )
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.services.financial_calculator import FinancialCalculator
-from app.services.enhanced_context_service import EnhancedContextService
+from app.services.complete_financial_context_service import CompleteFinancialContextService
 from app.services.vector_db_service import get_vector_db
 
 logger = structlog.get_logger()
@@ -2316,7 +2316,7 @@ async def complete_vector_sync(
     """
     
     try:
-        from app.services.enhanced_context_service import EnhancedContextService
+        from app.services.complete_financial_context_service import CompleteFinancialContextService
         from app.services.financial_summary_service import financial_summary_service
         
         logger.info(f"Starting complete vector sync for user {current_user.id}")
