@@ -946,18 +946,9 @@ async def chat_with_intelligence(
         
         formatter = TaxIntelligenceFormatter(db)
         
-        # Test formatter functionality
-        try:
-            test_result = formatter.is_tax_question("What are my tax optimization opportunities?")
-            logger.error(f"DEBUG: Tax formatter test - 'What are my tax optimization opportunities?' detected as tax: {test_result}")
-        except Exception as e:
-            logger.error(f"DEBUG: Tax formatter test failed: {e}")
-        
         is_tax = formatter.is_tax_question(request.message)
-        logger.error(f"DEBUG: [/intelligent] is_tax_question result: {is_tax}")
         
         if is_tax:
-            logger.error(f"DEBUG: [/intelligent] Tax question detected! Getting financial summary...")
             try:
                 # Get user financial data 
                 from app.services.financial_summary_service import financial_summary_service
