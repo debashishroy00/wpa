@@ -982,9 +982,7 @@ async def chat_with_intelligence(
                         assistant_response = assistant_response + tax_enhancement
                         response_data["message"]["content"] = assistant_response
                         
-                        logger.error(f"DEBUG: [/intelligent] TAX ENHANCEMENT APPLIED! Length: {len(tax_enhancement)} chars")
-                        logger.error(f"DEBUG: [/intelligent] Enhanced response length: {len(response_data['message']['content'])}")
-                        logger.error(f"DEBUG: [/intelligent] Enhanced response preview: {response_data['message']['content'][-200:]}")
+                        logger.info("Tax enhancement applied to user response", user_id=current_user.id)
                     else:
                         logger.error(f"DEBUG: [/intelligent] Tax enhancement was empty!")
                 
