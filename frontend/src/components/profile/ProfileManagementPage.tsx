@@ -271,7 +271,7 @@ const ProfileManagementPage: React.FC = () => {
                 <TrendingUp className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
                 <p className="text-xs font-medium text-gray-400 mb-1">Investment</p>
                 <p className="text-lg font-bold text-white">
-                  {profileData?.investment_preferences ? 1 : 1}
+                  {profileData?.investment_preferences ? 1 : 0}
                 </p>
               </div>
             </Card.Body>
