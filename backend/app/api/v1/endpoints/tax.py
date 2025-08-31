@@ -167,15 +167,40 @@ async def get_specific_strategy_analysis(
             'filing_status': 'married'
         }
         
-        # Initialize tax service
-        tax_service = TaxOptimizationService(db, llm_service)
-        
-        # Get specific strategy analysis
-        strategy_analysis = await tax_service.calculate_specific_strategy(
-            user_id=current_user.id,
-            strategy_type=strategy_type,
-            financial_context=financial_context
-        )
+        # Get specific strategy analysis using direct TaxCalculations methods
+        if strategy_type == 'retirement_optimization':
+            current_contributions = {
+                '401k': financial_context.get('annual_401k', 0),
+                'traditional_ira': financial_context.get('traditional_ira', 0),
+                'roth_ira': financial_context.get('roth_ira', 0)
+            }
+            strategy_analysis = tax_calculations.retirement_contribution_optimization(
+                current_contributions, 
+                financial_context.get('monthly_income', 0) * 12,
+                financial_context.get('age', 35),
+                financial_context.get('tax_bracket', 24)
+            )
+        elif strategy_type == 'bunching':
+            deductions = {
+                'mortgage_interest': financial_context.get('mortgage_balance', 0) * 0.065,
+                'property_taxes': min(financial_context.get('monthly_income', 0) * 12 * 0.015, 15000),
+                'state_local_taxes': min(financial_context.get('monthly_income', 0) * 12 * 0.05, 10000),
+                'charitable': 0,
+                'other': 0
+            }
+            strategy_analysis = tax_calculations.bunching_strategy_analysis(
+                deductions,
+                financial_context.get('filing_status', 'married'),
+                financial_context.get('tax_bracket', 24)
+            )
+        elif strategy_type == 'tax_loss_harvesting':
+            strategy_analysis = tax_calculations.tax_loss_harvesting_analysis(
+                financial_context.get('investment_total', 0),
+                0,  # current_gains
+                financial_context.get('tax_bracket', 24)
+            )
+        else:
+            strategy_analysis = {'error': f'Unknown strategy type: {strategy_type}'}
         
         return {
             "strategy_type": strategy_type,
