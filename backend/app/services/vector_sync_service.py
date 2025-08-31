@@ -93,22 +93,7 @@ class VectorSyncService:
             # Step 2: Run foundation calculations
             tools_output = self._calculate_metrics(user_data)
             
-            # Step 3: Build comprehensive vector document with all data
-            vector_doc = self._build_vector_document(user_id, user_data, tools_output, db)
-            
-            # Step 4: Store in vector database
-            doc_id = f"user_{user_id}_financial_complete"
-            logger.info(f"Attempting to store vector document with ID: {doc_id}")
-            logger.info(f"Document content preview: {vector_doc['content'][:200]}...")
-            
-            result = self.vector_store.add_document(
-                content=vector_doc["content"],
-                doc_id=doc_id,
-                metadata=vector_doc["metadata"]
-            )
-            logger.info(f"Vector document stored with result: {result}")
-            
-            # Step 5: Create structured 6-document model
+            # Step 3: Create structured 6-document model (replaces old single document)
             self._create_structured_documents(user_id, db, tools_output)
             
             logger.info(f"Vector sync complete for user {user_id} - Metrics: Savings {tools_output.savings_rate:.1f}%, Emergency {tools_output.liquidity_months:.1f} months")
