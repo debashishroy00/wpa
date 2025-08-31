@@ -36,6 +36,10 @@ class TaxIntelligenceFormatter:
             
             if 'error' in calculations:
                 return self._format_error_response(calculations['error'])
+            
+            logger.error(f"DEBUG FORMATTER: calculations keys: {list(calculations.keys()) if calculations else 'None'}")
+            logger.error(f"DEBUG FORMATTER: calculated_opportunities: {calculations.get('calculated_opportunities', 'NOT_FOUND')}")
+            logger.error(f"DEBUG FORMATTER: total_potential_savings: {calculations.get('total_potential_savings', 'NOT_FOUND')}")
                 
             # Check if we actually have opportunities
             if not calculations.get('calculated_opportunities') or calculations.get('total_potential_savings', 0) <= 0:
