@@ -951,11 +951,7 @@ async def chat_with_intelligence(
         is_tax = formatter.is_tax_question(request.message)
         logger.error(f"DEBUG: [/intelligent] is_tax_question result: {is_tax}")
         
-        # GUARANTEED TRIGGER FOR TESTING - FORCE TAX ENHANCEMENT
-        force_tax = True  # ALWAYS trigger for testing
-        logger.error(f"DEBUG: [/intelligent] FORCING TAX ENHANCEMENT FOR ALL MESSAGES")
-        
-        if is_tax or force_tax:
+        if is_tax:
             logger.error(f"DEBUG: [/intelligent] Tax question detected! Getting financial summary...")
             try:
                 # Get user financial data 
