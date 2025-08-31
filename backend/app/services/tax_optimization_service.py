@@ -52,22 +52,27 @@ class TaxOptimizationService:
                 mortgage_interest, investments, current_401k, age, filing_status
             )
             
-            # Get AI analysis
+            # Get AI analysis using the same pattern as chat endpoint
             logger.info("Requesting tax analysis from LLM", user_id=user_id)
             
-            # Import LLMRequest
-            from ..models.llm_models import LLMRequest
+            # Use the same LLM service pattern as chat endpoint
+            from app.services.llm_service import llm_service
+            from app.models.llm_models import LLMRequest
+            
+            # Create system prompt for tax analysis
+            system_prompt = "You are a CPA and tax strategist. Provide specific, actionable tax advice with exact calculations and dollar amounts."
             
             llm_request = LLMRequest(
                 provider='gemini',
                 model_tier='dev',
-                system_prompt="You are a CPA and tax strategist. Provide specific, actionable tax advice with exact calculations and dollar amounts.",
+                system_prompt=system_prompt,
                 user_prompt=prompt,
                 temperature=0.2,
                 max_tokens=2000
             )
             
-            llm_response = await self.llm_service.generate(llm_request)
+            # Use global LLM service instance (same as chat endpoint)
+            llm_response = await llm_service.generate(llm_request)
             analysis = llm_response.content
             
             # Parse and structure the analysis
