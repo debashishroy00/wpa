@@ -636,6 +636,8 @@ class TaxCalculations:
         # Sort by potential savings
         opportunities.sort(key=lambda x: x["potential_savings"], reverse=True)
         
+        logger.error(f"DEBUG TAX CALC: Found {len(opportunities)} opportunities: {[op['strategy'] for op in opportunities]}")
+        
         return opportunities
 
 
