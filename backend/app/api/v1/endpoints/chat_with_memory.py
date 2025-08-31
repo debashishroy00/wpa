@@ -939,7 +939,6 @@ async def chat_with_intelligence(
         tokens_used = response_data.get("tokens_used", {}).get("total", 0)
         
         # INTELLIGENCE ENHANCEMENT: Tax Intelligence (COPIED FROM /message ENDPOINT)
-        logger.error(f"DEBUG: [/intelligent] Message received: '{request.message}'")
         # Tax Intelligence Enhancement
         
         # Use new clean tax intelligence formatter
