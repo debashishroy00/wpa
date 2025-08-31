@@ -19,7 +19,7 @@ from app.services.intent_service import IntentService, FinancialIntent
 from app.services.vector_db_service import FinancialVectorDB
 from app.services.prompt_builder_service import PromptBuilderService
 from app.services.retirement_calculator import retirement_calculator
-from app.services.session_context_service import session_context_service
+from app.services.complete_financial_context_service import CompleteFinancialContextService
 
 logger = structlog.get_logger()
 router = APIRouter()
