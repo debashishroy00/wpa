@@ -863,6 +863,40 @@ This should be your most detailed, thorough response mode.
             formatted.append(f"  • Alternative Investment Interest: {alternatives}")
         
         return '\n'.join(formatted)
+    
+    def _format_income_breakdown(self, income_breakdown: List[Dict]) -> str:
+        """Format income breakdown by category"""
+        if not income_breakdown:
+            return "  • No income breakdown available"
+        
+        formatted = []
+        for category in income_breakdown:
+            category_name = category.get('category', 'Unknown')
+            monthly_amount = category.get('monthly_amount', 0)
+            items = category.get('items', [])
+            
+            formatted.append(f"  • {category_name}: ${monthly_amount:,.0f}")
+            for item in items[:3]:  # Show up to 3 items per category
+                formatted.append(f"    - {item.get('description', 'Unknown')}: ${item.get('monthly_amount', 0):,.0f}")
+        
+        return '\n'.join(formatted)
+    
+    def _format_expense_breakdown(self, expense_breakdown: List[Dict]) -> str:
+        """Format expense breakdown by category"""
+        if not expense_breakdown:
+            return "  • No expense breakdown available"
+        
+        formatted = []
+        for category in expense_breakdown:
+            category_name = category.get('category', 'Unknown')
+            monthly_amount = category.get('monthly_amount', 0)
+            items = category.get('items', [])
+            
+            formatted.append(f"  • {category_name}: ${monthly_amount:,.0f}")
+            for item in items[:3]:  # Show up to 3 items per category
+                formatted.append(f"    - {item.get('description', 'Unknown')}: ${item.get('monthly_amount', 0):,.0f}")
+        
+        return '\n'.join(formatted)
 
 
 # Global instance
