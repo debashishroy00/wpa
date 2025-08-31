@@ -18,6 +18,49 @@ from app.schemas.goals_v2 import GoalResponse
 from app.services.formula_library import formula_library
 from app.services.tax_calculations import tax_calculations
 
+# Temporary stub functions for intelligence engine compatibility
+def calculate_early_payoff_savings(balance, rate, payment, extra_payment):
+    return max(0, balance * 0.1)  # Simplified calculation
+
+def calculate_401k_tax_savings(salary, contribution, new_total):
+    return new_total * 0.24  # Simplified tax savings at 24% bracket
+
+def calculate_employer_match_benefit(salary, contribution, match, limit):
+    return min(contribution * match, salary * limit)  # Basic match calculation
+
+def calculate_investment_fee_savings(balance, old_fee, new_fee):
+    return balance * (old_fee - new_fee) / 100
+
+def calculate_subscription_optimization(subscriptions):
+    return sum(sub.get('potential_savings', 0) for sub in subscriptions)
+
+def calculate_success_impact(goal_type, amount):
+    return amount * 0.15  # 15% impact factor
+
+def calculate_mortgage_payoff_timeline(balance, payment, rate):
+    if payment <= balance * rate / 12:
+        return 999  # Never pays off
+    return balance / (payment - balance * rate / 12) / 12
+
+def calculate_refinance_savings(balance, old_rate, new_rate, term):
+    old_payment = balance * (old_rate / 12) * (1 + old_rate / 12) ** term / ((1 + old_rate / 12) ** term - 1)
+    new_payment = balance * (new_rate / 12) * (1 + new_rate / 12) ** term / ((1 + new_rate / 12) ** term - 1)
+    return (old_payment - new_payment) * 12
+
+def calculate_priority_score(impact, effort, urgency):
+    return impact * urgency / max(effort, 1)
+
+def calculate_portfolio_optimization_impact(balance, old_return, new_return, years):
+    old_value = balance * (1 + old_return) ** years
+    new_value = balance * (1 + new_return) ** years
+    return new_value - old_value
+
+def calculate_portfolio_risk(allocation):
+    return sum(asset.get('risk_score', 0.5) * asset.get('percentage', 0) for asset in allocation) / 100
+
+def calculate_tax_optimization_savings(income, bracket, deductions):
+    return deductions * (bracket / 100)
+
 
 class ConflictType(str, Enum):
     CASH_FLOW = "cash_flow"
