@@ -994,7 +994,7 @@ async def chat_with_intelligence(
                         response_data["message"]["content"] = assistant_response
                         
             except Exception as e:
-                logger.error(f"DEBUG: [/intelligent] Tax intelligence enhancement failed: {str(e)}")
+                logger.warning(f"Tax intelligence failed: {str(e)}", user_id=current_user.id)
         else:
             logger.error(f"DEBUG: [/intelligent] Not detected as tax question")
         
