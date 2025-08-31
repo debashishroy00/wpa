@@ -134,7 +134,10 @@ class FinancialSummaryService:
                 'debtToIncomeRatio': debt_to_income_ratio,
                 'savingsRate': savings_rate,
                 'assetsBreakdown': assets_by_category,
-                'liabilitiesBreakdown': liabilities
+                'liabilitiesBreakdown': liabilities,
+                # Add 401k contribution data for tax calculations
+                'monthly401kContribution': float(monthly_401k_contribution),
+                'annual401kContribution': float(monthly_401k_contribution * 12)
             }
             
             logger.info(f"Financial summary calculated: Net Worth=${net_worth:,.0f}, DTI={debt_to_income_ratio:.1f}%")
