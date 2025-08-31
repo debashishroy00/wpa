@@ -862,6 +862,8 @@ async def chat_with_intelligence(
     Enhanced chat endpoint with intelligence extraction for vector store sync
     """
     
+    logger.error(f"🚀 DEBUG: /intelligent endpoint called with message: '{request.message}'")
+    
     start_time = time.time()
     
     try:
