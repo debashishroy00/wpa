@@ -397,7 +397,7 @@ async def send_chat_message_with_memory(
                 
                 if financial_summary:
                     # Initialize tax optimization service
-                    tax_service = TaxOptimizationService(db, llm_service)
+                    tax_service = TaxOptimizationService(db)
                     
                     # Build financial context for tax analysis
                     tax_financial_context = {
