@@ -12,7 +12,7 @@ import structlog
 from app.db.session import get_db
 from app.models.user import User
 from app.api.v1.endpoints.auth import get_current_active_user
-from app.services.tax_optimization_service import TaxOptimizationService
+# TaxOptimizationService removed - using unified TaxCalculations instead
 from app.services.tax_calculations import TaxCalculations, tax_calculations
 from app.services.financial_summary_service import financial_summary_service
 from app.services.llm_service import llm_service
