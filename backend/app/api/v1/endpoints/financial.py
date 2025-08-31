@@ -23,7 +23,7 @@ from app.schemas.financial import (
     NetWorthSnapshot as NetWorthSnapshotSchema, AssetBreakdown, LiabilityBreakdown
 )
 from app.api.v1.endpoints.auth import get_current_active_user
-from app.services.financial_calculator import FinancialCalculator
+# Financial calculations now handled by CompleteFinancialContextService and formula_library
 from app.services.complete_financial_context_service import CompleteFinancialContextService
 from app.services.vector_db_service import get_vector_db
 
