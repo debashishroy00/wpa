@@ -388,14 +388,20 @@ async def send_chat_message_with_memory(
         
         # Step 5.2: Apply tax optimization intelligence if applicable
         # Step 5.2: Tax Intelligence Enhancement (NEW CLEAN ARCHITECTURE)
-        logger.info(f"Checking tax query for message: '{request.message[:50]}...'")
+        logger.error(f"DEBUG: Message received: '{request.message}'")
+        logger.error(f"DEBUG: About to check if tax question")
         
         # Use new clean tax intelligence formatter
         from app.services.tax_intelligence_formatter import TaxIntelligenceFormatter
         
         formatter = TaxIntelligenceFormatter(db)
+        logger.error(f"DEBUG: TaxIntelligenceFormatter created successfully")
         
-        if formatter.is_tax_question(request.message):
+        is_tax = formatter.is_tax_question(request.message)
+        logger.error(f"DEBUG: is_tax_question result: {is_tax}")
+        
+        if is_tax:
+            logger.error(f"DEBUG: Tax question detected! Getting financial summary...")
             logger.info(f"🔥 TAX QUESTION DETECTED: '{request.message}'")
             try:
                 # Get user financial data 
