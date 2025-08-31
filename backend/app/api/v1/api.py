@@ -43,3 +43,5 @@ api_router.include_router(embeddings.router, prefix="/embeddings", tags=["hybrid
 api_router.include_router(estate_planning.router, prefix="/estate-planning", tags=["estate-planning"])
 api_router.include_router(insurance.router, prefix="/insurance", tags=["insurance"])
 api_router.include_router(investment_preferences.router, prefix="/investment-preferences", tags=["investment-preferences"])
+# Tax optimization endpoints
+api_router.include_router(tax.router, prefix="/tax", tags=["tax-optimization"])
