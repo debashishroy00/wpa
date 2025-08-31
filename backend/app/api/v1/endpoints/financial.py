@@ -32,7 +32,7 @@ router = APIRouter()
 
 # Initialize services
 calculator = FinancialCalculator()
-context_service = EnhancedContextService()
+context_service = CompleteFinancialContextService()
 
 async def sync_to_vector_db(entry):
     """Helper function to sync entry to vector DB"""
@@ -2322,7 +2322,7 @@ async def complete_vector_sync(
         logger.info(f"Starting complete vector sync for user {current_user.id}")
         
         # Step 1: Get current correct calculations
-        enhanced_service = EnhancedContextService()
+        enhanced_service = CompleteFinancialContextService()
         smart_context = enhanced_service.build_smart_context(current_user.id)
         
         # Also get the financial summary for validation
