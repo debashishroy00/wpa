@@ -386,6 +386,84 @@ async def send_chat_message_with_memory(
                 logger.warning(f"Retirement response formatting failed: {str(e)}")
                 # Continue with original response
         
+        # Step 5.2: Apply tax optimization intelligence if applicable
+        logger.info(f"Checking tax query for message: '{request.message[:50]}...'")
+        tax_keywords = ['tax', 'deduction', 'irs', 'itemize', 'roth', '401k', 'ira', 'bracket', 'savings', 'retirement contribution']
+        if any(keyword in request.message.lower() for keyword in tax_keywords):
+            try:
+                # Get user financial data for tax analysis
+                from app.services.financial_summary_service import financial_summary_service
+                financial_summary = financial_summary_service.get_user_financial_summary(request.user_id, db)
+                
+                if financial_summary:
+                    # Initialize tax optimization service
+                    tax_service = TaxOptimizationService(db, llm_service)
+                    
+                    # Build financial context for tax analysis
+                    tax_financial_context = {
+                        'monthly_income': financial_summary.get('monthlyIncome', 0),
+                        'monthly_expenses': financial_summary.get('monthlyExpenses', 0),
+                        'total_assets': financial_summary.get('totalAssets', 0),
+                        'investment_total': financial_summary.get('investmentTotal', 0),
+                        'mortgage_balance': financial_summary.get('mortgageBalance', 0),
+                        'annual_401k': financial_summary.get('annual401k', 0),
+                        'tax_bracket': financial_summary.get('taxBracket', 24),
+                        'age': financial_summary.get('age', 35),
+                        'state': 'NC',  # Default - could be user profile field
+                        'filing_status': 'married'  # Default - could be user profile field
+                    }
+                    
+                    # Get tax optimization insights
+                    tax_insights = await tax_service.analyze_tax_opportunities(
+                        user_id=request.user_id,
+                        financial_context=tax_financial_context
+                    )
+                    
+                    # Enhance response with tax intelligence
+                    if tax_insights and 'error' not in tax_insights:
+                        tax_enhancement = f"""
+
+📊 **TAX OPTIMIZATION OPPORTUNITIES IDENTIFIED:**
+
+💰 **Potential Annual Tax Savings: ${tax_insights.get('total_potential_savings', 0):,.0f}**
+
+**TOP RECOMMENDATIONS:**
+"""
+                        
+                        # Add specific opportunities
+                        if 'calculated_opportunities' in tax_insights:
+                            for i, opp in enumerate(tax_insights['calculated_opportunities'][:3], 1):
+                                difficulty_emoji = {'Easy': '🟢', 'Medium': '🟡', 'Complex': '🔴'}.get(opp.get('difficulty', 'Medium'), '🟡')
+                                tax_enhancement += f"""
+{i}. **{opp.get('strategy', 'Tax Strategy')}** {difficulty_emoji}
+   • Annual Savings: ${opp.get('annual_tax_savings', 0):,.0f}
+   • Implementation: {opp.get('timeline', 'TBD')}
+   • {opp.get('description', 'Tax optimization opportunity')}
+"""
+                        
+                        # Add implementation guidance
+                        tax_enhancement += """
+**NEXT STEPS:**
+1. Review these strategies with your tax professional
+2. Implement Easy (🟢) strategies immediately
+3. Plan Medium (🟡) strategies for year-end
+4. Consider Complex (🔴) strategies for next tax year
+
+*These calculations are based on your current financial data and 2024 tax rules.*
+"""
+                        
+                        # Append to assistant response
+                        assistant_response = assistant_response + tax_enhancement
+                        
+                        # Update response data
+                        response_data["message"]["content"] = assistant_response
+                        
+                        logger.info(f"Applied tax optimization intelligence for user {request.user_id} - Found ${tax_insights.get('total_potential_savings', 0):,.0f} in potential savings")
+                        
+            except Exception as e:
+                logger.warning(f"Tax optimization enhancement failed: {str(e)}")
+                # Continue with original response
+        
         # Step 5.2: Response verification (skip for now since we're not using vector sync)
         if assistant_response:
             try:
