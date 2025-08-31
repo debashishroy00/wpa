@@ -413,6 +413,7 @@ class TaxCalculations:
         """Comprehensive tax opportunity analysis - SINGLE SOURCE OF TRUTH"""
         
         try:
+            logger.error(f"DEBUG TAX CALC: Starting comprehensive analysis for user {user_id}")
             # Extract and validate key financial data
             annual_income = safe_float(financial_context.get('monthly_income', 0)) * 12
             tax_bracket = safe_float(financial_context.get('tax_bracket', 24))
