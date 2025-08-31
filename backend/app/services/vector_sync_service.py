@@ -32,7 +32,7 @@ class VectorSyncService:
     
     def __init__(self):
         self.vector_store = get_vector_store()  # Use singleton instance
-        self.calculator = FinancialCalculator()
+        # Calculations now handled by CompleteFinancialContextService
         logger.info("VectorSyncService initialized")
     
     def _clear_user_vector_data(self, user_id: int) -> int:
