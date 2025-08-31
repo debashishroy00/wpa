@@ -430,13 +430,17 @@ async def send_chat_message_with_memory(
                         financial_context=financial_context
                     )
                     
+                    logger.error(f"DEBUG: tax_enhancement length: {len(tax_enhancement) if tax_enhancement else 0}")
+                    
                     if tax_enhancement:
                         # Enhance response with REAL calculations
                         assistant_response = assistant_response + "\n\n" + tax_enhancement
                         response_data["message"]["content"] = assistant_response
                         
+                        logger.error(f"DEBUG: TAX ENHANCEMENT APPLIED! Length: {len(tax_enhancement)} chars")
                         logger.info(f"🎯 TAX ENHANCEMENT APPLIED for user {request.user_id}, enhancement length: {len(tax_enhancement)} chars")
                     else:
+                        logger.error(f"DEBUG: Tax enhancement was empty!")
                         logger.warning(f"❌ Tax enhancement was empty for user {request.user_id}")
                 
                 else:
