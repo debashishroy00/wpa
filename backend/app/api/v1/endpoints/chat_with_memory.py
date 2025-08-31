@@ -984,7 +984,7 @@ async def chat_with_intelligence(
                         
                         logger.info("Tax enhancement applied to user response", user_id=current_user.id)
                     else:
-                        logger.error(f"DEBUG: [/intelligent] Tax enhancement was empty!")
+                        logger.debug("No tax enhancement content generated")
                 
                 else:
                     # Quick opportunity check without full profile
