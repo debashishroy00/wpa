@@ -101,13 +101,11 @@ async def analyze_tax_opportunities(
             'filing_status': request.filing_status
         }
         
-        # Initialize tax optimization service
-        tax_service = TaxOptimizationService(db, llm_service)
-        
-        # Get comprehensive tax analysis
-        tax_analysis = await tax_service.analyze_tax_opportunities(
+        # Get comprehensive tax analysis using unified service
+        tax_analysis = tax_calculations.analyze_comprehensive_tax_opportunities(
             user_id=current_user.id,
-            financial_context=financial_context
+            financial_context=financial_context,
+            db=db
         )
         
         if 'error' in tax_analysis:
