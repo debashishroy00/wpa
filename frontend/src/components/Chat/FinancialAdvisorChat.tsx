@@ -518,77 +518,80 @@ const FinancialAdvisorChat: React.FC = () => {
                         </div>
                     </div>
                     
-                    <div className="flex space-x-3">
-                        {/* Enhanced Sync Finances Button - Always Visible */}
-                        <Button
-                            onClick={handleManualSync}
-                            variant="outline"
-                            size="sm"
-                            disabled={syncStatus === 'syncing'}
-                            leftIcon={
-                                syncStatus === 'syncing' ? 
-                                    <RefreshCw className="w-4 h-4 animate-spin" /> : 
-                                    <Database className="w-4 h-4" />
-                            }
-                            className={`
-                                ${syncStatus === 'error' ? 'border-red-500 text-red-400 hover:bg-red-500/10' : ''}
-                                ${syncStatus === 'pending' ? 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10' : ''}
-                                ${syncStatus === 'synced' ? 'border-green-500 text-green-400 hover:bg-green-500/10' : ''}
-                                ${syncStatus === 'syncing' ? 'border-blue-500 text-blue-400 cursor-not-allowed' : ''}
-                            `}
-                        >
-                            {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Finances'}
-                        </Button>
-                        
-                        <Button
-                            onClick={() => setShowProviderSettings(!showProviderSettings)}
-                            variant="outline"
-                            size="sm"
-                            leftIcon={<Settings className="w-4 h-4" />}
-                        >
-                            LLM Settings
-                        </Button>
-                        
-                        <Button
-                            onClick={() => setShowContextPanel(!showContextPanel)}
-                            variant="outline"
-                            size="sm"
-                            leftIcon={<BarChart3 className="w-4 h-4" />}
-                        >
-                            Context & Usage
-                        </Button>
-                        
-                        {/* Intelligent Chat Toggle */}
-                        <Button
-                            onClick={() => setUseIntelligentChat(!useIntelligentChat)}
-                            variant={useIntelligentChat ? "primary" : "outline"}
-                            size="sm"
-                            leftIcon={<span className="text-purple-400">🧠</span>}
-                            className={useIntelligentChat ? 'bg-purple-600 hover:bg-purple-700' : 'border-purple-500 text-purple-400 hover:bg-purple-500/10'}
-                        >
-                            {useIntelligentChat ? 'AI Memory On' : 'AI Memory Off'}
-                        </Button>
-                        
-                        <Button
-                            onClick={() => {
-                                setIntelligenceMetrics(null);
-                                initializeChatSession();
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="text-blue-400 border-blue-500/50 hover:bg-blue-900/20"
-                        >
-                            New Conversation
-                        </Button>
-                        
-                        <Button
-                            onClick={clearChat}
-                            variant="outline"
-                            size="sm"
-                            className="text-red-400 border-red-500/50 hover:bg-red-900/20"
-                        >
-                            Clear Chat
-                        </Button>
+                    {/* Reorganized Button Layout - Two Rows */}
+                    <div className="space-y-3">
+                        {/* Top row - Core functions */}
+                        <div className="flex space-x-3">
+                            {/* Enhanced Sync Finances Button */}
+                            <Button
+                                onClick={handleManualSync}
+                                variant="outline"
+                                size="sm"
+                                disabled={syncStatus === 'syncing'}
+                                leftIcon={
+                                    syncStatus === 'syncing' ? 
+                                        <RefreshCw className="w-4 h-4 animate-spin" /> : 
+                                        <Database className="w-4 h-4" />
+                                }
+                                className={`
+                                    ${syncStatus === 'error' ? 'border-red-500 text-red-400 hover:bg-red-500/10' : ''}
+                                    ${syncStatus === 'pending' ? 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10' : ''}
+                                    ${syncStatus === 'synced' ? 'border-green-500 text-green-400 hover:bg-green-500/10' : ''}
+                                    ${syncStatus === 'syncing' ? 'border-blue-500 text-blue-400 cursor-not-allowed' : ''}
+                                `}
+                            >
+                                📊 {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Finances'}
+                            </Button>
+                            
+                            <Button
+                                onClick={() => setShowProviderSettings(!showProviderSettings)}
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<Settings className="w-4 h-4" />}
+                            >
+                                ⚙️ LLM Settings
+                            </Button>
+                            
+                            <Button
+                                onClick={() => setShowContextPanel(!showContextPanel)}
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<BarChart3 className="w-4 h-4" />}
+                            >
+                                📋 Context & Usage
+                            </Button>
+                        </div>
+
+                        {/* Bottom row - Memory and actions */}
+                        <div className="flex justify-between items-center">
+                            {/* AI Memory Button - Enhanced with insight count */}
+                            <Button
+                                onClick={() => setUseIntelligentChat(!useIntelligentChat)}
+                                variant={useIntelligentChat ? "primary" : "outline"}
+                                size="sm"
+                                leftIcon={<span>🧠</span>}
+                                className={`
+                                    ${useIntelligentChat 
+                                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-none' 
+                                        : 'border-purple-500 text-purple-400 hover:bg-purple-500/10'
+                                    }
+                                `}
+                            >
+                                AI Memory: {useIntelligentChat 
+                                    ? `On${intelligenceMetrics?.insights_extracted ? ` (${intelligenceMetrics.insights_extracted} insights)` : ''}`
+                                    : 'Off'
+                                }
+                            </Button>
+                            
+                            <Button
+                                onClick={clearChat}
+                                variant="outline"
+                                size="sm"
+                                className="text-red-400 border-red-500/50 hover:bg-red-900/20"
+                            >
+                                🗑️ Clear Chat
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
