@@ -2185,7 +2185,15 @@ INSURANCE COVERAGE:
                 metadata={'category': 'estate_insurance', 'user_id': user_id}
             )
 
-            logger.info(f"✅ Created structured 6-document model for user {user_id}")
+            # 7. Chat Intelligence & Memory
+            chat_doc = self._create_chat_intelligence_doc(user_id, db)
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_chat_intelligence',
+                content=chat_doc,
+                metadata={'category': 'chat_memory', 'user_id': user_id}
+            )
+
+            logger.info(f"✅ Created structured 7-document model for user {user_id} (including chat intelligence)")
             
         except Exception as e:
             logger.error(f"Failed to create structured documents for user {user_id}: {str(e)}")
