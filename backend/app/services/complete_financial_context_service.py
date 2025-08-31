@@ -140,14 +140,15 @@ NET WORTH: ${financial_data['net_worth']:,.0f}
 
 MONTHLY CASH FLOW:
 -----------------
-Income:
-  • Employment & Investment Income: ${financial_data['monthly_income']:,.0f}
+Income Breakdown:
+{self._format_income_breakdown(financial_data.get('income_breakdown', []))}
   • Total Monthly Income: ${financial_data['monthly_income']:,.0f}
   
-Expenses:
+Expense Breakdown:
+{self._format_expense_breakdown(financial_data.get('expense_breakdown', []))}
   • Total Monthly Expenses: ${financial_data['monthly_expenses']:,.0f}
   
-Net Surplus: ${financial_data['monthly_surplus']:,.0f} (59.9% savings rate)
+Net Surplus: ${financial_data['monthly_surplus']:,.0f} ({financial_data.get('savings_rate', 59.9):.1f}% savings rate)
 
 RETIREMENT STATUS:
 -----------------
