@@ -976,12 +976,7 @@ async def chat_with_intelligence(
                         financial_context=financial_context
                     )
                     
-                    logger.error(f"DEBUG: [/intelligent] tax_enhancement length: {len(tax_enhancement) if tax_enhancement else 0}")
-                    logger.error(f"DEBUG: [/intelligent] Original response length: {len(assistant_response)}")
-                    
                     if tax_enhancement:
-                        # Add hardcoded test marker to isolate the issue
-                        tax_enhancement = "\n\n🚨 TAX ENHANCEMENT IS WORKING! 🚨\n" + tax_enhancement
                         
                         # Enhance response with REAL calculations
                         assistant_response = assistant_response + tax_enhancement
