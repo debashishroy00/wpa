@@ -179,6 +179,33 @@ class TaxIntelligenceFormatter:
         
         return enhanced_response
     
+    def _format_direct_response(self, calculations: Dict) -> str:
+        """Direct formatting without LLM - guaranteed to work"""
+        opportunities = calculations.get('calculated_opportunities', [])
+        total_savings = calculations.get('total_potential_savings', 0)
+        
+        if not opportunities or total_savings <= 0:
+            return ""
+        
+        response = "\n\n📊 **TAX OPTIMIZATION OPPORTUNITIES:**\n\n"
+        response += f"💰 **Total Potential Annual Savings: ${total_savings:,.0f}**\n\n"
+        response += "**TOP RECOMMENDATIONS:**\n"
+        
+        for i, opp in enumerate(opportunities[:3], 1):
+            difficulty_emoji = {'Easy': '🟢', 'Medium': '🟡', 'Complex': '🔴'}.get(opp['difficulty'], '🟡')
+            response += f"{i}. **{opp['strategy']}** {difficulty_emoji}\n"
+            response += f"   • Annual Savings: ${opp['annual_tax_savings']:,.0f}\n"
+            response += f"   • Implementation: {opp['timeline']}\n"
+            response += f"   • {opp['description']}\n\n"
+        
+        response += "**NEXT STEPS:**\n"
+        response += "1. Review strategies with your tax professional\n"
+        response += "2. Implement Easy (🟢) strategies immediately\n"
+        response += "3. Plan Medium (🟡) strategies for year-end\n\n"
+        response += "*All calculations based on your actual financial data and 2024 tax rules.*"
+        
+        return response
+    
     def _format_error_response(self, error_message: str) -> str:
         """Format error response"""
         return f"I encountered an issue analyzing your tax situation: {error_message}. Please ensure your financial profile is complete and try again."
