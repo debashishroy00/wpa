@@ -1052,6 +1052,11 @@ async def chat_with_intelligence(
             "intelligence_extracted": intelligence_metrics['insights_extracted'] > 0
         }
         
+        # Final debug check before returning
+        final_message_content = response_data.get("message", {}).get("content", "")
+        logger.error(f"DEBUG: [/intelligent] Final message content length: {len(final_message_content)}")
+        logger.error(f"DEBUG: [/intelligent] Contains tax marker: {'🚨 TAX ENHANCEMENT IS WORKING! 🚨' in final_message_content}")
+        
         return IntelligentChatResponse(
             message=response_data.get("message", {}),
             tokens_used=response_data.get("tokens_used", {}),
