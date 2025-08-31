@@ -936,6 +936,71 @@ async def chat_with_intelligence(
         assistant_response = response_data.get("message", {}).get("content", "")
         tokens_used = response_data.get("tokens_used", {}).get("total", 0)
         
+        # INTELLIGENCE ENHANCEMENT: Tax Intelligence (COPIED FROM /message ENDPOINT)
+        logger.error(f"DEBUG: [/intelligent] Message received: '{request.message}'")
+        logger.error(f"DEBUG: [/intelligent] About to check if tax question")
+        
+        # Use new clean tax intelligence formatter
+        from app.services.tax_intelligence_formatter import TaxIntelligenceFormatter
+        
+        formatter = TaxIntelligenceFormatter(db)
+        logger.error(f"DEBUG: [/intelligent] TaxIntelligenceFormatter created successfully")
+        
+        is_tax = formatter.is_tax_question(request.message)
+        logger.error(f"DEBUG: [/intelligent] is_tax_question result: {is_tax}")
+        
+        if is_tax:
+            logger.error(f"DEBUG: [/intelligent] Tax question detected! Getting financial summary...")
+            try:
+                # Get user financial data 
+                from app.services.financial_summary_service import financial_summary_service
+                financial_summary = financial_summary_service.get_user_financial_summary(current_user.id, db)
+                
+                if financial_summary:
+                    # Build financial context 
+                    financial_context = {
+                        'monthly_income': financial_summary.get('monthlyIncome', 0),
+                        'monthly_expenses': financial_summary.get('monthlyExpenses', 0),
+                        'total_assets': financial_summary.get('totalAssets', 0),
+                        'investment_total': financial_summary.get('investmentTotal', 0),
+                        'mortgage_balance': financial_summary.get('mortgageBalance', 0),
+                        'annual_401k': financial_summary.get('annual401k', 0),
+                        'tax_bracket': financial_summary.get('taxBracket', 24),
+                        'age': financial_summary.get('age', 35),
+                        'state': 'NC',
+                        'filing_status': 'married'
+                    }
+                    
+                    # Get intelligent tax insights using NEW architecture
+                    tax_enhancement = await formatter.format_tax_insights(
+                        user_id=current_user.id,
+                        question=request.message,
+                        financial_context=financial_context
+                    )
+                    
+                    logger.error(f"DEBUG: [/intelligent] tax_enhancement length: {len(tax_enhancement) if tax_enhancement else 0}")
+                    
+                    if tax_enhancement:
+                        # Enhance response with REAL calculations
+                        assistant_response = assistant_response + "\n\n" + tax_enhancement
+                        response_data["message"]["content"] = assistant_response
+                        
+                        logger.error(f"DEBUG: [/intelligent] TAX ENHANCEMENT APPLIED! Length: {len(tax_enhancement)} chars")
+                    else:
+                        logger.error(f"DEBUG: [/intelligent] Tax enhancement was empty!")
+                
+                else:
+                    # Quick opportunity check without full profile
+                    quick_enhancement = formatter.format_quick_opportunities(current_user.id, {})
+                    if quick_enhancement:
+                        assistant_response = assistant_response + quick_enhancement
+                        response_data["message"]["content"] = assistant_response
+                        
+            except Exception as e:
+                logger.error(f"DEBUG: [/intelligent] Tax intelligence enhancement failed: {str(e)}")
+        else:
+            logger.error(f"DEBUG: [/intelligent] Not detected as tax question")
+        
         # Process intelligence extraction
         intelligence_metrics = await intelligence_service.process_conversation_turn(
             user_id=current_user.id,
