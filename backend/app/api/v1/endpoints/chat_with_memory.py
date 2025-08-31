@@ -447,8 +447,11 @@ async def send_chat_message_with_memory(
                         response_data["message"]["content"] = assistant_response
                         
             except Exception as e:
+                logger.error(f"DEBUG: Tax intelligence enhancement failed: {str(e)}")
                 logger.warning(f"Tax intelligence enhancement failed: {str(e)}")
                 # Continue with original response - no hardcoded fallbacks
+        else:
+            logger.error(f"DEBUG: Not detected as tax question")
         
         # Step 5.3: Response verification (skip for now since we're not using vector sync)
         if assistant_response:
