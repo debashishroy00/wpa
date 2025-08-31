@@ -269,6 +269,8 @@ class TaxCalculations:
         optimizations = []
         
         # 401k optimization (if employer plan available)
+        logger.error(f"DEBUG RETIREMENT OPT: current_401k: ${current_401k:,.0f}, limit: ${limits['401k']:,.0f}, gap: ${k401_gap:,.0f}")
+        
         if k401_gap > 0:
             tax_savings = self.calculate_tax_savings(k401_gap, marginal_rate)
             optimizations.append({
@@ -279,6 +281,24 @@ class TaxCalculations:
                 'tax_savings': tax_savings,
                 'priority': 1,  # Highest priority (employer match potential)
                 'implementation': 'Update payroll deduction immediately'
+            })
+        elif k401_gap < 0:
+            # Over-contribution detected - this is a compliance issue
+            over_contribution = abs(k401_gap)
+            penalty_savings = over_contribution * 0.06  # Avoid 6% excise tax
+            tax_savings = {
+                'annual_tax_savings': penalty_savings,
+                'total_tax_savings': penalty_savings,
+                'annual_after_tax_increase': over_contribution - penalty_savings
+            }
+            optimizations.append({
+                'strategy': 'Reduce Excess 401k Contribution',
+                'current_contribution': current_401k,
+                'recommended_contribution': limits['401k'],
+                'additional_needed': -over_contribution,  # Negative because it's a reduction
+                'tax_savings': tax_savings,
+                'priority': 1,  # Critical compliance issue
+                'implementation': f'Reduce 401k contribution by ${over_contribution:,.0f} immediately to avoid IRS penalties'
             })
         
         # Traditional IRA optimization (if no 401k or after maxing 401k)
