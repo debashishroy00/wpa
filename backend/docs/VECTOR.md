@@ -105,6 +105,30 @@ The vector store contains 7 core documents providing structured financial data a
 
 **Search Triggers**: "estate", "insurance", "will", "beneficiary", "coverage"
 
+### 7. Chat Intelligence & Memory (user_1_chat_intelligence)
+**Purpose**: Conversation context and user interaction patterns  
+**Category**: `chat_memory`  
+**Content**:
+**Session Summary**: Recent conversation count and total exchanges
+**Conversation Context**:
+- Recent Intent: Current user focus (retirement, budgeting, etc.)
+- Active Topics: Key discussion areas
+- Decision Patterns: User decision-making style
+- Engagement Level: Conversation depth indicator
+
+**Financial Focus Areas**:
+- Primary Interests: Most discussed topics
+- Key Decisions: Recorded financial choices
+- Action Items: Pending tasks from conversations
+- Conversation Continuity: Relationship establishment level
+
+**Context for AI Advisor**:
+- User communication preferences
+- Financial sophistication level
+- Response patterns and preferences
+
+**Search Triggers**: "conversation", "chat history", "memory", "context", "preferences"
+
 ## Technical Implementation
 
 ### Storage Details
