@@ -940,7 +940,7 @@ async def chat_with_intelligence(
         
         # INTELLIGENCE ENHANCEMENT: Tax Intelligence (COPIED FROM /message ENDPOINT)
         logger.error(f"DEBUG: [/intelligent] Message received: '{request.message}'")
-        logger.error(f"DEBUG: [/intelligent] About to check if tax question")
+        # Tax Intelligence Enhancement
         
         # Use new clean tax intelligence formatter
         from app.services.tax_intelligence_formatter import TaxIntelligenceFormatter
