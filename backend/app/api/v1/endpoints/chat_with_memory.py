@@ -464,7 +464,7 @@ async def send_chat_message_with_memory(
                 logger.warning(f"Tax optimization enhancement failed: {str(e)}")
                 # Continue with original response
         
-        # Step 5.2: Response verification (skip for now since we're not using vector sync)
+        # Step 5.3: Response verification (skip for now since we're not using vector sync)
         if assistant_response:
             try:
                 # Build basic ToolsOutput for verification (simplified)
