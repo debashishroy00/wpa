@@ -102,7 +102,7 @@ class VectorSyncService:
                 "status": "success",
                 "user_id": user_id,
                 "documents_removed": removed_count,
-                "documents_synced": 6,  # New structured 6-document model
+                "documents_synced": 7,  # New structured 7-document model (includes chat intelligence)
                 "metrics": {
                     "savings_rate": tools_output.savings_rate,
                     "emergency_months": tools_output.liquidity_months,
