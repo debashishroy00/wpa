@@ -247,7 +247,7 @@ const ProfileManagementPage: React.FC = () => {
                 <Building className="w-6 h-6 text-indigo-500 mx-auto mb-2" />
                 <p className="text-xs font-medium text-gray-400 mb-1">Estate Docs</p>
                 <p className="text-lg font-bold text-white">
-                  {profileData?.estate_documents?.length || 4}
+                  {profileData?.estate_documents?.length || 0}
                 </p>
               </div>
             </Card.Body>
