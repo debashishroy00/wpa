@@ -21,7 +21,7 @@ from app.services.chat_intelligence_service import ChatIntelligenceService
 from app.services.complete_financial_context_service import CompleteFinancialContextService
 from app.services.token_manager import token_manager
 from app.services.enhanced_intent_classifier import enhanced_intent_classifier
-from app.services.basic_financial_calculator import FinancialCalculator
+# Basic calculations now handled by CompleteFinancialContextService and formula_library
 from app.services.basic_response_verifier import BasicResponseVerifier
 from app.services.retirement_response_formatter import retirement_formatter
 from app.models.architecture_contracts import UserFinancialData, ToolsOutput
