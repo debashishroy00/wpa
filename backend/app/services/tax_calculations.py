@@ -573,16 +573,34 @@ class TaxCalculations:
         
         # 1. 401k Optimization - REAL CALCULATION
         max_401k = self.RETIREMENT_LIMITS['50_plus']['401k'] if age >= 50 else self.RETIREMENT_LIMITS['under_50']['401k']
+        
+        logger.error(f"DEBUG TAX CALC: 401k limits - current: ${current_401k:,.0f}, max: ${max_401k:,.0f}, age: {age}")
+        
         if current_401k < max_401k:
             additional_401k = max_401k - current_401k
             # REAL calculation using actual marginal rate
-            tax_savings = additional_401k * combined_rate
+            tax_savings = additional_401k * (combined_rate / 100)
             opportunities.append({
                 "strategy": "Maximize 401k Contribution",
+                "annual_tax_savings": tax_savings,
                 "potential_savings": tax_savings,
                 "difficulty": "Easy",
                 "priority": 1,
+                "timeline": "Next payroll period",
                 "description": f"Increase 401k from ${current_401k:,.0f} to ${max_401k:,.0f}"
+            })
+        elif current_401k > max_401k:
+            # User is over-contributing - this is a compliance issue
+            over_contribution = current_401k - max_401k
+            potential_penalty_savings = over_contribution * 0.06  # Avoid 6% excise tax
+            opportunities.append({
+                "strategy": "Reduce Excess 401k Contribution",
+                "annual_tax_savings": potential_penalty_savings,
+                "potential_savings": potential_penalty_savings,
+                "difficulty": "Easy",
+                "priority": 1,
+                "timeline": "Immediately",
+                "description": f"Reduce 401k from ${current_401k:,.0f} to ${max_401k:,.0f} (over by ${over_contribution:,.0f})"
             })
         
         # 2. Tax-Loss Harvesting - REAL CALCULATION
