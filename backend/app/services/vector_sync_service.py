@@ -2198,6 +2198,71 @@ INSURANCE COVERAGE:
         except Exception as e:
             logger.error(f"Failed to create structured documents for user {user_id}: {str(e)}")
     
+    def _create_chat_intelligence_doc(self, user_id: int, db: Session) -> str:
+        """
+        Create a structured chat intelligence document with conversation memory
+        """
+        try:
+            from app.models.chat_intelligence import ChatIntelligence
+            
+            # Get recent chat intelligence records
+            intelligence_records = db.query(ChatIntelligence).filter(
+                ChatIntelligence.user_id == user_id
+            ).order_by(ChatIntelligence.created_at.desc()).limit(10).all()
+            
+            if not intelligence_records:
+                return """CHAT INTELLIGENCE & MEMORY:
+No conversation history available yet.
+
+CONVERSATION CONTEXT:
+- Total Sessions: 0
+- Key Topics: None
+- User Preferences: Not yet established
+- Financial Decisions: None recorded
+- Action Items: None pending"""
+            
+            # Extract key information
+            total_turns = sum(intel.conversation_turns for intel in intelligence_records)
+            all_topics = set()
+            all_decisions = set()
+            all_actions = set()
+            recent_intent = "general_financial_advice"
+            
+            for intel in intelligence_records:
+                all_topics.update(intel.topics_discussed or [])
+                all_decisions.update(intel.key_decisions or [])
+                all_actions.update(intel.action_items or [])
+                if intel.session_intent:
+                    recent_intent = intel.session_intent
+            
+            # Build structured document
+            chat_doc = f"""CHAT INTELLIGENCE & MEMORY:
+Session Summary: {len(intelligence_records)} recent conversations, {total_turns} total exchanges
+
+CONVERSATION CONTEXT:
+- Recent Intent: {recent_intent}
+- Active Topics: {', '.join(list(all_topics)[:5]) if all_topics else 'General financial planning'}
+- Decision Patterns: {'User actively making decisions' if all_decisions else 'Exploring options'}
+- Engagement Level: {'High' if total_turns > 20 else 'Moderate' if total_turns > 5 else 'Initial'}
+
+FINANCIAL FOCUS AREAS:
+- Primary Interests: {', '.join(list(all_topics)[:3]) if all_topics else 'Retirement planning, budgeting'}
+- Key Decisions Made: {len(all_decisions)} financial decisions recorded
+- Action Items: {len(all_actions)} pending items
+- Conversation Continuity: {'Established' if len(intelligence_records) > 3 else 'Building'}
+
+CONTEXT FOR AI ADVISOR:
+- User prefers detailed explanations and specific recommendations
+- Financial sophistication level: Intermediate to advanced
+- Responsive to data-driven insights and personalized advice
+- Values comprehensive analysis with actionable steps"""
+
+            return chat_doc
+            
+        except Exception as e:
+            logger.warning(f"Failed to create chat intelligence doc for user {user_id}: {str(e)}")
+            return "CHAT INTELLIGENCE & MEMORY:\nUnable to load conversation history."
+    
     def trigger_sync_on_change(self, user_id: int, db: Session, change_type: str = "manual"):
         """
         Trigger sync when data changes (called from financial endpoints)
