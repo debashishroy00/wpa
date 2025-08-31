@@ -259,7 +259,7 @@ const ProfileManagementPage: React.FC = () => {
                 <Shield className="w-6 h-6 text-cyan-500 mx-auto mb-2" />
                 <p className="text-xs font-medium text-gray-400 mb-1">Insurance</p>
                 <p className="text-lg font-bold text-white">
-                  {profileData?.insurance_policies?.length || 2}
+                  {profileData?.insurance_policies?.length || 0}
                 </p>
               </div>
             </Card.Body>
