@@ -31,7 +31,7 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 # Initialize services
-calculator = FinancialCalculator()
+# Financial calculations now handled by CompleteFinancialContextService
 context_service = CompleteFinancialContextService()
 
 async def sync_to_vector_db(entry):
