@@ -395,5 +395,212 @@ class TaxCalculations:
                 'reason': 'Withholding sufficient or balance under $1,000'
             }
 
+    def analyze_comprehensive_tax_opportunities(self, user_id: int, financial_context: Dict, db: Session = None) -> Dict:
+        """Comprehensive tax opportunity analysis - SINGLE SOURCE OF TRUTH"""
+        
+        try:
+            # Extract and validate key financial data
+            annual_income = safe_float(financial_context.get('monthly_income', 0)) * 12
+            tax_bracket = safe_float(financial_context.get('tax_bracket', 24))
+            state = financial_context.get('state', 'NC')
+            mortgage_balance = safe_float(financial_context.get('mortgage_balance', 0))
+            investments = safe_float(financial_context.get('investment_total', 0))
+            current_401k = safe_float(financial_context.get('annual_401k', 0))
+            age = financial_context.get('age', 35)
+            filing_status = financial_context.get('filing_status', 'married')
+            
+            # Calculate mortgage interest estimate (assume 6.5% rate)
+            mortgage_interest = mortgage_balance * 0.065 if mortgage_balance > 0 else 0
+            
+            # Get marginal tax rates for accurate calculations
+            tax_analysis = self.calculate_marginal_tax_rate(annual_income, filing_status, state)
+            marginal_rate = tax_analysis['marginal_rates']['combined']
+            
+            # Build comprehensive opportunities using existing methods
+            opportunities = []
+            
+            # 1. Retirement Optimization using existing method
+            current_contributions = {
+                '401k': current_401k,
+                'traditional_ira': financial_context.get('traditional_ira', 0),
+                'roth_ira': financial_context.get('roth_ira', 0)
+            }
+            retirement_opt = self.retirement_contribution_optimization(
+                current_contributions, annual_income, age, marginal_rate
+            )
+            
+            for opt in retirement_opt['optimization_opportunities']:
+                if opt.get('tax_savings', {}).get('total_tax_savings', 0) > 0:
+                    opportunities.append({
+                        'strategy': opt['strategy'],
+                        'annual_tax_savings': opt['tax_savings']['total_tax_savings'],
+                        'difficulty': 'Easy',
+                        'timeline': 'Next payroll period',
+                        'priority': opt['priority'],
+                        'description': f"Increase {opt['strategy'].lower()} by ${opt['additional_needed']:,.0f}",
+                        'implementation_details': opt['implementation']
+                    })
+            
+            # 2. Itemization Analysis
+            if mortgage_interest > 0:
+                estimated_property_tax = min(annual_income * 0.015, 15000)
+                state_local_taxes = min(annual_income * 0.05, self.SALT_CAP)
+                
+                deductions = {
+                    'mortgage_interest': mortgage_interest,
+                    'property_taxes': estimated_property_tax,
+                    'state_local_taxes': state_local_taxes,
+                    'charitable': financial_context.get('charitable_donations', 0),
+                    'other': 0
+                }
+                
+                itemization = self.should_itemize_analysis(deductions, filing_status)
+                if itemization['recommendation']['should_itemize']:
+                    benefit = itemization['recommendation']['benefit_over_alternative']
+                    if benefit > 500:  # Meaningful benefit
+                        opportunities.append({
+                            'strategy': 'Itemize Deductions',
+                            'annual_tax_savings': benefit * (marginal_rate / 100),
+                            'difficulty': 'Easy',
+                            'timeline': 'Tax filing',
+                            'priority': 2,
+                            'description': f"Itemize saves ${benefit:,.0f} over standard deduction",
+                            'implementation_details': 'Track and organize deductible expenses'
+                        })
+                
+                # 3. Bunching Strategy Analysis
+                bunching = self.bunching_strategy_analysis(deductions, filing_status, marginal_rate)
+                if bunching['analysis']['worthwhile']:
+                    opportunities.append({
+                        'strategy': 'Deduction Bunching',
+                        'annual_tax_savings': bunching['analysis']['annual_tax_savings'],
+                        'difficulty': 'Medium',
+                        'timeline': 'Q4 planning',
+                        'priority': 3,
+                        'description': 'Bundle deductions into alternating years',
+                        'implementation_details': '; '.join(bunching['analysis']['implementation_items'])
+                    })
+            
+            # 4. Tax-Loss Harvesting
+            if investments > 50000:
+                harvesting = self.tax_loss_harvesting_analysis(investments, 0, marginal_rate)
+                if harvesting['worthwhile']:
+                    opportunities.append({
+                        'strategy': 'Tax-Loss Harvesting',
+                        'annual_tax_savings': harvesting['tax_benefits']['total_annual_savings'],
+                        'difficulty': 'Medium',
+                        'timeline': 'Before December 31',
+                        'priority': 4,
+                        'description': 'Harvest investment losses to offset gains',
+                        'implementation_details': 'Review portfolio quarterly; avoid wash sales'
+                    })
+            
+            # Calculate total potential savings
+            total_savings = sum(opp['annual_tax_savings'] for opp in opportunities)
+            
+            # Sort by savings amount (descending)
+            opportunities.sort(key=lambda x: x['annual_tax_savings'], reverse=True)
+            
+            return {
+                'user_id': user_id,
+                'taxpayer_profile': {
+                    'annual_income': annual_income,
+                    'tax_bracket': tax_bracket,
+                    'marginal_rate': marginal_rate,
+                    'filing_status': filing_status,
+                    'state': state,
+                    'age': age
+                },
+                'calculated_opportunities': opportunities,
+                'total_potential_savings': total_savings,
+                'tax_rates': tax_analysis,
+                'analysis_summary': {
+                    'opportunities_found': len(opportunities),
+                    'implementation_priorities': {
+                        'immediate': len([o for o in opportunities if o['difficulty'] == 'Easy']),
+                        'planned': len([o for o in opportunities if o['difficulty'] == 'Medium']),
+                        'complex': len([o for o in opportunities if o['difficulty'] == 'Complex'])
+                    }
+                },
+                'generated_at': datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logger.error("Comprehensive tax analysis failed", error=str(e), user_id=user_id)
+            return {
+                'error': 'Tax analysis failed',
+                'message': 'Unable to complete tax optimization analysis. Please try again.',
+                'calculated_opportunities': [],
+                'total_potential_savings': 0
+            }
+    
+    def get_quick_tax_opportunities(self, user_id: int, financial_summary: Dict) -> List[Dict]:
+        """Quick tax opportunities for dashboard - NO HARDCODING"""
+        
+        opportunities = []
+        
+        # Get basic data
+        annual_income = financial_summary.get('monthlyIncome', 0) * 12
+        current_401k = financial_summary.get('annual401k', 0)
+        age = financial_summary.get('age', 35)
+        investment_total = financial_summary.get('investmentTotal', 0)
+        tax_bracket = financial_summary.get('taxBracket', 24)
+        
+        if annual_income == 0:
+            return opportunities
+        
+        # Get real marginal rate
+        tax_rates = self.calculate_marginal_tax_rate(annual_income, 'married', 'NC')
+        combined_rate = tax_rates['marginal_rates']['combined'] / 100
+        
+        # 1. 401k Optimization - REAL CALCULATION
+        max_401k = self.RETIREMENT_LIMITS['50_plus']['401k'] if age >= 50 else self.RETIREMENT_LIMITS['under_50']['401k']
+        if current_401k < max_401k:
+            additional_401k = max_401k - current_401k
+            # REAL calculation using actual marginal rate
+            tax_savings = additional_401k * combined_rate
+            opportunities.append({
+                "strategy": "Maximize 401k Contribution",
+                "potential_savings": tax_savings,
+                "difficulty": "Easy",
+                "priority": 1,
+                "description": f"Increase 401k from ${current_401k:,.0f} to ${max_401k:,.0f}"
+            })
+        
+        # 2. Tax-Loss Harvesting - REAL CALCULATION
+        if investment_total > 50000 and annual_income > 75000:
+            # Use real calculation method
+            harvesting = self.tax_loss_harvesting_analysis(investment_total, 0, tax_bracket)
+            if harvesting['worthwhile']:
+                estimated_savings = harvesting['tax_benefits']['total_annual_savings']
+                opportunities.append({
+                    "strategy": "Tax-Loss Harvesting",
+                    "potential_savings": estimated_savings,
+                    "difficulty": "Medium",
+                    "priority": 2,
+                    "description": "Harvest investment losses to offset gains"
+                })
+        
+        # 3. IRA Contribution - REAL CALCULATION
+        if self._ira_deduction_eligible(annual_income):
+            max_ira = self.RETIREMENT_LIMITS['50_plus']['ira'] if age >= 50 else self.RETIREMENT_LIMITS['under_50']['ira']
+            current_ira = financial_summary.get('traditionalIra', 0)
+            if current_ira < max_ira:
+                additional_ira = max_ira - current_ira
+                ira_savings = additional_ira * combined_rate
+                opportunities.append({
+                    "strategy": "Maximize IRA Contribution",
+                    "potential_savings": ira_savings,
+                    "difficulty": "Easy",
+                    "priority": 3,
+                    "description": f"Contribute ${additional_ira:,.0f} to traditional IRA"
+                })
+        
+        # Sort by potential savings
+        opportunities.sort(key=lambda x: x["potential_savings"], reverse=True)
+        
+        return opportunities
+
+
 # Global tax calculations instance
 tax_calculations = TaxCalculations()
