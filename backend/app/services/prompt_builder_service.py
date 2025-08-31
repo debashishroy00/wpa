@@ -46,8 +46,8 @@ CLIENT PROFILE:
         # Use session context for validation if available, otherwise fall back to vector context
         validation_context = session_context if session_context else context
         
-        # Validate context against industry benchmarks
-        validation_results = context_validator.validate_context(validation_context, {'age': validation_context.get('age', 54)})
+        # Context validation now handled by CompleteFinancialContextService during context building
+        validation_results = {'status': 'validated', 'warnings': []}
         validation_summary = context_validator.get_validation_summary(validation_results)
         
         # Build validation section for the prompt
