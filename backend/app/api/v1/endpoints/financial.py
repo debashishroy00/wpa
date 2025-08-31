@@ -2323,7 +2323,7 @@ async def complete_vector_sync(
         
         # Step 1: Get current correct calculations
         enhanced_service = CompleteFinancialContextService()
-        smart_context = enhanced_service.build_smart_context(current_user.id)
+        smart_context = enhanced_service.build_complete_context(current_user.id, db, "Vector sync context", "balanced")
         
         # Also get the financial summary for validation
         financial_summary = financial_summary_service.get_user_financial_summary(current_user.id, db)
