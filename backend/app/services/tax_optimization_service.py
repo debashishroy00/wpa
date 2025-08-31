@@ -54,11 +54,21 @@ class TaxOptimizationService:
             
             # Get AI analysis
             logger.info("Requesting tax analysis from LLM", user_id=user_id)
-            analysis = await self.llm_service.generate(
+            
+            # Import LLMRequest
+            from ..models.llm_models import LLMRequest
+            
+            llm_request = LLMRequest(
+                provider='gemini',
+                model_tier='dev',
                 system_prompt="You are a CPA and tax strategist. Provide specific, actionable tax advice with exact calculations and dollar amounts.",
                 user_prompt=prompt,
-                temperature=0.2  # Lower temperature for factual accuracy
+                temperature=0.2,
+                max_tokens=2000
             )
+            
+            llm_response = await self.llm_service.generate(llm_request)
+            analysis = llm_response.content
             
             # Parse and structure the analysis
             structured_analysis = self._parse_and_structure_analysis(
