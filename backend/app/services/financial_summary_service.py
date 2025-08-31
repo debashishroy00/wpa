@@ -66,14 +66,25 @@ class FinancialSummaryService:
                     
                     liabilities.append(liability_data)
                 elif entry.category == EntryCategory.income:
-                    # FIXED: Include ALL income entries (Salary + RSU + 401K + Rental)
-                    # This matches the corrected categorized API logic
-                    if entry.frequency == FrequencyType.monthly:
-                        monthly_income += entry.amount
-                    elif entry.frequency == FrequencyType.annually:
-                        monthly_income += entry.amount / 12
-                    elif entry.frequency == FrequencyType.weekly:
-                        monthly_income += entry.amount * 52 / 12
+                    # Check if this is a 401k contribution (expense-like income)
+                    if "401k" in entry.description.lower() or "401" in entry.description:
+                        # Track 401k contributions separately for tax calculations
+                        if entry.frequency == FrequencyType.monthly:
+                            monthly_401k_contribution += entry.amount
+                        elif entry.frequency == FrequencyType.annually:
+                            monthly_401k_contribution += entry.amount / 12
+                        elif entry.frequency == FrequencyType.weekly:
+                            monthly_401k_contribution += entry.amount * 52 / 12
+                        # Note: Don't add 401k contributions to monthly_income since they reduce taxable income
+                    else:
+                        # FIXED: Include ALL other income entries (Salary + RSU + Rental)
+                        # This matches the corrected categorized API logic
+                        if entry.frequency == FrequencyType.monthly:
+                            monthly_income += entry.amount
+                        elif entry.frequency == FrequencyType.annually:
+                            monthly_income += entry.amount / 12
+                        elif entry.frequency == FrequencyType.weekly:
+                            monthly_income += entry.amount * 52 / 12
                 elif entry.category == EntryCategory.expenses:
                     if entry.frequency == FrequencyType.monthly:
                         monthly_expenses += entry.amount
