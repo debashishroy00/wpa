@@ -569,7 +569,7 @@ class TaxCalculations:
         
         # Get real marginal rate
         tax_rates = self.calculate_marginal_tax_rate(annual_income, 'married', 'NC')
-        combined_rate = tax_rates['marginal_rates']['combined'] / 100
+        combined_rate = tax_rates['marginal_rates']['combined']  # Already in percentage form
         
         # 1. 401k Optimization - REAL CALCULATION
         max_401k = self.RETIREMENT_LIMITS['50_plus']['401k'] if age >= 50 else self.RETIREMENT_LIMITS['under_50']['401k']
