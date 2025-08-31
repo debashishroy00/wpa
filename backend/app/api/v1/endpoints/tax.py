@@ -429,29 +429,8 @@ async def get_tax_opportunities_summary(
         
         opportunities = []
         
-        # Check 401k optimization
-        max_401k = 30500 if age >= 50 else 23000
-        if current_401k < max_401k:
-            additional_401k = max_401k - current_401k
-            tax_savings = additional_401k * 0.29  # Rough combined rate
-            opportunities.append({
-                "strategy": "Maximize 401k Contribution",
-                "potential_savings": tax_savings,
-                "difficulty": "Easy",
-                "priority": 1,
-                "description": f"Increase 401k from ${current_401k:,.0f} to ${max_401k:,.0f}"
-            })
-        
-        # Check tax-loss harvesting potential
-        if investment_total > 50000 and annual_income > 75000:
-            estimated_savings = min(3000 * 0.24, investment_total * 0.01)
-            opportunities.append({
-                "strategy": "Tax-Loss Harvesting",
-                "potential_savings": estimated_savings,
-                "difficulty": "Medium",
-                "priority": 2,
-                "description": "Harvest investment losses to offset gains"
-            })
+        # Use REAL calculations instead of hardcoded values
+        opportunities = tax_calculations.get_quick_tax_opportunities(current_user.id, financial_summary)
         
         # Sort by potential savings
         opportunities.sort(key=lambda x: x["potential_savings"], reverse=True)
