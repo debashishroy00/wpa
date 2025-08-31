@@ -165,17 +165,17 @@ const ProfileManagementPage: React.FC = () => {
                       1
                     </span>
                   )}
-                  {tab.id === 'estate' && (
+                  {tab.id === 'estate' && profileData?.estate_documents?.length > 0 && (
                     <span className="bg-indigo-500 text-white text-xs rounded-full px-2 py-0.5">
-                      4
+                      {profileData.estate_documents.length}
                     </span>
                   )}
-                  {tab.id === 'insurance' && (
+                  {tab.id === 'insurance' && profileData?.insurance_policies?.length > 0 && (
                     <span className="bg-cyan-500 text-white text-xs rounded-full px-2 py-0.5">
-                      2
+                      {profileData.insurance_policies.length}
                     </span>
                   )}
-                  {tab.id === 'investment' && (
+                  {tab.id === 'investment' && profileData?.investment_preferences && (
                     <span className="bg-emerald-500 text-white text-xs rounded-full px-2 py-0.5">
                       1
                     </span>
