@@ -511,6 +511,100 @@ Example:
             logger.error(f"Error getting complete financial data: {str(e)}")
             return {'error': f"Failed to retrieve financial data: {str(e)}"}
     
+    def _get_income_breakdown(self, user_id: int, db: Session) -> List[Dict]:
+        """Get detailed income breakdown by category"""
+        try:
+            from ..models.financial import FinancialEntry, EntryCategory, FrequencyType
+            from collections import defaultdict
+            
+            # Get all income entries
+            income_entries = db.query(FinancialEntry).filter(
+                FinancialEntry.user_id == user_id,
+                FinancialEntry.is_active == True,
+                FinancialEntry.category == EntryCategory.income
+            ).all()
+            
+            # Group by subcategory
+            income_by_category = defaultdict(list)
+            for entry in income_entries:
+                category = entry.subcategory or 'Other Income'
+                
+                # Convert to monthly amount
+                monthly_amount = float(entry.amount)
+                if entry.frequency == FrequencyType.annually:
+                    monthly_amount = monthly_amount / 12
+                elif entry.frequency == FrequencyType.weekly:
+                    monthly_amount = monthly_amount * 52 / 12
+                
+                income_by_category[category].append({
+                    'description': entry.description,
+                    'monthly_amount': monthly_amount,
+                    'frequency': entry.frequency.value
+                })
+            
+            # Format for output
+            breakdown = []
+            for category, items in income_by_category.items():
+                total_monthly = sum(item['monthly_amount'] for item in items)
+                breakdown.append({
+                    'category': category,
+                    'monthly_amount': total_monthly,
+                    'items': items
+                })
+            
+            return breakdown
+            
+        except Exception as e:
+            logger.error(f"Error getting income breakdown: {str(e)}")
+            return []
+    
+    def _get_expense_breakdown(self, user_id: int, db: Session) -> List[Dict]:
+        """Get detailed expense breakdown by category"""
+        try:
+            from ..models.financial import FinancialEntry, EntryCategory, FrequencyType
+            from collections import defaultdict
+            
+            # Get all expense entries
+            expense_entries = db.query(FinancialEntry).filter(
+                FinancialEntry.user_id == user_id,
+                FinancialEntry.is_active == True,
+                FinancialEntry.category == EntryCategory.expenses
+            ).all()
+            
+            # Group by subcategory
+            expense_by_category = defaultdict(list)
+            for entry in expense_entries:
+                category = entry.subcategory or 'Other Expenses'
+                
+                # Convert to monthly amount
+                monthly_amount = float(entry.amount)
+                if entry.frequency == FrequencyType.annually:
+                    monthly_amount = monthly_amount / 12
+                elif entry.frequency == FrequencyType.weekly:
+                    monthly_amount = monthly_amount * 52 / 12
+                
+                expense_by_category[category].append({
+                    'description': entry.description,
+                    'monthly_amount': monthly_amount,
+                    'frequency': entry.frequency.value
+                })
+            
+            # Format for output
+            breakdown = []
+            for category, items in expense_by_category.items():
+                total_monthly = sum(item['monthly_amount'] for item in items)
+                breakdown.append({
+                    'category': category,
+                    'monthly_amount': total_monthly,
+                    'items': items
+                })
+            
+            return breakdown
+            
+        except Exception as e:
+            logger.error(f"Error getting expense breakdown: {str(e)}")
+            return []
+
     def _process_asset_category(self, category_list: List) -> Dict:
         """Process a category of assets into accounts and total"""
         accounts = []
