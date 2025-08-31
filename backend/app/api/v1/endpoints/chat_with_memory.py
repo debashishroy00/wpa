@@ -995,7 +995,6 @@ async def chat_with_intelligence(
                         
             except Exception as e:
                 logger.warning(f"Tax intelligence failed: {str(e)}", user_id=current_user.id)
-        else:
         
         # Process intelligence extraction
         intelligence_metrics = await intelligence_service.process_conversation_turn(
