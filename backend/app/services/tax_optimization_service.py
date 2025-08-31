@@ -16,9 +16,9 @@ logger = structlog.get_logger()
 class TaxOptimizationService:
     """Generate deep tax insights and optimization strategies with specific dollar amounts"""
     
-    def __init__(self, db: Session, llm_service):
+    def __init__(self, db: Session):
         self.db = db
-        self.llm_service = llm_service
+        # Use the same LLM pattern as chat endpoint - don't create separate instance
         self.current_year = datetime.now().year
         
         # Tax constants for 2024
