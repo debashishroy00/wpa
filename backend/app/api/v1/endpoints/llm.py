@@ -20,7 +20,8 @@ from ....services.knowledge_base import KnowledgeBaseService
 
 # Initialize knowledge base service
 knowledge_base = KnowledgeBaseService()
-from ....services.validation_service import number_validator
+# validation_service was removed during cleanup - using calculation_validator
+from ....services.calculation_validator import calculation_validator as number_validator
 from ....services.llm_clients import OpenAIClient, GeminiClient, ClaudeClient
 from ....core.config import settings
 
