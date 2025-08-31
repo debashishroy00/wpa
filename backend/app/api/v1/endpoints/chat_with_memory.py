@@ -957,7 +957,7 @@ async def chat_with_intelligence(
                 if financial_summary:
                     # DEBUG: Log the raw financial summary first
                     logger.error(f"DEBUG: Raw financial_summary keys: {list(financial_summary.keys()) if financial_summary else 'None'}")
-                    logger.error(f"DEBUG: Raw 401k values - 'annual401k': {financial_summary.get('annual401k', 'NOT_FOUND')}, 'annual_401k': {financial_summary.get('annual_401k', 'NOT_FOUND')}")
+                    logger.error(f"DEBUG: Raw 401k values - 'annual401kContribution': {financial_summary.get('annual401kContribution', 'NOT_FOUND')}, 'monthly401kContribution': {financial_summary.get('monthly401kContribution', 'NOT_FOUND')}")
                     
                     # Build financial context 
                     financial_context = {
