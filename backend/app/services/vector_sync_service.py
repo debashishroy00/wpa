@@ -108,27 +108,8 @@ class VectorSyncService:
             )
             logger.info(f"Vector document stored with result: {result}")
             
-            # Step 5: Sync additional context documents
-            self._sync_transaction_history(user_id, db)
-            self._sync_goals(user_id, db)
-            self._sync_profile_data(user_id, db)
-            self._sync_family_planning(user_id, db)
-            self._sync_benefits_tax(user_id, db)
-            self._sync_investment_details(user_id, db)
-            self._sync_insurance_policies(user_id, db)
-            
-            # Sync estate planning documents
-            self._sync_estate_planning(user_id, db)
-            
-            # Sync investment preferences and risk profile
-            self._sync_investment_preferences(user_id, db)
-            
-            # Sync enhanced benefits and tax optimization (priority documents)
-            self._sync_enhanced_benefits(user_id, db)
-            self._sync_enhanced_tax_optimization(user_id, db)
-            
-            # Sync chat intelligence (NEW - completes 100% vector coverage)
-            self._sync_chat_intelligence(user_id, db)
+            # Step 5: Create structured 6-document model
+            self._create_structured_documents(user_id, db, tools_output)
             
             logger.info(f"Vector sync complete for user {user_id} - Metrics: Savings {tools_output.savings_rate:.1f}%, Emergency {tools_output.liquidity_months:.1f} months")
             
