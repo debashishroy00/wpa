@@ -945,7 +945,6 @@ async def chat_with_intelligence(
         from app.services.tax_intelligence_formatter import TaxIntelligenceFormatter
         
         formatter = TaxIntelligenceFormatter(db)
-        logger.error(f"DEBUG: [/intelligent] TaxIntelligenceFormatter created successfully")
         
         # Test formatter functionality
         try:
