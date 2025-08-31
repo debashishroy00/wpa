@@ -429,7 +429,9 @@ async def send_chat_message_with_memory(
                         assistant_response = assistant_response + "\n\n" + tax_enhancement
                         response_data["message"]["content"] = assistant_response
                         
-                        logger.info(f"Applied tax intelligence enhancement for user {request.user_id}")
+                        logger.info(f"🎯 TAX ENHANCEMENT APPLIED for user {request.user_id}, enhancement length: {len(tax_enhancement)} chars")
+                    else:
+                        logger.warning(f"❌ Tax enhancement was empty for user {request.user_id}")
                 
                 else:
                     # Quick opportunity check without full profile
