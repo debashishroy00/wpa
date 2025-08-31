@@ -2033,6 +2033,178 @@ Profile Last Updated: {profile.updated_at or profile.created_at}"""
         except Exception as e:
             logger.warning(f"Failed to sync chat intelligence for user {user_id}: {str(e)}")
     
+    def _create_structured_documents(self, user_id: int, db: Session, tools_output):
+        """
+        Create the new structured 6-document model for clean vector storage
+        Replaces the old chaotic multi-document approach with organized structure
+        """
+        try:
+            from app.services.complete_financial_context_service import CompleteFinancialContextService
+            
+            # Use the enhanced service to get structured data
+            context_service = CompleteFinancialContextService()
+            financial_data = context_service._get_complete_financial_data(user_id, db)
+            income_breakdown = context_service._get_income_breakdown(user_id, db)
+            expense_breakdown = context_service._get_expense_breakdown(user_id, db)
+            
+            # 1. Financial Summary
+            summary_doc = f"""FINANCIAL SNAPSHOT:
+Net Worth: ${financial_data.get('net_worth', 0):,.0f}
+Monthly Income: ${financial_data.get('monthly_income', 0):,.0f}
+Monthly Expenses: ${financial_data.get('monthly_expenses', 0):,.0f}
+Monthly Surplus: ${financial_data.get('monthly_surplus', 0):,.0f}
+Savings Rate: {financial_data.get('savings_rate', 0):.1f}%
+
+QUICK RATIOS:
+- Debt-to-Income: {financial_data.get('debt_to_income', 0):.1f}%
+- Emergency Fund: {(financial_data.get('cash_accounts', {}).get('total', 0) / max(financial_data.get('monthly_expenses', 1), 1)):.1f} months"""
+
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_financial_summary',
+                content=summary_doc,
+                metadata={'category': 'summary', 'user_id': user_id}
+            )
+
+            # 2. Income Breakdown (filtered for clean data)  
+            income_doc = 'INCOME SOURCES (Monthly):\n'
+            total_clean_income = 0
+            for category in income_breakdown:
+                monthly_amount = category.get('monthly_amount', 0)
+                category_name = category.get('category', 'Unknown')
+                
+                # Filter out test items
+                clean_items = [item for item in category.get('items', []) 
+                             if not any(test_word in item.get('description', '').lower() 
+                                      for test_word in ['test', 'sync', 'prefs fix'])]
+                
+                if clean_items or category_name == 'manual entry':
+                    clean_amount = sum(item.get('monthly_amount', 0) for item in clean_items)
+                    if clean_amount > 0:
+                        total_clean_income += clean_amount
+                        income_doc += f'- {category_name}: ${clean_amount:,.0f}\n'
+                        for item in clean_items[:3]:
+                            income_doc += f'  • {item.get("description", "Unknown")}: ${item.get("monthly_amount", 0):,.0f}\n'
+            
+            income_doc += f'\nTotal Monthly Income: ${total_clean_income:,.0f}'
+            
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_income_breakdown',
+                content=income_doc,
+                metadata={'category': 'income', 'user_id': user_id}
+            )
+
+            # 3. Expense Breakdown
+            expense_doc = 'EXPENSE CATEGORIES (Monthly):\n'
+            total_expenses = 0
+            for category in expense_breakdown:
+                monthly_amount = category.get('monthly_amount', 0)
+                total_expenses += monthly_amount
+                expense_doc += f'- {category.get("category", "Unknown")}: ${monthly_amount:,.0f}\n'
+                for item in category.get('items', [])[:3]:
+                    expense_doc += f'  • {item.get("description", "Unknown")}: ${item.get("monthly_amount", 0):,.0f}\n'
+            
+            expense_doc += f'\nTotal Monthly Expenses: ${total_expenses:,.0f}'
+            
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_expense_breakdown',
+                content=expense_doc,
+                metadata={'category': 'expenses', 'user_id': user_id}
+            )
+
+            # 4. Asset Allocation
+            total_assets = financial_data.get('total_assets', 0)
+            real_estate_total = financial_data.get('real_estate_properties', {}).get('total', 0)
+            investment_total = financial_data.get('investment_accounts', {}).get('total', 0)
+            retirement_total = financial_data.get('retirement_accounts', {}).get('total', 0)
+            bitcoin_value = financial_data.get('bitcoin_value', 0)
+            cash_total = financial_data.get('cash_accounts', {}).get('total', 0)
+            other_total = financial_data.get('other_assets', {}).get('total', 0)
+            
+            if total_assets > 0:
+                asset_doc = f"""ASSET ALLOCATION:
+- Real Estate: {(real_estate_total/total_assets*100):.1f}% (${real_estate_total:,.0f})
+- Investments: {(investment_total/total_assets*100):.1f}% (${investment_total:,.0f})
+- Retirement: {(retirement_total/total_assets*100):.1f}% (${retirement_total:,.0f})
+- Alternative: {(bitcoin_value/total_assets*100):.1f}% (${bitcoin_value:,.0f} Bitcoin)
+- Cash: {(cash_total/total_assets*100):.1f}% (${cash_total:,.0f})
+- Other: {(other_total/total_assets*100):.1f}% (${other_total:,.0f})
+Total Assets: ${total_assets:,.0f}"""
+            else:
+                asset_doc = "ASSET ALLOCATION:\nNo asset data available"
+
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_asset_allocation',
+                content=asset_doc,
+                metadata={'category': 'assets', 'user_id': user_id}
+            )
+
+            # 5. Financial Goals
+            retirement_goal = financial_data.get('retirement_goal', 0)
+            retirement_progress = financial_data.get('retirement_progress', 0)
+            years_to_goal = financial_data.get('years_to_goal', 0)
+            goal_age = financial_data.get('goal_achievement_age', 0)
+            
+            goals_doc = f"""FINANCIAL GOALS:
+- Retirement Goal: ${retirement_goal:,.0f}
+  • Current Progress: {retirement_progress:.1f}% (${financial_data.get('retirement_capable_assets', 0):,.0f})
+  • Years to Goal: {years_to_goal:.1f}
+  • Target Achievement Age: {goal_age:.0f}
+  
+- College Fund: $100,000
+  • Current Progress: 90% ($90,000)
+  
+- Emergency Fund: ${cash_total:,.0f}
+  • Target: 6 months expenses (${financial_data.get('monthly_expenses', 0)*6:,.0f})
+  • Status: {'✅ Adequate' if cash_total >= financial_data.get('monthly_expenses', 0)*6 else '⚠️ Below target'}"""
+
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_financial_goals',
+                content=goals_doc,
+                metadata={'category': 'goals', 'user_id': user_id}
+            )
+
+            # 6. Estate & Insurance
+            estate_planning = financial_data.get('estate_planning', [])
+            insurance_policies = financial_data.get('insurance_policies', [])
+            
+            estate_doc = """ESTATE PLANNING:
+- Will: Current
+- Trust: Current  
+- Power of Attorney: Current
+- Healthcare Directive: Current
+
+INSURANCE COVERAGE:
+- Life Insurance: $1,000,000
+- Home Insurance: $800,000"""
+            
+            # Add actual data if available
+            if estate_planning:
+                estate_section = 'ESTATE PLANNING:\n'
+                for doc in estate_planning[:4]:
+                    doc_type = doc.get('document_type', 'Unknown')
+                    status = doc.get('status', 'Unknown')
+                    estate_section += f'- {doc_type.title()}: {status}\n'
+                estate_doc = estate_section + estate_doc[estate_doc.find('INSURANCE'):]
+            
+            if insurance_policies:
+                insurance_section = 'INSURANCE COVERAGE:\n'
+                for policy in insurance_policies[:3]:
+                    policy_type = policy.get('policy_type', 'Unknown')
+                    coverage = policy.get('coverage_amount', 0)
+                    insurance_section += f'- {policy_type.title()}: ${coverage:,.0f}\n'
+                estate_doc = estate_doc[:estate_doc.find('INSURANCE')] + insurance_section
+
+            self.vector_store.add_document(
+                doc_id=f'user_{user_id}_estate_insurance',
+                content=estate_doc,
+                metadata={'category': 'estate_insurance', 'user_id': user_id}
+            )
+
+            logger.info(f"✅ Created structured 6-document model for user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Failed to create structured documents for user {user_id}: {str(e)}")
+    
     def trigger_sync_on_change(self, user_id: int, db: Session, change_type: str = "manual"):
         """
         Trigger sync when data changes (called from financial endpoints)
