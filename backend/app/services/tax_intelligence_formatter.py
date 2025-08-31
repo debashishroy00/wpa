@@ -36,6 +36,11 @@ class TaxIntelligenceFormatter:
             
             if 'error' in calculations:
                 return self._format_error_response(calculations['error'])
+                
+            # Check if we actually have opportunities
+            if not calculations.get('calculated_opportunities') or calculations.get('total_potential_savings', 0) <= 0:
+                logger.warning(f"No tax opportunities found for user {user_id}")
+                return self._format_fallback_response(financial_context)
             
             # 2. Use global LLM to format insights intelligently
             prompt = self._build_insight_prompt(calculations, question)
