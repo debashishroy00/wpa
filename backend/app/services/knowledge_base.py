@@ -42,7 +42,8 @@ class KnowledgeBaseService:
     def __init__(self, kb_path: str = None):
         self.kb_path = kb_path or "/mnt/c/projects/wpa/backend/knowledge_base" 
         self.vector_store = get_vector_store()
-        self.context_selector = get_context_selector()
+        # Simplified context selection - smart_context_selector was removed during cleanup
+        self.context_selector = None
         self.document_map: Dict[str, KBDocument] = {}
         
         # Load documents from file system if needed
