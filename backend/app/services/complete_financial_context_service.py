@@ -148,7 +148,7 @@ Expense Breakdown:
 {self._format_expense_breakdown(financial_data.get('expense_breakdown', []))}
   • Total Monthly Expenses: ${financial_data['monthly_expenses']:,.0f}
   
-Net Surplus: ${financial_data['monthly_surplus']:,.0f} ({financial_data.get('savings_rate', 59.9):.1f}% savings rate)
+Net Surplus: ${financial_data['monthly_surplus']:,.0f} ({financial_data.get('savings_rate', 0):.1f}% savings rate)
 
 RETIREMENT STATUS:
 -----------------
