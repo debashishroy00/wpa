@@ -7,6 +7,20 @@ from decimal import Decimal, ROUND_HALF_UP
 import structlog
 from datetime import datetime
 
+try:
+    from sqlalchemy.orm import Session
+except ImportError:
+    Session = object
+    
+try:
+    from ..utils.safe_conversion import safe_float
+except ImportError:
+    def safe_float(value, default=0.0):
+        try:
+            return float(value) if value is not None else default
+        except (ValueError, TypeError):
+            return default
+
 logger = structlog.get_logger()
 
 class TaxCalculations:
