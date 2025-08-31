@@ -955,6 +955,10 @@ async def chat_with_intelligence(
                 financial_summary = financial_summary_service.get_user_financial_summary(current_user.id, db)
                 
                 if financial_summary:
+                    # DEBUG: Log the raw financial summary first
+                    logger.error(f"DEBUG: Raw financial_summary keys: {list(financial_summary.keys()) if financial_summary else 'None'}")
+                    logger.error(f"DEBUG: Raw 401k values - 'annual401k': {financial_summary.get('annual401k', 'NOT_FOUND')}, 'annual_401k': {financial_summary.get('annual_401k', 'NOT_FOUND')}")
+                    
                     # Build financial context 
                     financial_context = {
                         'monthly_income': financial_summary.get('monthlyIncome', 0),
@@ -968,6 +972,8 @@ async def chat_with_intelligence(
                         'state': 'NC',
                         'filing_status': 'married'
                     }
+                    
+                    logger.error(f"DEBUG: Built financial_context annual_401k: {financial_context.get('annual_401k', 'NOT_FOUND')}")
                     
                     # Get intelligent tax insights using NEW architecture
                     tax_enhancement = await formatter.format_tax_insights(
