@@ -1,7 +1,7 @@
 # WealthPath AI Vector Store Documentation
 
 ## Overview
-The vector store contains 6 core documents providing structured financial data for intelligent retrieval and analysis. This clean, organized structure replaces the previous chaotic system that contained test data pollution and malformed documents.
+The vector store contains 7 core documents providing structured financial data and conversation memory for intelligent retrieval and analysis. This clean, organized structure replaces the previous chaotic system that contained test data pollution and malformed documents.
 
 ## Document Structure
 
