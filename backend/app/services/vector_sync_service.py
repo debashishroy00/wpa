@@ -2232,8 +2232,8 @@ CONVERSATION CONTEXT:
                 all_topics.update(intel.topics_discussed or [])
                 all_decisions.update(intel.key_decisions or [])
                 all_actions.update(intel.action_items or [])
-                if intel.session_intent:
-                    recent_intent = intel.session_intent
+                if intel.last_intent:
+                    recent_intent = intel.last_intent
             
             # Build structured document
             chat_doc = f"""CHAT INTELLIGENCE & MEMORY:
