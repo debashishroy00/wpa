@@ -424,7 +424,7 @@ async def get_complete_profile(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ) -> Any:
-    """Get complete user profile including family, benefits, and tax info"""
+    """Get complete user profile including family, benefits, tax info, estate planning, insurance, and investment preferences"""
     profile = db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
     
     if not profile:
@@ -437,9 +437,50 @@ async def get_complete_profile(
     benefits = db.query(UserBenefit).filter(UserBenefit.profile_id == profile.id).all()
     tax_info = db.query(UserTaxInfo).filter(UserTaxInfo.profile_id == profile.id).order_by(UserTaxInfo.tax_year.desc()).first()
     
+    # Get enhanced categories
+    estate_documents = []
+    insurance_policies = []
+    investment_preferences = None
+    
+    try:
+        # Estate planning documents
+        from app.models.estate_planning import UserEstatePlanning
+        estate_docs = db.query(UserEstatePlanning).filter(UserEstatePlanning.user_id == current_user.id).all()
+        estate_documents = [doc.to_dict() for doc in estate_docs]
+    except Exception as e:
+        logger.warning(f"Could not fetch estate planning documents: {e}")
+    
+    try:
+        # Insurance policies
+        from app.models.insurance import UserInsurancePolicy
+        insurance_docs = db.query(UserInsurancePolicy).filter(UserInsurancePolicy.user_id == current_user.id).all()
+        insurance_policies = [policy.to_dict() for policy in insurance_docs]
+    except Exception as e:
+        logger.warning(f"Could not fetch insurance policies: {e}")
+    
+    try:
+        # Investment preferences
+        from app.models.investment_preferences import UserInvestmentPreferences
+        inv_prefs = db.query(UserInvestmentPreferences).filter(UserInvestmentPreferences.user_id == current_user.id).first()
+        if inv_prefs:
+            investment_preferences = {
+                'risk_tolerance_score': inv_prefs.risk_tolerance_score,
+                'investment_timeline_years': inv_prefs.investment_timeline_years,
+                'investment_philosophy': inv_prefs.investment_philosophy,
+                'esg_preference_level': inv_prefs.esg_preference_level,
+                'sector_preferences': inv_prefs.sector_preferences,
+                'rebalancing_frequency': inv_prefs.rebalancing_frequency,
+                'alternative_investment_interest': inv_prefs.alternative_investment_interest
+            }
+    except Exception as e:
+        logger.warning(f"Could not fetch investment preferences: {e}")
+    
     return CompleteProfileResponse(
         profile=profile,
         family_members=family_members,
         benefits=benefits,
-        tax_info=tax_info
+        tax_info=tax_info,
+        estate_documents=estate_documents,
+        insurance_policies=insurance_policies,
+        investment_preferences=investment_preferences
     )
