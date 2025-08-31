@@ -396,6 +396,7 @@ async def send_chat_message_with_memory(
         formatter = TaxIntelligenceFormatter(db)
         
         if formatter.is_tax_question(request.message):
+            logger.info(f"🔥 TAX QUESTION DETECTED: '{request.message}'")
             try:
                 # Get user financial data 
                 from app.services.financial_summary_service import financial_summary_service
