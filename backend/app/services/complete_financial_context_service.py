@@ -500,7 +500,11 @@ Example:
                 # Social Security details
                 'social_security_monthly': social_security_monthly,
                 'social_security_annual': social_security_annual,
-                'social_security_age': social_security_age
+                'social_security_age': social_security_age,
+                
+                # Income and expense breakdowns
+                'income_breakdown': self._get_income_breakdown(user_id, db),
+                'expense_breakdown': self._get_expense_breakdown(user_id, db)
             }
             
         except Exception as e:
