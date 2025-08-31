@@ -48,7 +48,7 @@ CLIENT PROFILE:
         
         # Context validation now handled by CompleteFinancialContextService during context building
         validation_results = {'status': 'validated', 'warnings': []}
-        validation_summary = context_validator.get_validation_summary(validation_results)
+        validation_summary = "Context validated by CompleteFinancialContextService"
         
         # Build validation section for the prompt
         validation_section = self._build_validation_section(validation_results, validation_summary)
