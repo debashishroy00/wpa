@@ -299,13 +299,19 @@ class AgenticRAG:
             
             # Execute follow-up searches
             for search in follow_ups:
-                logger.info(f"Executing follow-up search: {search['query']}")
+                search_query = search["query"]
+                logger.info(f"Executing follow-up search: {search_query}")
                 
                 results = await self.vector_store.query(
                     index="authority",
-                    query=search["query"],
+                    query=search_query,
                     filters={"limit": 2}  # Fewer results per follow-up
                 )
+                
+                # ADD DEBUG LOGGING FOR FOLLOW-UP
+                logger.info(f"Follow-up search returned {len(results)} results for: '{search_query}'")
+                if results:
+                    logger.info(f"Follow-up result sources: {[r.get('source', 'unknown') for r in results]}")
                 
                 for result in results:
                     context["search_results"].append({
