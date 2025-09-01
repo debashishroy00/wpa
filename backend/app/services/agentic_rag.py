@@ -98,7 +98,7 @@ class AgenticRAG:
         self.decomposition_cache = {}  # NEW: cache plans
 
     async def handle_query(self, user_id: int, message: str, db: Session) -> Dict[str, Any]:
-        """Phase 2: Add query planning before retrieval."""
+        """Phase 3: Add iterative refinement and sufficiency checking."""
         try:
             # Steps 1-2: Same as Phase 1
             intent = self.parser.parse(message)
