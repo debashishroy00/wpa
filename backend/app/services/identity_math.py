@@ -101,7 +101,14 @@ class IdentityMath:
                     "monthly_income": "db:financial_summary.monthlyIncome",
                     "monthly_expenses": "db:financial_summary.monthlyExpenses",
                     "net_worth": "calc:total_assets-total_liabilities",
-                    "monthly_surplus": "calc:monthly_income-monthly_expenses"
+                    "monthly_surplus": "calc:monthly_income-monthly_expenses",
+                    "savings_rate": "calc:monthly_surplus/monthly_income",
+                    "debt_to_asset_ratio": "calc:total_liabilities/total_assets",
+                    "liquid_months": "calc:liquid_assets/monthly_expenses",
+                    "fi_number": "calc:monthly_expenses*12*25",
+                    "fi_progress": "calc:net_worth/fi_number",
+                    "years_to_fi": "calc:complex_fi_calculation",
+                    "investment_allocation": "calc:investment_total/total_assets"
                 },
                 
                 "_warnings": [],
