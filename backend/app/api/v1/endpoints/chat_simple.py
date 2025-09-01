@@ -181,11 +181,27 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             engine = TrustEngine()
             validated = engine.validate(response.content, facts)
             
+            # Save conversation to memory
+            memory_service.add_message_pair(
+                session=session,
+                user_message=request.message,
+                assistant_response=validated["response"],
+                intent_detected=insight_type,
+                context_used={
+                    "financial_data_included": True,
+                    "conversation_context_included": bool(conversation_context.get("recent_messages")),
+                    "vector_context_included": bool(vector_context_items)
+                },
+                tokens_used=0,  # Simple endpoint doesn't track tokens
+                model_used="openai",
+                provider="openai"
+            )
+            
             return ChatResponse(
                 response=validated["response"],
                 confidence=validated["confidence"],
                 warnings=facts.get("_warnings", []),
-                session_id=request.session_id or "new"
+                session_id=session.session_id
             )
         else:
             # General chat
