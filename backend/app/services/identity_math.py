@@ -91,7 +91,14 @@ class IdentityMath:
                     "source:database",
                     f"timestamp:{as_of}",
                     "calc:net_worth=total_assets-total_liabilities",
-                    "calc:monthly_surplus=monthly_income-monthly_expenses"
+                    "calc:monthly_surplus=monthly_income-monthly_expenses",
+                    "calc:savings_rate=monthly_surplus/monthly_income",
+                    "calc:debt_to_asset_ratio=total_liabilities/total_assets", 
+                    "calc:liquid_months=liquid_assets/monthly_expenses",
+                    "calc:fi_number=monthly_expenses*12*25",
+                    "calc:fi_progress=net_worth/fi_number",
+                    "calc:years_to_fi=complex_calculation",
+                    "calc:investment_allocation=investment_total/total_assets"
                 ],
                 
                 # Evidence mapping for Trust Engine
