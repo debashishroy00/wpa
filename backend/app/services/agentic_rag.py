@@ -16,6 +16,7 @@ from app.services.simple_vector_store import SimpleVectorStore
 from app.services.trust_engine import TrustEngine
 from app.services.llm_service import llm_service
 from app.models.llm_models import LLMRequest
+from app.services.core_prompts import core_prompts
 
 logger = logging.getLogger(__name__)
 
