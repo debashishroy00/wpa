@@ -62,6 +62,7 @@ async def chat_message(
     try:
         # Detect question type
         insight_type = _detect_insight_type(request.message)
+        logger.info(f"🔍 Message: '{request.message}' -> Detected type: '{insight_type}'")
         
         if insight_type != "general_chat":
             # Financial question - use facts + LLM
