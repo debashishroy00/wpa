@@ -130,11 +130,11 @@ class FinancialSummaryService:
             for category, assets in assets_by_category.items():
                 category_total = sum(asset['value'] for asset in assets)
                 
-                if category in ['cash', 'checking', 'savings', 'money_market']:
+                if category in ['cash_bank_accounts']:
                     liquid_assets += category_total
-                elif category in ['investments', 'stocks', 'bonds', 'mutual_funds', 'etfs', 'brokerage']:
+                elif category in ['investment_accounts']:
                     investment_total += category_total
-                elif category in ['retirement', '401k', '403b', 'ira', 'roth_ira', 'pension']:
+                elif category in ['retirement_accounts']:
                     retirement_total += category_total
             
             # Build summary
