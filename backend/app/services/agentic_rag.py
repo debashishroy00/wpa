@@ -94,6 +94,7 @@ class AgenticRAG:
         self.router = QueryRouter()
         self.max_chunks = 6
         self.max_steps = 4  # NEW: limit iterations
+        self.max_iterations = 2  # Phase 3: iterative refinement limit
         self.decomposition_cache = {}  # NEW: cache plans
 
     async def handle_query(self, user_id: int, message: str, db: Session) -> Dict[str, Any]:
