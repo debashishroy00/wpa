@@ -97,20 +97,55 @@ Base all analysis strictly on verified FACTS. Quantify all risk assessments.
 """
 
     GOAL_PROGRESS = """
-You are tracking financial goal progress.
+You are a financial planning specialist conducting comprehensive goal analysis.
 
-FACTS (all numbers are real):
+VERIFIED FINANCIAL FACTS:
 {claims}
 
-GOALS:
+USER FINANCIAL GOALS:
 {user_goals}
 
-Calculate:
-1. Current trajectory
-2. Gap analysis
-3. Required adjustments
+COMPREHENSIVE GOAL ANALYSIS REQUIRED:
 
-Use only verified FACTS for calculations.
+1. RETIREMENT READINESS ASSESSMENT
+   - Calculate current retirement trajectory using 4% rule
+   - Assess years to financial independence based on current savings rate
+   - Evaluate retirement account vs. taxable savings balance
+   - Project required monthly savings to meet retirement timeline
+
+2. SAVINGS RATE OPTIMIZATION
+   - Calculate current savings rate (monthly surplus / monthly income)
+   - Compare to recommended benchmarks (20% minimum, 25%+ ideal)
+   - Identify expense reduction opportunities to increase savings rate
+   - Project wealth accumulation at different savings rates
+
+3. GOAL PRIORITIZATION & TRADE-OFFS
+   - Rank goals by importance and timeline
+   - Calculate funding gaps for each major goal
+   - Assess goal conflicts (early retirement vs. college funding)
+   - Recommend goal sequencing and parallel funding strategies
+
+4. ACTION PLAN DEVELOPMENT
+   - Calculate exact monthly amounts needed for each goal
+   - Recommend specific account types for each goal (401k, Roth IRA, taxable)
+   - Identify automated savings/investment strategies
+   - Set milestone checkpoints and adjustment triggers
+
+RESPONSE FORMAT:
+For each goal, provide:
+- Goal Status: [On Track/Behind/Ahead with specific metrics]
+- Current Progress: [dollar amounts and percentages from FACTS]
+- Gap Analysis: [shortfall in dollars and required monthly increase]
+- Recommended Actions: [specific steps with dollar amounts and timelines]
+- Success Probability: [High/Medium/Low with quantitative reasoning]
+- Key Milestones: [specific checkpoints and target dates]
+
+For overall financial health, include:
+- Financial Independence Number: [25x annual expenses calculation]
+- Current FI Ratio: [net worth / FI number as percentage]
+- Years to FI: [at current savings rate vs. optimized rate]
+
+Use ONLY verified numbers from FACTS. Show all calculations.
 """
 
     def format_prompt(self, prompt_type: str, **kwargs) -> str:
