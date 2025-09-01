@@ -21,6 +21,27 @@ from app.models.llm_models import LLMRequest
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Initialize LLM clients on import (same pattern as chat_with_memory.py)
+try:
+    from app.services.llm_clients.openai_client import OpenAIClient
+    from app.services.llm_clients.gemini_client import GeminiClient
+    from app.core.config import settings
+    
+    # Register OpenAI client if API key is available
+    if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+        openai_client = OpenAIClient(llm_service.providers["openai"])
+        llm_service.register_client("openai", openai_client)
+        logger.info("OpenAI client registered for chat_simple")
+    
+    # Register Gemini client if API key is available
+    if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+        gemini_client = GeminiClient(llm_service.providers["gemini"])
+        llm_service.register_client("gemini", gemini_client)
+        logger.info("Gemini client registered for chat_simple")
+        
+except ImportError as e:
+    logger.warning(f"LLM client registration failed: {e}")
+
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
