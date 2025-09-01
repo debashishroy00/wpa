@@ -51,6 +51,8 @@ except ImportError as e:
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    provider: str = 'gemini'
+    model_tier: str = 'dev'
 
 class ChatResponse(BaseModel):
     response: str
