@@ -64,9 +64,22 @@ async def chat_message(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Handle chat with financial intelligence"""
+    """Handle chat with financial intelligence and conversational memory"""
     logger.info(f"🚀 chat_simple endpoint hit with message: '{request.message}'")
     try:
+        # Initialize memory service
+        memory_service = ChatMemoryService(db)
+        
+        # Get or create chat session
+        session = memory_service.get_or_create_session(
+            user_id=current_user.id,
+            session_id=request.session_id or f"simple_{current_user.id}_{int(__import__('time').time())}"
+        )
+        
+        # Get conversation context
+        conversation_context = memory_service.get_conversation_context(session)
+        logger.info(f"💬 Conversation context: {conversation_context.get('message_count', 0)} messages")
+        
         # Detect question type
         insight_type = _detect_insight_type(request.message)
         logger.info(f"🔍 Message: '{request.message}' -> Detected type: '{insight_type}'")
