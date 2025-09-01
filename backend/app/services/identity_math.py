@@ -189,5 +189,18 @@ class IdentityMath:
         if not facts["_context"]["filing_status"]:
             facts["_missing"].append("filing_status")
             facts["_warnings"].append("filing_status_missing_tax_optimization_unavailable")
+    
+    def _map_marital_to_filing(self, marital_status: str) -> str:
+        """Map marital status to filing status"""
+        if not marital_status:
+            return None
+        
+        marital_lower = marital_status.lower()
+        if marital_lower in ['single', 'divorced', 'separated', 'widowed']:
+            return 'single'
+        elif marital_lower in ['married']:
+            return 'married_filing_jointly'  # Most common
+        else:
+            return None
 
 # No singleton - create instances as needed
