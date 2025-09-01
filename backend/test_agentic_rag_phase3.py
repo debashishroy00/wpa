@@ -153,7 +153,7 @@ async def test_refinement_triggers():
 
 async def test_caching_with_refinement():
     """Test that refinement results are cached properly."""
-    print(f"\n💾 Testing refinement caching...")
+    print(f"\nTesting refinement caching...")
     
     rag = AgenticRAG()
     db = SessionLocal()
