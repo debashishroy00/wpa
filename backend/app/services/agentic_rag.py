@@ -84,7 +84,7 @@ class QueryRouter:
         }
 
 class AgenticRAG:
-    """Phase 1: Basic RAG that connects existing services."""
+    """Phase 2: Intelligent RAG with query planning and decomposition."""
     
     def __init__(self):
         self.parser = QueryParser()
@@ -93,6 +93,8 @@ class AgenticRAG:
         self.trust_engine = TrustEngine()
         self.router = QueryRouter()
         self.max_chunks = 6
+        self.max_steps = 4  # NEW: limit iterations
+        self.decomposition_cache = {}  # NEW: cache plans
     
     async def handle_query(self, user_id: int, message: str, db: Session) -> Dict[str, Any]:
         """
