@@ -262,14 +262,20 @@ class AgenticRAG:
             logger.info(f"Executing initial step {step.get('step', 0)}: {step.get('question', '')}")
             
             search_query = step.get("search_query", plan["original_query"])
+            index = step.get("index", "authority")
+            filters = {"limit": 3}
+            
+            # CRITICAL DEBUG LOGGING
+            logger.error(f"🔍 ABOUT TO SEARCH: query='{search_query}', index='{index}', filters={filters}")
+            
             results = await self.vector_store.query(
-                index=step.get("index", "authority"),
+                index=index,
                 query=search_query,
-                filters={"limit": 3}
+                filters=filters
             )
             
-            # ADD DEBUG LOGGING
-            logger.info(f"Vector search returned {len(results)} results for query: '{search_query}'")
+            # CRITICAL RESULT LOGGING
+            logger.error(f"🔍 VECTOR SEARCH RETURNED: {len(results)} results for query: '{search_query}'")
             if results:
                 logger.info(f"First result preview: {results[0].get('text', '')[:100]}...")
                 logger.info(f"Result sources: {[r.get('source', 'unknown') for r in results]}")
