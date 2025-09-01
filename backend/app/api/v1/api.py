@@ -47,3 +47,5 @@ api_router.include_router(investment_preferences.router, prefix="/investment-pre
 api_router.include_router(tax.router, prefix="/tax", tags=["tax-optimization"])
 # New foundation-based insights endpoints
 api_router.include_router(insights.router, prefix="/insights", tags=["insights"])
+# Simplified chat endpoint using new architecture
+api_router.include_router(chat_simple.router, prefix="/chat-simple", tags=["chat-simple"])
