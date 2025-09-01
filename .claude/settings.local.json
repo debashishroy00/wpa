@@ -125,7 +125,8 @@
       "Bash(timeout 15s docker-compose logs backend -f --tail 30)",
       "Bash(timeout 20s docker-compose logs backend --tail 30 -f)",
       "Bash(git checkout:*)",
-      "Read(\\mnt\\c\\projects/**)"
+      "Read(\\mnt\\c\\projects/**)",
+      "Bash(timeout 30s docker-compose logs backend --tail 20)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
