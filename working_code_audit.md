@@ -98,3 +98,8 @@ api_router.include_router(chat_simple.router, prefix="/chat-simple", tags=["chat
 {"detail":"Not Found"}
 ### Testing chat-simple endpoint:
 {"message":"WealthPath AI Backend is running","status":"healthy"}
+## COMPARISON WITH NEW ENDPOINTS
+### Key Findings:
+1. chat_with_memory.py is NOT active in api.py (commented out)
+2. Only chat_simple.router is active: api_router.include_router(chat_simple.router, prefix="/chat-simple")
+3. chat_with_memory endpoint /chat/status returns 404 Not Found
