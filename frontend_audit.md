@@ -6,3 +6,9 @@ frontend/src/components/Chat/ConversationHistory.tsx:      const response = awai
 frontend/src/components/Chat/FinancialAdvisorChat.tsx:            const endpoint = useIntelligentChat ? '/api/v1/chat/intelligent' : '/api/v1/chat/message';
 frontend/src/components/Dashboard/MonitoringDashboard.tsx:        fetchWithAuth('/chat-metrics'),
 frontend/src/services/VectorDBService.ts:            const url = new URL(`${this.baseURL}/api/v1/vector/chat-context/${userId}`);
+
+## Chat Components Found
+frontend/src/components/Chat
+frontend/src/components/Chat/ChatInterface.tsx
+frontend/src/components/Chat/FinancialAdvisorChat.tsx
+frontend/src/styles/mobile-chat.css
