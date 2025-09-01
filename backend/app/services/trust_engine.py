@@ -14,8 +14,8 @@ class TrustEngine:
     
     def validate(self, ai_response: str, claims: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Ensure every number in response is grounded in claims.
-        Returns validated response or degraded safe version.
+        Validate AI response for safety while allowing calculated values and recommendations.
+        Enhanced to support financial planning advice and derived calculations.
         """
         result = {
             "response": ai_response,
@@ -27,22 +27,38 @@ class TrustEngine:
         
         # Extract numbers from response
         numbers = self._extract_numbers(ai_response)
+        ungrounded_numbers = []
+        critical_violations = []
         
-        # Verify each number is grounded
+        # Categorize and verify numbers
         for num in numbers:
-            if not self._is_grounded(num, claims):
-                result["issues"].append(f"Ungrounded: ${num:,.0f}")
-                result["valid"] = False
+            if not self._is_grounded_or_reasonable(num, claims, ai_response):
+                ungrounded_numbers.append(num)
+                # Only flag as critical if it's a factual claim about user's current data
+                if self._is_factual_claim(num, ai_response, claims):
+                    critical_violations.append(num)
+                    result["issues"].append(f"Invalid factual claim: ${num:,.0f}")
+                else:
+                    # Just log as assumption/recommendation
+                    result["assumptions"].append(f"Recommendation: ${num:,.0f}")
         
-        # Find assumptions
-        result["assumptions"] = self._find_assumptions(ai_response)
+        # Find explicit assumptions
+        explicit_assumptions = self._find_assumptions(ai_response)
+        result["assumptions"].extend(explicit_assumptions)
         
-        # Adjust confidence
-        if result["assumptions"]:
-            result["confidence"] = "MEDIUM"
-        if not result["valid"]:
+        # Determine validity based on critical violations, not all ungrounded numbers
+        if critical_violations:
+            result["valid"] = False
             result["confidence"] = "LOW"
             result["response"] = self._create_safe_response(claims)
+        elif len(ungrounded_numbers) > 10:  # Too many ungrounded numbers suggests hallucination
+            result["valid"] = False
+            result["confidence"] = "LOW" 
+            result["response"] = self._create_safe_response(claims)
+        elif len(result["assumptions"]) > 5:
+            result["confidence"] = "MEDIUM"
+        elif len(result["assumptions"]) > 0:
+            result["confidence"] = "HIGH"
         
         return result
     
