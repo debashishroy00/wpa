@@ -90,6 +90,46 @@ async def chat_message(
         insight_type = _detect_insight_type(request.message)
         logger.info(f"🔍 Message: '{request.message}' -> Detected type: '{insight_type}'")
         
+        # Check if this needs Agentic RAG (Phase 1: specific financial queries)
+        rag_triggers = ["net worth", "worth", "401k", "retirement", "tax", "taxes", "assets", "wealth"]
+        should_use_rag = any(trigger in request.message.lower() for trigger in rag_triggers)
+        
+        if should_use_rag:
+            logger.info(f"🤖 Using Agentic RAG for financial query: {request.message}")
+            try:
+                rag_response = await agentic_rag.handle_query(
+                    user_id=current_user.id,
+                    message=request.message,
+                    db=db
+                )
+                
+                # Save conversation to memory
+                memory_service.add_message_pair(
+                    session=session,
+                    user_message=request.message,
+                    assistant_response=rag_response["response"],
+                    intent_detected=f"rag_{insight_type}",
+                    context_used={
+                        "agentic_rag_used": True,
+                        "rag_confidence": rag_response["confidence"],
+                        "rag_citations": len(rag_response["citations"])
+                    },
+                    tokens_used=0,
+                    model_used=request.model_tier,
+                    provider=request.provider
+                )
+                
+                return ChatResponse(
+                    response=rag_response["response"],
+                    confidence=rag_response["confidence"],
+                    warnings=rag_response["warnings"],
+                    session_id=session.session_id
+                )
+                
+            except Exception as e:
+                logger.error(f"❌ Agentic RAG failed: {e}, falling back to regular flow")
+                # Fall through to regular processing
+        
         if insight_type != "general_chat":
             # Financial question - use facts + LLM
             logger.info(f"🔬 Processing financial question with IdentityMath...")
