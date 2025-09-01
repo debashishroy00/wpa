@@ -133,15 +133,15 @@ class AgenticRAG:
             return response
             
         except Exception as e:
-            logger.error(f"Phase 2 RAG failed: {e}")
+            logger.error(f"Phase 3 RAG failed: {e}")
             import traceback
-            logger.error(f"Phase 2 traceback: {traceback.format_exc()}")
+            logger.error(f"Phase 3 traceback: {traceback.format_exc()}")
             return {
-                "response": f"Error in Phase 2: {str(e)}",
+                "response": f"Error in Phase 3: {str(e)}",
                 "insight_cards": [],
                 "citations": [],
                 "confidence": "LOW",
-                "warnings": ["phase2_error"]
+                "warnings": ["phase3_error"]
             }
 
     async def _plan_query(self, message: str, intent: Dict, facts: Dict) -> Dict:
