@@ -119,7 +119,8 @@
       "Read(\\mnt\\c\\projects/**)",
       "Bash(timeout 20s docker-compose logs backend -f --tail 5)",
       "Bash(timeout 15s docker-compose logs backend -f --tail 3)",
-      "Bash(compgen:*)"
+      "Bash(compgen:*)",
+      "Bash(/dev/null)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
