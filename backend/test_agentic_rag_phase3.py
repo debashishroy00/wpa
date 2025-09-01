@@ -106,11 +106,11 @@ async def test_phase3():
     iterative_refinement_working = total_iterations > 0
     gap_identification_working = total_gaps > 0
     
-    print(f"\n🎯 PHASE 3 FEATURES:")
-    print(f"   Iterative Refinement: {'✅ WORKING' if iterative_refinement_working else '❌ NOT TRIGGERED'}")
-    print(f"   Gap Identification: {'✅ WORKING' if gap_identification_working else '❌ NOT DETECTED'}")
-    print(f"   Smart Evidence Ranking: {'✅ ENABLED' if successful_tests else '❌ FAILED'}")
-    print(f"   Enhanced Confidence: {'✅ WORKING' if high_confidence > 0 else '❌ NO HIGH CONFIDENCE'}")
+    print(f"\nPHASE 3 FEATURES:")
+    print(f"   Iterative Refinement: {'WORKING' if iterative_refinement_working else 'NOT TRIGGERED'}")
+    print(f"   Gap Identification: {'WORKING' if gap_identification_working else 'NOT DETECTED'}")
+    print(f"   Smart Evidence Ranking: {'ENABLED' if successful_tests else 'FAILED'}")
+    print(f"   Enhanced Confidence: {'WORKING' if high_confidence > 0 else 'NO HIGH CONFIDENCE'}")
 
 async def test_refinement_triggers():
     """Test specific scenarios that should trigger refinement."""
