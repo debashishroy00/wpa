@@ -55,3 +55,6 @@ except ImportError as e:
             }
         }
         
+
+## IS CHAT_WITH_MEMORY ACTIVE?
+# intelligence, chat_with_memory (imports removed services)
