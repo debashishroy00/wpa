@@ -136,7 +136,7 @@ class AgenticRAG:
             logger.info(f"Ranked and packaged {len(evidence)} evidence items")
             
             # Step 6: Generate intelligent response with gap awareness (Phase 3)
-            response = await self._generate_intelligent_response(message, facts, evidence, intent, context.get('gaps', []))
+            response = await self._generate_intelligent_response(user_id, message, facts, evidence, intent, context.get('gaps', []))
             
             return response
             
