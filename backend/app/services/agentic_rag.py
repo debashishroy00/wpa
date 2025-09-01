@@ -561,10 +561,16 @@ class AgenticRAG:
         """Phase 3: Intelligent response generation with gap awareness."""
         
         # Build context from evidence with iteration info
+        logger.info(f"🔍 Evidence pieces passed to response generation: {len(evidence)}")
+        for i, e in enumerate(evidence):
+            logger.info(f"  Evidence {i+1}: {e.get('text', 'NO TEXT')[:100]}... (score: {e.get('score', 0):.2f})")
+        
         evidence_text = "\n".join([
             f"- {e['text']} (iteration: {e.get('iteration', 0)}, score: {e.get('score', 0):.2f})" 
             for e in evidence
         ])
+        
+        logger.info(f"📝 Evidence text length: {len(evidence_text)} chars")
         
         # Gap information
         gap_text = ""
