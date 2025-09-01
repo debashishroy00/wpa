@@ -196,8 +196,8 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
                     "vector_context_included": bool(vector_context_items)
                 },
                 tokens_used=0,  # Simple endpoint doesn't track tokens
-                model_used="openai",
-                provider="openai"
+                model_used=request.model_tier,
+                provider=request.provider
             )
             
             return ChatResponse(
