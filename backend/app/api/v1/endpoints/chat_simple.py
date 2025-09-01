@@ -137,21 +137,65 @@ async def chat_message(
         )
 
 def _detect_insight_type(message: str) -> str:
-    """Detect question type with weighted keywords"""
+    """Detect question type with enhanced keyword matching and financial context"""
     msg = message.lower()
     
-    # Weighted keywords
-    tax_words = {'tax': 1, 'deduction': 1, '401k': 0.9, 'ira': 0.9}
-    risk_words = {'risk': 1, 'allocation': 0.9, 'diversify': 0.8}
-    goal_words = {'retire': 1, 'goal': 0.9, 'fire': 0.9, 'target': 0.8}
-    finance_words = {'worth': 1, 'assets': 0.9, 'income': 0.8, 'debt': 0.8, 'financial': 0.9, 'health': 0.8, 'score': 0.7, 'picture': 0.6}
-    
-    scores = {
-        'tax': sum(w for k, w in tax_words.items() if k in msg),
-        'risk': sum(w for k, w in risk_words.items() if k in msg),
-        'goals': sum(w for k, w in goal_words.items() if k in msg),
-        'general': sum(w for k, w in finance_words.items() if k in msg)
+    # Enhanced weighted keywords for better categorization
+    tax_words = {
+        'tax': 1.0, 'taxes': 1.0, 'deduction': 1.0, 'deductions': 1.0,
+        '401k': 0.95, '401(k)': 0.95, 'ira': 0.95, 'roth': 0.9,
+        'contribution': 0.8, 'contributions': 0.8, 'withholding': 0.8,
+        'optimize': 0.7, 'save on taxes': 1.0, 'tax efficiency': 1.0,
+        'bracket': 0.9, 'marginal': 0.8, 'effective': 0.7
     }
     
+    risk_words = {
+        'risk': 1.0, 'risky': 0.9, 'volatility': 0.9, 'volatile': 0.9,
+        'allocation': 0.95, 'diversify': 0.9, 'diversification': 0.9,
+        'portfolio': 0.8, 'balance': 0.7, 'rebalance': 0.8,
+        'conservative': 0.8, 'aggressive': 0.8, 'moderate': 0.7,
+        'safe': 0.6, 'safety': 0.6, 'secure': 0.6
+    }
+    
+    goal_words = {
+        'retire': 1.0, 'retirement': 1.0, 'goal': 0.9, 'goals': 0.9,
+        'fire': 1.0, 'target': 0.8, 'independence': 0.9, 'independent': 0.9,
+        'ready': 0.7, 'on track': 0.9, 'progress': 0.8, 'timeline': 0.8,
+        'enough': 0.7, 'sufficient': 0.7, 'plan': 0.6, 'planning': 0.6
+    }
+    
+    # General financial health indicators get routed to comprehensive analysis
+    general_finance_words = {
+        'financial health': 1.0, 'financial picture': 0.9, 'financial situation': 0.9,
+        'net worth': 0.95, 'worth': 0.8, 'assets': 0.8, 'wealth': 0.8,
+        'income': 0.7, 'expenses': 0.7, 'budget': 0.7, 'savings': 0.7,
+        'debt': 0.8, 'liabilities': 0.8, 'emergency fund': 0.8,
+        'how am i doing': 1.0, 'where do i stand': 0.9, 'status': 0.6,
+        'overview': 0.7, 'summary': 0.7, 'assessment': 0.8, 'review': 0.7,
+        'advice': 0.6, 'recommend': 0.6, 'suggestions': 0.6, 'help': 0.5
+    }
+    
+    # Calculate scores with phrase matching for better accuracy
+    scores = {
+        'tax': _calculate_phrase_score(msg, tax_words),
+        'risk': _calculate_phrase_score(msg, risk_words),
+        'goals': _calculate_phrase_score(msg, goal_words),
+        'general': _calculate_phrase_score(msg, general_finance_words)
+    }
+    
+    # Find the highest scoring category
     best = max(scores, key=scores.get)
-    return best if scores[best] > 0 else "general_chat"
+    
+    # Minimum threshold to qualify as financial question
+    if scores[best] >= 0.5:
+        return best
+    else:
+        return "general_chat"
+
+def _calculate_phrase_score(message: str, keyword_dict: dict) -> float:
+    """Calculate weighted score for keywords/phrases in message"""
+    total_score = 0.0
+    for phrase, weight in keyword_dict.items():
+        if phrase in message:
+            total_score += weight
+    return total_score
