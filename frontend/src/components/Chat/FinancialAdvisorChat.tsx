@@ -315,15 +315,24 @@ const FinancialAdvisorChat: React.FC = () => {
         setMessages(updatedMessages);
 
         try {
-            // Send message to backend - use intelligent chat endpoint if enabled
+            // Check if we should use the new endpoint
+            const useNewChat = shouldUseNewEndpoint();
+            
+            // Send message to backend - select endpoint based on feature flags
             const baseUrl = getApiBaseUrl();
-            const endpoint = useIntelligentChat ? '/api/v1/chat/intelligent' : '/api/v1/chat/message';
+            const endpoint = useNewChat 
+                ? '/api/v1/chat-simple/message'
+                : (useIntelligentChat ? '/api/v1/chat/intelligent' : '/api/v1/chat/message');
             const fullUrl = `${baseUrl}${endpoint}`;
             console.log('🔗 Chat API Base URL:', baseUrl);
             console.log('🌐 Full Chat URL:', fullUrl);
+            console.log('🆕 Using new chat endpoint:', useNewChat);
             console.log('🧠 Using intelligent chat:', useIntelligentChat);
             
-            const requestBody = useIntelligentChat ? {
+            const requestBody = useNewChat ? {
+                message: content,
+                session_id: currentSession?.sessionId
+            } : (useIntelligentChat ? {
                 message: content,
                 session_id: currentSession.sessionId,
                 provider: llmSettings.provider,
@@ -336,7 +345,7 @@ const FinancialAdvisorChat: React.FC = () => {
                 model_tier: llmSettings.modelTier,
                 include_context: true,
                 insight_level: llmSettings.insightLevel || 'balanced'
-            };
+            });
             
             const response = await fetch(fullUrl, {
                 method: 'POST',
