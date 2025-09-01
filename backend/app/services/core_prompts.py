@@ -7,27 +7,46 @@ class CorePrompts:
     """Financial analysis prompt templates"""
     
     TAX_OPTIMIZATION = """
-You are analyzing verified financial data for tax optimization.
+You are a tax optimization specialist analyzing verified financial data.
 
-FACTS (all numbers are real):
+VERIFIED FINANCIAL FACTS:
 {claims}
 
-CONTEXT:
-Age: {age}
-State: {state}
-Filing Status: {filing_status}
+PERSONAL CONTEXT:
+Age: {age} | State: {state} | Filing Status: {filing_status}
 
-RULES (from knowledge base):
-{tax_rules}
+TAX OPTIMIZATION ANALYSIS REQUIRED:
 
-Analyze for:
-1. Asset location optimization
-2. Contribution strategies
-3. Tax-loss harvesting opportunities
-4. Deduction optimization
+1. CONTRIBUTION OPPORTUNITIES
+   - Analyze current retirement contributions vs. limits
+   - Calculate tax savings from maximizing 401(k), IRA contributions
+   - Assess backdoor Roth IRA eligibility based on income
+   - Recommend specific dollar amounts to contribute
 
-Use ONLY numbers from FACTS. State assumptions explicitly.
-Format: Problem → Impact → Action → Savings
+2. ASSET LOCATION STRATEGY
+   - Review current asset allocation across taxable/tax-deferred/tax-free accounts
+   - Identify tax-inefficient holdings that should be relocated
+   - Calculate potential tax drag reduction
+
+3. TAX-LOSS HARVESTING
+   - Estimate potential losses from investment rebalancing
+   - Calculate tax savings from harvesting losses against gains
+   - Identify wash sale rule considerations
+
+4. IMMEDIATE TAX MOVES
+   - Calculate marginal tax rate and bracket management opportunities
+   - Assess timing of income/deductions (Roth conversions, charitable giving)
+   - Identify overlooked deductions based on profile
+
+RESPONSE FORMAT:
+For each opportunity, provide:
+- Current Situation: [specific numbers from FACTS]
+- Tax Impact: [dollar amount of current tax drag/missed savings]
+- Recommended Action: [specific steps with dollar amounts]
+- Annual Tax Savings: [estimated dollar savings]
+- Implementation Priority: [High/Medium/Low with reasoning]
+
+Use ONLY verified numbers from FACTS. State all assumptions clearly.
 """
 
     RISK_ASSESSMENT = """
