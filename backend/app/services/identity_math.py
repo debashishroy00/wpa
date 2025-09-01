@@ -36,12 +36,18 @@ class IdentityMath:
     def compute_claims(self, user_id: int, db: Session) -> Dict[str, Any]:
         """Returns raw facts and mathematical identities only"""
         try:
-            # Get raw data
+            # Get raw financial data
             from app.services.financial_summary_service import financial_summary_service
             data = financial_summary_service.get_user_financial_summary(user_id, db)
             
             if not data:
                 return {"error": "No data", "_warnings": ["no_data"]}
+            
+            # Get user profile data for context
+            from app.models.user import User
+            from app.models.user_profile import UserProfile
+            user = db.query(User).filter(User.id == user_id).first()
+            user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first() if user else None
             
             # Timestamps
             now_iso = datetime.now(timezone.utc).isoformat()
