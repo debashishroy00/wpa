@@ -21,26 +21,49 @@ from app.models.llm_models import LLMRequest
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Initialize LLM clients on import (same pattern as chat_with_memory.py)
+# Initialize LLM clients with better error handling
 try:
-    from app.services.llm_clients.openai_client import OpenAIClient
-    from app.services.llm_clients.gemini_client import GeminiClient
+    from app.services.llm_service import llm_service
     from app.core.config import settings
     
-    # Register OpenAI client if API key is available
-    if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
-        openai_client = OpenAIClient(llm_service.providers["openai"])
-        llm_service.register_client("openai", openai_client)
-        logger.info("OpenAI client registered for chat_simple")
-    
-    # Register Gemini client if API key is available
-    if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
-        gemini_client = GeminiClient(llm_service.providers["gemini"])
-        llm_service.register_client("gemini", gemini_client)
-        logger.info("Gemini client registered for chat_simple")
+    # Check if providers are configured
+    if not hasattr(llm_service, 'providers') or not llm_service.providers:
+        logger.error("LLM providers not configured in llm_service")
+    else:
+        # Try OpenAI
+        if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+            try:
+                from app.services.llm_clients.openai_client import OpenAIClient
+                provider_config = llm_service.providers.get("openai")
+                if provider_config:
+                    client = OpenAIClient(provider_config)
+                    llm_service.register_client("openai", client)
+                    logger.info("✅ OpenAI client registered successfully")
+                else:
+                    logger.error("OpenAI provider config not found")
+            except Exception as e:
+                logger.error(f"Failed to register OpenAI: {e}")
         
-except ImportError as e:
-    logger.warning(f"LLM client registration failed: {e}")
+        # Try Gemini
+        if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+            try:
+                from app.services.llm_clients.gemini_client import GeminiClient
+                provider_config = llm_service.providers.get("gemini")
+                if provider_config:
+                    client = GeminiClient(provider_config)
+                    llm_service.register_client("gemini", client)
+                    logger.info("✅ Gemini client registered successfully")
+                else:
+                    logger.error("Gemini provider config not found")
+            except Exception as e:
+                logger.error(f"Failed to register Gemini: {e}")
+        
+        # Log final status
+        registered = list(llm_service.clients.keys()) if hasattr(llm_service, 'clients') else []
+        logger.info(f"LLM clients registered: {registered if registered else 'NONE'}")
+        
+except Exception as e:
+    logger.error(f"Critical: LLM service initialization failed completely: {e}")
 
 class ChatRequest(BaseModel):
     message: str
