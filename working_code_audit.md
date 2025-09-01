@@ -103,3 +103,12 @@ api_router.include_router(chat_simple.router, prefix="/chat-simple", tags=["chat
 1. chat_with_memory.py is NOT active in api.py (commented out)
 2. Only chat_simple.router is active: api_router.include_router(chat_simple.router, prefix="/chat-simple")
 3. chat_with_memory endpoint /chat/status returns 404 Not Found
+4. chat_with_memory.py has working LLM registration pattern but is DISABLED
+5. Current active endpoints use chat_simple.py and insights.py
+
+## ROOT CAUSE IDENTIFIED
+The 'working' chat_with_memory.py is actually DISABLED in the API routes!
+The system is trying to use chat_simple.py which has LLM registration issues.
+
+## RECOMMENDED FIX
+Copy the EXACT LLM registration pattern from chat_with_memory.py to chat_simple.py
