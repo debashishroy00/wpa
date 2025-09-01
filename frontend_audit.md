@@ -12,3 +12,15 @@ frontend/src/components/Chat
 frontend/src/components/Chat/ChatInterface.tsx
 frontend/src/components/Chat/FinancialAdvisorChat.tsx
 frontend/src/styles/mobile-chat.css
+
+## Authentication Pattern
+frontend/src/App.tsx:        // Load any existing tokens from storage first
+frontend/src/App.tsx:        console.log('📋 Loading tokens from localStorage...')
+frontend/src/App.tsx:        const existingTokensCheck = localStorage.getItem('auth_tokens')
+frontend/src/App.tsx:        console.log('🔍 Initial token check:', existingTokensCheck ? 'TOKENS FOUND' : 'NO TOKENS')
+frontend/src/App.tsx:          console.log('✅ User already authenticated from stored tokens:', userData)
+frontend/src/App.tsx:          // CRITICAL FIX: Manually populate auth store from existing tokens
+frontend/src/App.tsx:          const existingTokens = localStorage.getItem('auth_tokens')
+frontend/src/App.tsx:          console.log('📋 Existing tokens:', existingTokens ? 'FOUND' : 'NOT FOUND')
+frontend/src/App.tsx:            console.log('🔧 Manually populating auth store from existing tokens')
+frontend/src/App.tsx:            const tokens = JSON.parse(existingTokens)
