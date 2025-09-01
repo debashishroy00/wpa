@@ -59,6 +59,7 @@ async def chat_message(
     db: Session = Depends(get_db)
 ):
     """Handle chat with financial intelligence"""
+    logger.info(f"🚀 chat_simple endpoint hit with message: '{request.message}'")
     try:
         # Detect question type
         insight_type = _detect_insight_type(request.message)
