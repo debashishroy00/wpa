@@ -211,27 +211,52 @@ LONG-TERM STRATEGY (1-5 years):
 Use ONLY verified numbers from FACTS. Quantify all recommendations with specific dollar amounts and percentages.
 """
 
-    def format_prompt(self, prompt_type: str, **kwargs) -> str:
-        """Format prompt with provided data"""
-        prompts = {
-            "tax": self.TAX_OPTIMIZATION,
-            "risk": self.RISK_ASSESSMENT, 
-            "goals": self.GOAL_PROGRESS,
-            "general": self.GENERAL_FINANCIAL
-        }
+    def format_prompt(self, prompt_type: str, user_query: str = "", **kwargs) -> str:
+        """Format prompt with context-aware response formatting"""
         
-        template = prompts.get(prompt_type, self.TAX_OPTIMIZATION)
+        # Base context-aware prompt - answer what was actually asked
+        base_prompt = f"""
+You are a financial advisor with access to the user's complete financial data.
+
+User Question: {user_query}
+
+VERIFIED FINANCIAL FACTS:
+{kwargs.get('claims', {})}
+
+PERSONAL CONTEXT:
+Age: {kwargs.get('age', 'unknown')} | State: {kwargs.get('state', 'unknown')} | Filing Status: {kwargs.get('filing_status', 'unknown')}
+
+Instructions:
+- Answer the specific question asked directly and concisely
+- Use actual numbers from the provided financial facts
+- Don't add sections the user didn't request
+- Be helpful and informative without forcing unnecessary structure
+- Focus on what the user wants to know
+"""
+
+        # Add specific formatting guidance only when needed
+        user_query_lower = user_query.lower()
         
-        # Safe formatting with defaults
-        return template.format(
-            claims=kwargs.get('claims', {}),
-            age=kwargs.get('age', 'unknown'),
-            state=kwargs.get('state', 'unknown'),
-            filing_status=kwargs.get('filing_status', 'unknown'),
-            tax_rules=kwargs.get('tax_rules', 'Standard deduction: $14,600 (single)'),
-            allocation_data=kwargs.get('allocation_data', {}),
-            user_goals=kwargs.get('user_goals', {})
-        )
+        if "breakdown" in user_query_lower or "expenses" in user_query_lower:
+            base_prompt += "\nFormat response as a clear breakdown with specific amounts and categories."
+        elif "health score" in user_query_lower or "grade" in user_query_lower or "assess" in user_query_lower:
+            base_prompt += "\nProvide a financial health assessment with letter grade and explanation."
+        elif "tax" in user_query_lower:
+            base_prompt += "\nFocus on tax implications and optimization opportunities with specific dollar amounts."
+        elif "risk" in user_query_lower:
+            base_prompt += "\nFocus on risk analysis with specific risk levels and mitigation strategies."
+        elif "goal" in user_query_lower or "retirement" in user_query_lower:
+            base_prompt += "\nFocus on goal progress and timeline analysis with specific numbers."
+        elif "balance" in user_query_lower or "cash" in user_query_lower or "investment" in user_query_lower:
+            base_prompt += "\nProvide the specific account balances and amounts requested."
+        elif "net worth" in user_query_lower:
+            base_prompt += "\nProvide net worth calculation and breakdown."
+        elif "summary" in user_query_lower or "overview" in user_query_lower or "picture" in user_query_lower:
+            base_prompt += "\nProvide a comprehensive but concise financial summary with key metrics."
+        
+        base_prompt += "\n\nUse ONLY verified numbers from the financial facts. Be direct and helpful."
+        
+        return base_prompt
 
 # Global instance
 core_prompts = CorePrompts()
