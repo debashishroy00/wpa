@@ -145,8 +145,21 @@ async def chat_message(
                 filing_status=facts["_context"].get("filing_status")
             )
             
-            # Enhanced prompt with vector context
-            enhanced_prompt = f"""
+            # Add conversation memory to foundation context
+            conversation_text = memory_service.format_context_for_prompt(conversation_context)
+            if conversation_text:
+                enhanced_prompt = f"""🧠 CONVERSATION MEMORY:
+{conversation_text}
+
+{prompt}
+
+RELEVANT CONTEXT FROM YOUR FINANCIAL HISTORY:
+{vector_context}
+
+INSTRUCTIONS: Use the above context to provide personalized, specific advice based on the user's actual financial history and conversation context, not generic recommendations.
+"""
+            else:
+                enhanced_prompt = f"""
 {prompt}
 
 RELEVANT CONTEXT FROM YOUR FINANCIAL HISTORY:
