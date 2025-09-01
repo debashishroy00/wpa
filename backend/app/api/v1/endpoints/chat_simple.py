@@ -90,22 +90,36 @@ async def chat_message(
             try:
                 from app.services.simple_vector_store import SimpleVectorStore
                 vector_store = SimpleVectorStore()
-                relevant_docs = vector_store.search_documents(
-                    query=request.message,
-                    limit=3
-                )
+                
+                # Search with financial keywords for broader results
+                search_query = f"{request.message} financial goals income expenses assets retirement"
+                search_results = vector_store.search(query=search_query, limit=5)
                 
                 vector_context_items = []
-                for doc in relevant_docs:
-                    if isinstance(doc, dict):
-                        content = doc.get('content') or doc.get('text', '')
-                        if content:
-                            vector_context_items.append(f"- {content}")
+                logger.info(f"🔍 Vector search found {len(search_results)} results")
                 
-                vector_context = "\n".join(vector_context_items) if vector_context_items else "No relevant historical context found."
-                logger.info(f"📚 Vector context: {len(vector_context)} chars from {len(relevant_docs)} docs")
+                for doc_id, score, doc in search_results:
+                    # Check if document belongs to current user
+                    if hasattr(doc, 'metadata') and doc.metadata.get('user_id') == current_user.id:
+                        content = doc.content
+                        if content:
+                            # Truncate very long content
+                            if len(content) > 500:
+                                content = content[:500] + "..."
+                            vector_context_items.append(f"- {content}")
+                            logger.info(f"📄 Added doc {doc_id} (score: {score:.2f})")
+                
+                if vector_context_items:
+                    vector_context = "\n".join(vector_context_items)
+                    logger.info(f"📚 Vector context: {len(vector_context)} chars from {len(vector_context_items)} relevant docs")
+                else:
+                    vector_context = "No relevant historical context found for your user account."
+                    logger.warning("📚 No user-specific documents found in vector search")
+                    
             except Exception as e:
-                logger.warning(f"Vector search failed: {e}")
+                logger.error(f"Vector search failed: {e}")
+                import traceback
+                logger.error(f"Vector search traceback: {traceback.format_exc()}")
                 vector_context = "Vector search unavailable."
             
             # Build prompt with facts + vector context
