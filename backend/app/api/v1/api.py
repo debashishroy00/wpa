@@ -3,7 +3,9 @@ WealthPath AI - API v1 Router
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, projections, goals_v2, intelligence, advisor_data, plan_engine, advisory, financial_clean, vector_db, chat_with_memory as chat, debug, profile, verification_test, admin, embeddings, tax, insights, chat_simple
+from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, goals_v2, intelligence, advisor_data, plan_engine, advisory, financial_clean, vector_db, chat_with_memory as chat, debug, profile, admin, embeddings, insights, chat_simple
+# Temporarily disabled endpoints that import removed services:
+# projections, verification_test, tax
 # Keep original LLM endpoints for Step 5 (working yesterday)
 from app.api.v1.endpoints import llm
 # Import the missing endpoints
