@@ -210,7 +210,8 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             # General chat
             logger.info(f"💬 Processing as general chat (no financial context)")
             llm_request = LLMRequest(
-                provider="openai",  # Default provider
+                provider=request.provider,
+                model_tier=request.model_tier,
                 system_prompt="Helpful assistant",
                 user_prompt=request.message,
                 temperature=0.7
