@@ -214,11 +214,27 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             )
             response = await llm_service.generate(llm_request)
             
+            # Save conversation to memory
+            memory_service.add_message_pair(
+                session=session,
+                user_message=request.message,
+                assistant_response=response.content,
+                intent_detected="general_chat",
+                context_used={
+                    "financial_data_included": False,
+                    "conversation_context_included": bool(conversation_context.get("recent_messages")),
+                    "vector_context_included": False
+                },
+                tokens_used=0,
+                model_used="openai",
+                provider="openai"
+            )
+            
             return ChatResponse(
                 response=response.content,
                 confidence="HIGH",
                 warnings=[],
-                session_id=request.session_id or "new"
+                session_id=session.session_id
             )
             
     except Exception as e:
