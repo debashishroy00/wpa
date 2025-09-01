@@ -331,7 +331,9 @@ const FinancialAdvisorChat: React.FC = () => {
             
             const requestBody = useNewChat ? {
                 message: content,
-                session_id: currentSession?.sessionId
+                session_id: currentSession?.sessionId,
+                provider: llmSettings.provider,
+                model_tier: llmSettings.modelTier
             } : (useIntelligentChat ? {
                 message: content,
                 session_id: currentSession.sessionId,
