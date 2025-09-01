@@ -196,3 +196,97 @@ class BaseLLMClient(ABC):
 class NumberValidator:
     """Validates numbers in LLM responses against source data"""
     
+
+## Old Working Chat Code
+# Basic calculations now handled by CompleteFinancialContextService and formula_library
+from app.services.basic_response_verifier import BasicResponseVerifier
+from app.services.retirement_response_formatter import retirement_formatter
+# TaxOptimizationService removed - using TaxIntelligenceFormatter instead
+from app.models.architecture_contracts import UserFinancialData, ToolsOutput
+
+logger = structlog.get_logger()
+
+# Initialize LLM service with clients on first import
+try:
+    from app.services.llm_service import llm_service
+    from app.services.llm_clients.openai_client import OpenAIClient
+    from app.core.config import settings
+    
+    # Register OpenAI client if API key is available
+    if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+        openai_client = OpenAIClient(llm_service.providers["openai"])
+        llm_service.register_client("openai", openai_client)
+        logger.info("OpenAI client registered for chat memory")
+    
+    # Try Gemini client
+    try:
+        from app.services.llm_clients.gemini_client import GeminiClient
+        if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+            gemini_client = GeminiClient(llm_service.providers["gemini"])
+            llm_service.register_client("gemini", gemini_client)
+            logger.info("Gemini client registered for chat memory")
+    except ImportError:
+        logger.info("Gemini client not available")
+
+except ImportError as e:
+    logger.warning(f"LLM service initialization failed: {e}")
+    llm_service = None
+
+# Import existing services (adjust imports based on what's available)
+# Intent service deprecated - using enhanced_intent_classifier
+
+# Vector DB not used in primary chat flow
+
+# Removed deprecated services
+
+router = APIRouter()
+
+--
+    has_conversation_memory: bool = False,
+    user_message: str = "",
+    user_id: int = 0,
+    session_id: str = "",
+    primary_intent: str = ""
+) -> Dict[str, Any]:
+    """
+    Call LLM with the enhanced conversational prompt using the real LLM service
+    Uses lower temperature for calculations to ensure accuracy
+    """
+    from app.services.llm_service import llm_service
+    from app.models.llm_models import LLMRequest
+    
+    try:
+        # Check if LLM service is available
+        if llm_service is None:
+            raise RuntimeError("LLM service not initialized")
+        
+        # Use custom temperature or default based on calculation mode and memory context
+        if temperature is None:
+            if is_calculation_mode:
+                temperature = 0.3
+            elif has_conversation_memory:
+                # Lower temperature for conversation continuity
+                temperature = 0.4  
+            else:
+--
+        llm_request = LLMRequest(
+            provider=provider,
+            model_tier=model_tier,
+            system_prompt=system_prompt,
+            user_prompt=prompt_context,
+            temperature=temperature,
+            max_tokens=2000
+        )
+        
+        # Generate response using the actual LLM service
+        llm_response = await llm_service.generate(llm_request)
+        
+        # Convert to expected format
+        response = {
+            "message": {
+                "role": "assistant",
+                "content": llm_response.content,
+                "timestamp": datetime.now().isoformat()
+            },
+            "tokens_used": {
+                "input": llm_response.token_usage.get("input_tokens", 0),
