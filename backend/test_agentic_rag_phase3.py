@@ -48,11 +48,11 @@ async def test_phase3():
             print(f"Iterations performed: {result.get('iterations_performed', 0)}")
             
             if result['citations']:
-                print(f"🔍 Citations: {', '.join(result['citations'][:3])}...")
+                print(f"Citations: {', '.join(result['citations'][:3])}...")
             
             # Show response preview
             preview = result['response'][:300] + "..." if len(result['response']) > 300 else result['response']
-            print(f"💬 Response preview: {preview}")
+            print(f"Response preview: {preview}")
             
             # Track for summary
             results_summary.append({
@@ -66,14 +66,14 @@ async def test_phase3():
             
             # Phase 3 specific checks
             if result.get('iterations_performed', 0) > 0:
-                print(f"🎉 PHASE 3 FEATURE: Iterative refinement triggered!")
+                print(f"PHASE 3 FEATURE: Iterative refinement triggered!")
             if result.get('gaps_identified', 0) > 0:
-                print(f"🧠 PHASE 3 FEATURE: Gap identification worked!")
+                print(f"PHASE 3 FEATURE: Gap identification worked!")
                 
         except Exception as e:
-            print(f"❌ FAILED: {e}")
+            print(f"FAILED: {e}")
             import traceback
-            print(f"📊 Traceback: {traceback.format_exc()}")
+            print(f"Traceback: {traceback.format_exc()}")
             
             results_summary.append({
                 'query': query,
