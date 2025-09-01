@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List
 import logging
+import json
 
 from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_active_user
