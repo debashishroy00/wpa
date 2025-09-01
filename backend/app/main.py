@@ -55,9 +55,9 @@ async def lifespan(app: FastAPI):
     logger.info("Database connection verified")
     
     # Initialize LLM clients
-    from app.api.v1.endpoints.llm import initialize_llm_clients
-    await initialize_llm_clients()
-    logger.info("LLM clients initialized")
+    # from app.api.v1.endpoints.llm import initialize_llm_clients
+    # await initialize_llm_clients()
+    # logger.info("LLM clients initialized")  # Disabled - imports removed services
     
     yield
     
