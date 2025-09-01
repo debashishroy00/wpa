@@ -315,6 +315,42 @@ class AgenticRAG:
         """Phase 3: Assess if we have sufficient information to answer the query."""
         evidence_text = "\n".join([f"- {r['text'][:200]}..." for r in context["search_results"][:5]])
         
+        # Force iteration logic for testing and real gaps
+        unique_sources = len(set(r['doc_id'] for r in context['search_results']))
+        unique_source_types = len(set(r['source'] for r in context['search_results']))
+        current_iteration = context.get("iterations", 0)
+        
+        logger.info(f"Sufficiency check - Sources: {unique_sources}, Source types: {unique_source_types}, Iteration: {current_iteration}")
+        
+        # Identify specific gaps based on query content
+        query_lower = query.lower()
+        potential_gaps = []
+        
+        # Gap detection logic
+        if any(word in query_lower for word in ['tax', 'taxes', 'deduction', 'rmd', 'distribution']) and facts.get('_context', {}).get('state') == 'unknown':
+            potential_gaps.append({"gap_type": "state_tax_rules", "description": "Missing state-specific tax information"})
+        
+        if any(word in query_lower for word in ['retire', 'retirement', 'timeline', 'when']) and not any('age' in r['text'].lower() for r in context['search_results']):
+            potential_gaps.append({"gap_type": "retirement_timeline", "description": "No age-specific retirement guidance found"})
+        
+        if any(word in query_lower for word in ['risk', 'allocation', 'investment']) and not any('risk' in r['text'].lower() for r in context['search_results']):
+            potential_gaps.append({"gap_type": "risk_assessment", "description": "Missing risk tolerance analysis"})
+        
+        if any(word in query_lower for word in ['401k', 'ira', 'contribution', 'limit']) and not any('limit' in r['text'].lower() for r in context['search_results']):
+            potential_gaps.append({"gap_type": "contribution_limits", "description": "Current year contribution limits not found"})
+        
+        # Force iteration conditions
+        force_iteration = (
+            unique_sources < 3 or  # Need more diverse sources
+            unique_source_types < 2 or  # Need different types of information
+            len(potential_gaps) > 0 or  # Detected specific gaps
+            len(context['search_results']) < 4  # Not enough total evidence
+        )
+        
+        # Don't iterate beyond max_iterations
+        if current_iteration >= self.max_iterations:
+            force_iteration = False
+        
         assessment_prompt = f"""
         Assess if we have sufficient information to answer this financial question comprehensively.
         
@@ -325,8 +361,10 @@ class AgenticRAG:
         - Net Worth: ${facts.get('net_worth', 0):,.2f}
         - State: {facts.get('_context', {}).get('state', 'unknown')}
         
-        Available Evidence:
+        Available Evidence ({len(context['search_results'])} results from {unique_sources} unique sources):
         {evidence_text}
+        
+        Current iteration: {current_iteration}/{self.max_iterations}
         
         Return JSON with this structure:
         {{
@@ -339,7 +377,7 @@ class AgenticRAG:
             "reasoning": "Brief explanation"
         }}
         
-        Consider gaps in: tax implications, timeline/age factors, risk tolerance, state-specific rules, income details, expense analysis.
+        Be STRICT - financial advice requires comprehensive information. Consider gaps in: tax implications, timeline/age factors, risk tolerance, state-specific rules, income details, expense analysis, current regulations.
         """
         
         try:
@@ -354,23 +392,33 @@ class AgenticRAG:
             llm_request = LLMRequest(
                 provider=selected_provider,
                 model_tier="dev",
-                system_prompt="You are an assessment engine. Return only valid JSON.",
+                system_prompt="You are a strict assessment engine. Financial advice requires comprehensive information. Return only valid JSON.",
                 user_prompt=assessment_prompt,
                 temperature=0.2
             )
             llm_response = await llm_service.generate(llm_request)
             
             assessment = json.loads(llm_response.content)
+            
+            # Override with forced iteration logic if needed
+            if force_iteration and current_iteration < self.max_iterations:
+                assessment["sufficient"] = False
+                if not assessment.get("gaps"):
+                    assessment["gaps"] = potential_gaps or [{"gap_type": "insufficient_sources", "description": f"Only {unique_sources} unique sources found"}]
+                logger.info(f"Forcing iteration due to insufficient evidence: {len(context['search_results'])} results, {unique_sources} sources")
+            
             return assessment
             
         except Exception as e:
             logger.warning(f"Sufficiency assessment failed: {e}")
-            # Conservative fallback - always assume more info might be helpful
+            # More aggressive fallback - force iteration if we don't have much info
+            gaps = potential_gaps or [{"gap_type": "general", "description": "LLM assessment unavailable, need more sources"}]
+            
             return {
-                "sufficient": len(context["search_results"]) >= 4,
-                "confidence": 0.6,
-                "gaps": [{"gap_type": "general", "description": "Assessment unavailable"}],
-                "reasoning": "Fallback assessment"
+                "sufficient": not force_iteration,  # Use force_iteration logic
+                "confidence": 0.4,  # Lower confidence when assessment fails
+                "gaps": gaps if force_iteration else [],
+                "reasoning": f"Fallback assessment - {unique_sources} sources, {len(context['search_results'])} results"
             }
     
     async def _generate_follow_up_searches(self, original_query: str, gaps: List[Dict], facts: Dict) -> List[Dict]:
