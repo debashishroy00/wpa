@@ -119,6 +119,26 @@ class IdentityMath:
             facts["net_worth"] = facts["total_assets"] - facts["total_liabilities"]
             facts["monthly_surplus"] = facts["monthly_income"] - facts["monthly_expenses"]
             
+            # Calculate derived financial metrics
+            facts["savings_rate"] = (facts["monthly_surplus"] / facts["monthly_income"]) if facts["monthly_income"] > 0 else 0.0
+            facts["debt_to_asset_ratio"] = (facts["total_liabilities"] / facts["total_assets"]) if facts["total_assets"] > 0 else 0.0
+            facts["liquid_months"] = (facts["liquid_assets"] / facts["monthly_expenses"]) if facts["monthly_expenses"] > 0 else 0.0
+            facts["fi_number"] = facts["monthly_expenses"] * 12 * 25  # 4% rule
+            facts["fi_progress"] = (facts["net_worth"] / facts["fi_number"]) if facts["fi_number"] > 0 else 0.0
+            facts["investment_allocation"] = (facts["investment_total"] / facts["total_assets"]) if facts["total_assets"] > 0 else 0.0
+            
+            # Calculate years to FI (simplified - assumes current savings rate continues)
+            if facts["savings_rate"] > 0 and facts["fi_number"] > 0:
+                annual_savings = facts["monthly_surplus"] * 12
+                if annual_savings > 0:
+                    # Simplified calculation: (FI_target - current_net_worth) / annual_savings
+                    remaining_to_fi = max(0, facts["fi_number"] - facts["net_worth"])
+                    facts["years_to_fi"] = remaining_to_fi / annual_savings
+                else:
+                    facts["years_to_fi"] = float('inf')
+            else:
+                facts["years_to_fi"] = float('inf')
+            
             # Validate
             self._validate(facts, data)
             
