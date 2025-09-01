@@ -120,7 +120,8 @@
       "Bash(timeout 20s docker-compose logs backend -f --tail 5)",
       "Bash(timeout 15s docker-compose logs backend -f --tail 3)",
       "Bash(compgen:*)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(timeout 3s docker-compose logs:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
