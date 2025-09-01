@@ -85,11 +85,13 @@ async def chat_message(
             )
         else:
             # General chat
-            response = await llm_service.generate(
+            llm_request = LLMRequest(
+                provider="openai",  # Default provider
                 system_prompt="Helpful assistant",
                 user_prompt=request.message,
                 temperature=0.7
             )
+            response = await llm_service.generate(llm_request)
             
             return ChatResponse(
                 response=response.content,
