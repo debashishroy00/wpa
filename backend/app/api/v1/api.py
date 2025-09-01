@@ -45,3 +45,5 @@ api_router.include_router(insurance.router, prefix="/insurance", tags=["insuranc
 api_router.include_router(investment_preferences.router, prefix="/investment-preferences", tags=["investment-preferences"])
 # Tax optimization endpoints
 api_router.include_router(tax.router, prefix="/tax", tags=["tax-optimization"])
+# New foundation-based insights endpoints
+api_router.include_router(insights.router, prefix="/insights", tags=["insights"])
