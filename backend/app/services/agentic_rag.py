@@ -84,7 +84,7 @@ class QueryRouter:
         }
 
 class AgenticRAG:
-    """Phase 2: Intelligent RAG with query planning and decomposition."""
+    """Phase 3: Intelligent RAG with iterative refinement and sufficiency checking."""
     
     def __init__(self):
         self.parser = QueryParser()
