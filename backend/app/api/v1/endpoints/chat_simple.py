@@ -138,7 +138,7 @@ def _detect_insight_type(message: str) -> str:
     tax_words = {'tax': 1, 'deduction': 1, '401k': 0.9, 'ira': 0.9}
     risk_words = {'risk': 1, 'allocation': 0.9, 'diversify': 0.8}
     goal_words = {'retire': 1, 'goal': 0.9, 'fire': 0.9, 'target': 0.8}
-    finance_words = {'worth': 1, 'assets': 0.9, 'income': 0.8, 'debt': 0.8}
+    finance_words = {'worth': 1, 'assets': 0.9, 'income': 0.8, 'debt': 0.8, 'financial': 0.9, 'health': 0.8, 'score': 0.7, 'picture': 0.6}
     
     scores = {
         'tax': sum(w for k, w in tax_words.items() if k in msg),
