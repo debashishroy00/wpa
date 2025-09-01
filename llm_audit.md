@@ -52,3 +52,81 @@ backend/app/api/v1/endpoints/llm.py:        logger.error(f"Failed to initialize 
 backend/app/api/v1/endpoints/llm.py:# LLM clients are now initialized in app lifespan handler (main.py)
 backend/app/main.py:    # Initialize LLM clients
 backend/app/main.py:        logger.warning(f"LLM service initialization skipped: {e}")
+
+## Working LLM Calls
+backend/app/api/v1/endpoints/calculation_debug.py:        llm_response = await llm_service.generate(llm_request)
+backend/app/api/v1/endpoints/calculation_debug.py-        response_time = time.time() - start_time
+backend/app/api/v1/endpoints/calculation_debug.py-        
+backend/app/api/v1/endpoints/calculation_debug.py-        # Validate calculations in response
+backend/app/api/v1/endpoints/calculation_debug.py-        validation = memory_service.validate_response_calculations(
+backend/app/api/v1/endpoints/calculation_debug.py-            llm_response.content, request.message
+--
+backend/app/api/v1/endpoints/chat_simple.py:            response = await llm_service.generate(llm_request)
+backend/app/api/v1/endpoints/chat_simple.py-            
+backend/app/api/v1/endpoints/chat_simple.py-            # Validate
+backend/app/api/v1/endpoints/chat_simple.py-            engine = TrustEngine()
+backend/app/api/v1/endpoints/chat_simple.py-            validated = engine.validate(response.content, facts)
+backend/app/api/v1/endpoints/chat_simple.py-            
+--
+backend/app/api/v1/endpoints/chat_simple.py:            response = await llm_service.generate(llm_request)
+backend/app/api/v1/endpoints/chat_simple.py-            
+backend/app/api/v1/endpoints/chat_simple.py-            return ChatResponse(
+backend/app/api/v1/endpoints/chat_simple.py-                response=response.content,
+backend/app/api/v1/endpoints/chat_simple.py-                confidence="HIGH",
+backend/app/api/v1/endpoints/chat_simple.py-                warnings=[],
+--
+backend/app/api/v1/endpoints/chat_with_memory.py:        response_data = await call_llm_with_memory(
+backend/app/api/v1/endpoints/chat_with_memory.py-            prompt_context=optimized_context,
+backend/app/api/v1/endpoints/chat_with_memory.py-            provider=request.provider,
+backend/app/api/v1/endpoints/chat_with_memory.py-            model_tier=request.model_tier,
+backend/app/api/v1/endpoints/chat_with_memory.py-            has_conversation_memory=bool(conversation_context.get("message_count", 0) > 0),
+backend/app/api/v1/endpoints/chat_with_memory.py-            user_message=request.message,
+--
+backend/app/api/v1/endpoints/chat_with_memory.py:async def call_llm_with_memory(
+backend/app/api/v1/endpoints/chat_with_memory.py-    prompt_context: str,
+backend/app/api/v1/endpoints/chat_with_memory.py-    provider: str = "gemini",
+backend/app/api/v1/endpoints/chat_with_memory.py-    model_tier: str = "dev",
+backend/app/api/v1/endpoints/chat_with_memory.py-    insight_level: str = "balanced",
+backend/app/api/v1/endpoints/chat_with_memory.py-    is_calculation_mode: bool = False,
+--
+backend/app/api/v1/endpoints/chat_with_memory.py:        llm_response = await llm_service.generate(llm_request)
+backend/app/api/v1/endpoints/chat_with_memory.py-        
+backend/app/api/v1/endpoints/chat_with_memory.py-        # Convert to expected format
+backend/app/api/v1/endpoints/chat_with_memory.py-        response = {
+backend/app/api/v1/endpoints/chat_with_memory.py-            "message": {
+backend/app/api/v1/endpoints/chat_with_memory.py-                "role": "assistant",
+--
+backend/app/api/v1/endpoints/chat_with_memory.py:        response_data = await call_llm_with_memory(
+backend/app/api/v1/endpoints/chat_with_memory.py-            prompt_context=optimized_context,
+backend/app/api/v1/endpoints/chat_with_memory.py-            provider=request.provider,
+backend/app/api/v1/endpoints/chat_with_memory.py-            model_tier=request.model_tier,
+backend/app/api/v1/endpoints/chat_with_memory.py-            has_conversation_memory=True,
+backend/app/api/v1/endpoints/chat_with_memory.py-            user_message=request.message,
+--
+backend/app/api/v1/endpoints/insights.py:    response = await llm_service.generate(llm_request)
+backend/app/api/v1/endpoints/insights.py-    
+backend/app/api/v1/endpoints/insights.py-    # Validate
+backend/app/api/v1/endpoints/insights.py-    engine = TrustEngine()
+backend/app/api/v1/endpoints/insights.py-    validated = engine.validate(response.content, facts)
+backend/app/api/v1/endpoints/insights.py-    
+--
+backend/app/api/v1/endpoints/llm.py:        response = await llm_service.generate(request)
+backend/app/api/v1/endpoints/llm.py-        return response
+backend/app/api/v1/endpoints/llm.py-        
+backend/app/api/v1/endpoints/llm.py-    except Exception as e:
+backend/app/api/v1/endpoints/llm.py-        logger.error(f"Content generation failed: {e}")
+backend/app/api/v1/endpoints/llm.py-        raise HTTPException(status_code=500, detail=str(e))
+--
+backend/app/api/v1/endpoints/llm.py:        advisory_content = await llm_service.generate_advisory_content(request)
+backend/app/api/v1/endpoints/llm.py-        return advisory_content
+backend/app/api/v1/endpoints/llm.py-        
+backend/app/api/v1/endpoints/llm.py-    except Exception as e:
+backend/app/api/v1/endpoints/llm.py-        logger.error(f"Advisory content generation failed: {e}", exc_info=True)
+backend/app/api/v1/endpoints/llm.py-        
+--
+backend/app/api/v1/endpoints/llm.py:            advisory_content = await llm_service.generate_advisory_content(request)
+backend/app/api/v1/endpoints/llm.py-            
+backend/app/api/v1/endpoints/llm.py-            # Stream response
+backend/app/api/v1/endpoints/llm.py-            yield f"data: {json.dumps({'status': 'completed', 'content': advisory_content.dict()})}\n\n"
+backend/app/api/v1/endpoints/llm.py-            
+backend/app/api/v1/endpoints/llm.py-        except Exception as e:
