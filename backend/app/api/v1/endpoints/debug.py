@@ -276,3 +276,64 @@ async def trigger_vector_sync(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Vector sync failed: {str(e)}"
         )
+
+@router.get("/financial-summary/{user_id}")
+async def get_financial_summary_debug(
+    user_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Debug endpoint to test financial summary service directly
+    Shows what IdentityMath will receive as input data
+    """
+    
+    # Verify user access
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    try:
+        # Get financial summary directly from service
+        summary = financial_summary_service.get_user_financial_summary(user_id, db)
+        
+        if not summary:
+            return {
+                "status": "no_data",
+                "user_id": user_id,
+                "message": "No financial summary data found",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
+        # Check for specific fields IdentityMath needs
+        identity_math_fields = {
+            "totalAssets": summary.get("totalAssets", 0),
+            "totalLiabilities": summary.get("totalLiabilities", 0), 
+            "monthlyIncome": summary.get("monthlyIncome", 0),
+            "monthlyExpenses": summary.get("monthlyExpenses", 0),
+            "monthlyDebtPayments": summary.get("monthlyDebtPayments", 0),
+            "liquidAssets": summary.get("liquidAssets", 0),
+            "investmentTotal": summary.get("investmentTotal", 0),
+            "retirementTotal": summary.get("retirementTotal", 0),
+            "annual401k": summary.get("annual401k", 0)
+        }
+        
+        return {
+            "status": "success",
+            "user_id": user_id,
+            "full_summary": summary,
+            "identity_math_fields": identity_math_fields,
+            "missing_fields": [key for key, value in identity_math_fields.items() if value == 0],
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        import traceback
+        logger.error(f"Error getting financial summary for user {user_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get financial summary: {str(e)}"
+        )
