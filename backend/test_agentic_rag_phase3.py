@@ -114,7 +114,7 @@ async def test_phase3():
 
 async def test_refinement_triggers():
     """Test specific scenarios that should trigger refinement."""
-    print(f"\n🧪 Testing refinement trigger scenarios...")
+    print(f"\nTesting refinement trigger scenarios...")
     
     rag = AgenticRAG()
     db = SessionLocal()
@@ -128,7 +128,7 @@ async def test_refinement_triggers():
     ]
     
     for scenario_name, query in gap_scenarios:
-        print(f"\n📋 Testing: {scenario_name}")
+        print(f"\nTesting: {scenario_name}")
         print(f"Query: '{query}'")
         
         try:
@@ -142,12 +142,12 @@ async def test_refinement_triggers():
             print(f"   Confidence: {result['confidence']}")
             
             if gaps > 0 or iterations > 0:
-                print(f"   ✅ Refinement triggered as expected")
+                print(f"   Refinement triggered as expected")
             else:
-                print(f"   ⚠️  No refinement triggered")
+                print(f"   No refinement triggered")
                 
         except Exception as e:
-            print(f"   ❌ Failed: {e}")
+            print(f"   Failed: {e}")
     
     db.close()
 
