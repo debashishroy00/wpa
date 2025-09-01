@@ -119,9 +119,9 @@ class AgenticRAG:
             plan = await self._plan_query(message, intent, facts)
             logger.info(f"Generated plan with {len(plan['steps'])} steps")
             
-            # NEW Step 4: Execute the plan
-            context = await self._execute_plan(plan, user_id, facts)
-            logger.info(f"Executed plan, got {len(context['search_results'])} total results")
+            # NEW Step 4: Execute the plan with iterative refinement (Phase 3)
+            context = await self._execute_plan_with_refinement(plan, user_id, facts, message)
+            logger.info(f"Executed plan with refinement, got {len(context['search_results'])} total results")
             
             # Step 5: Package evidence (enhanced)
             evidence = self._package_evidence(context)
