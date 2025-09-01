@@ -144,3 +144,55 @@ backend/app/core/config.py:    ANTHROPIC_API_KEY: str = ""
 backend/app/services/llm_clients/claude_client.py:        self.api_key = getattr(settings, 'ANTHROPIC_API_KEY', None)
 backend/app/services/llm_clients/gemini_client.py:        self.api_key = getattr(settings, 'GEMINI_API_KEY', None)
 backend/app/services/llm_clients/openai_client.py:            api_key=getattr(settings, 'OPENAI_API_KEY', None)
+
+## LLM Service Structure
+"""
+WealthPath AI - Multi-LLM Service Architecture
+Base classes and service implementation for multi-LLM integration
+"""
+import asyncio
+import time
+import json
+import hashlib
+from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, Any, Union
+from decimal import Decimal
+import logging
+
+from ..models.llm_models import (
+    LLMRequest, LLMResponse, LLMProvider, Citation, NumberValidation,
+    LLMComparison, AdvisoryGeneration, AdvisoryContent
+)
+from ..core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+class BaseLLMClient(ABC):
+    """Abstract base class for LLM clients"""
+    
+    def __init__(self, provider_config: LLMProvider):
+        self.provider_config = provider_config
+        self.provider_id = provider_config.provider_id
+        
+    @abstractmethod
+    async def generate(self, request: LLMRequest) -> LLMResponse:
+        """Generate content using the LLM"""
+        pass
+    
+    @abstractmethod
+    async def validate_connection(self) -> bool:
+        """Validate connection to the LLM provider"""
+        pass
+    
+    def calculate_cost(self, input_tokens: int, output_tokens: int, model_tier: str = "dev") -> Decimal:
+        """Calculate generation cost based on token usage"""
+        model_config = self.provider_config.models.get(model_tier, {})
+        cost_input = self.provider_config.cost_per_1k_tokens_input * Decimal(input_tokens) / Decimal(1000)
+        cost_output = self.provider_config.cost_per_1k_tokens_output * Decimal(output_tokens) / Decimal(1000)
+        return cost_input + cost_output
+
+
+class NumberValidator:
+    """Validates numbers in LLM responses against source data"""
+    
