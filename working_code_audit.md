@@ -33,3 +33,25 @@ except ImportError as e:
 # Import existing services (adjust imports based on what's available)
 # Intent service deprecated - using enhanced_intent_classifier
 
+### How it calls LLM:
+        llm_response = await llm_service.generate(llm_request)
+        
+        # Convert to expected format
+        response = {
+            "message": {
+                "role": "assistant",
+                "content": llm_response.content,
+                "timestamp": datetime.now().isoformat()
+            },
+            "tokens_used": {
+                "input": llm_response.token_usage.get("input_tokens", 0),
+                "output": llm_response.token_usage.get("output_tokens", 0),
+                "total": llm_response.token_usage.get("total_tokens", 0)
+            },
+            "cost_breakdown": {
+                "input_cost": float(llm_response.cost) * 0.6,  # Rough split
+                "output_cost": float(llm_response.cost) * 0.4,
+                "total_cost": float(llm_response.cost)
+            }
+        }
+        
