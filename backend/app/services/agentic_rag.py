@@ -123,12 +123,12 @@ class AgenticRAG:
             context = await self._execute_plan_with_refinement(plan, user_id, facts, message)
             logger.info(f"Executed plan with refinement, got {len(context['search_results'])} total results")
             
-            # Step 5: Package evidence (enhanced)
-            evidence = self._package_evidence(context)
-            logger.info(f"Packaged {len(evidence)} evidence items")
+            # Step 5: Rank and package evidence intelligently (Phase 3)
+            evidence = self._rank_and_package_evidence(context)
+            logger.info(f"Ranked and packaged {len(evidence)} evidence items")
             
-            # Step 6: Generate response with better context
-            response = await self._generate_response(message, facts, evidence, intent)
+            # Step 6: Generate intelligent response with gap awareness (Phase 3)
+            response = await self._generate_intelligent_response(message, facts, evidence, intent, context.get('gaps', []))
             
             return response
             
