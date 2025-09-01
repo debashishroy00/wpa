@@ -40,3 +40,15 @@ backend/app/services/llm_clients/__init__.py:    class GeminiClient:
 backend/app/services/llm_clients/__init__.py:__all__ = ['OpenAIClient', 'GeminiClient', 'ClaudeClient']
 backend/app/services/llm_service.py:    def register_client(self, provider_id: str, client: BaseLLMClient):
 backend/app/services/llm_service.py:            raise ValueError(f"No client registered for provider: {request.provider}")
+
+## Startup Initialization
+backend/app/api/v1/endpoints/chat_with_memory.py:# Initialize LLM service with clients on first import
+backend/app/api/v1/endpoints/chat_with_memory.py:    logger.warning(f"LLM service initialization failed: {e}")
+backend/app/api/v1/endpoints/chat_with_memory.py:            raise RuntimeError("LLM service not initialized")
+backend/app/api/v1/endpoints/llm.py:# Initialize LLM clients on startup
+backend/app/api/v1/endpoints/llm.py:async def initialize_llm_clients():
+backend/app/api/v1/endpoints/llm.py:    """Initialize and register LLM clients"""
+backend/app/api/v1/endpoints/llm.py:        logger.error(f"Failed to initialize LLM clients: {e}")
+backend/app/api/v1/endpoints/llm.py:# LLM clients are now initialized in app lifespan handler (main.py)
+backend/app/main.py:    # Initialize LLM clients
+backend/app/main.py:        logger.warning(f"LLM service initialization skipped: {e}")
