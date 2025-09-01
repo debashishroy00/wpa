@@ -27,7 +27,7 @@ async def test_phase3():
         "How can I achieve financial independence considering all my current constraints?"
     ]
     
-    print(f"📝 Testing {len(complex_queries)} complex queries that should trigger refinement...")
+    print(f"Testing {len(complex_queries)} complex queries that should trigger refinement...")
     
     results_summary = []
     
@@ -39,13 +39,13 @@ async def test_phase3():
         try:
             result = await rag.handle_query(user_id=1, message=query, db=db)
             
-            print(f"✅ SUCCESS")
-            print(f"📝 Response length: {len(result['response'])} chars")
-            print(f"🎯 Confidence: {result['confidence']}")
-            print(f"📚 Citations: {len(result['citations'])} sources")
-            print(f"⚠️  Warnings: {result['warnings']}")
-            print(f"🔍 Gaps identified: {result.get('gaps_identified', 0)}")
-            print(f"🔄 Iterations performed: {result.get('iterations_performed', 0)}")
+            print(f"SUCCESS")
+            print(f"Response length: {len(result['response'])} chars")
+            print(f"Confidence: {result['confidence']}")
+            print(f"Citations: {len(result['citations'])} sources")
+            print(f"Warnings: {result['warnings']}")
+            print(f"Gaps identified: {result.get('gaps_identified', 0)}")
+            print(f"Iterations performed: {result.get('iterations_performed', 0)}")
             
             if result['citations']:
                 print(f"🔍 Citations: {', '.join(result['citations'][:3])}...")
