@@ -230,8 +230,8 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
                     "vector_context_included": False
                 },
                 tokens_used=0,
-                model_used="openai",
-                provider="openai"
+                model_used=request.model_tier,
+                provider=request.provider
             )
             
             return ChatResponse(
