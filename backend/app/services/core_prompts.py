@@ -216,7 +216,8 @@ Use ONLY verified numbers from FACTS. Quantify all recommendations with specific
         prompts = {
             "tax": self.TAX_OPTIMIZATION,
             "risk": self.RISK_ASSESSMENT, 
-            "goals": self.GOAL_PROGRESS
+            "goals": self.GOAL_PROGRESS,
+            "general": self.GENERAL_FINANCIAL
         }
         
         template = prompts.get(prompt_type, self.TAX_OPTIMIZATION)
