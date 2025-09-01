@@ -14,8 +14,8 @@ class TrustEngine:
     
     def validate(self, ai_response: str, claims: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Validate AI response for safety while allowing calculated values and recommendations.
-        Enhanced to support financial planning advice and derived calculations.
+        Validate AI response and add appropriate disclaimers for recommendations.
+        Pass through enhanced responses with warnings instead of blocking them.
         """
         result = {
             "response": ai_response,
@@ -27,38 +27,48 @@ class TrustEngine:
         
         # Extract numbers from response
         numbers = self._extract_numbers(ai_response)
-        ungrounded_numbers = []
-        critical_violations = []
+        ungrounded_count = 0
         
-        # Categorize and verify numbers
+        # Check each number for grounding
         for num in numbers:
-            if not self._is_grounded_or_reasonable(num, claims, ai_response):
-                ungrounded_numbers.append(num)
-                # Only flag as critical if it's a factual claim about user's current data
-                if self._is_factual_claim(num, ai_response, claims):
-                    critical_violations.append(num)
-                    result["issues"].append(f"Invalid factual claim: ${num:,.0f}")
-                else:
-                    # Just log as assumption/recommendation
-                    result["assumptions"].append(f"Recommendation: ${num:,.0f}")
+            if not self._is_grounded(num, claims):
+                ungrounded_count += 1
         
-        # Find explicit assumptions
-        explicit_assumptions = self._find_assumptions(ai_response)
-        result["assumptions"].extend(explicit_assumptions)
+        # Find assumptions
+        result["assumptions"] = self._find_assumptions(ai_response)
         
-        # Determine validity based on critical violations, not all ungrounded numbers
-        if critical_violations:
-            result["valid"] = False
-            result["confidence"] = "LOW"
-            result["response"] = self._create_safe_response(claims)
-        elif len(ungrounded_numbers) > 10:  # Too many ungrounded numbers suggests hallucination
-            result["valid"] = False
-            result["confidence"] = "LOW" 
-            result["response"] = self._create_safe_response(claims)
-        elif len(result["assumptions"]) > 5:
+        # Add disclaimers based on content analysis
+        disclaimer_needed = False
+        
+        # Check for recommendation language
+        recommendation_indicators = [
+            "recommend", "suggest", "consider", "should", "could", "might want to",
+            "action item", "next step", "opportunity", "strategy", "plan"
+        ]
+        
+        has_recommendations = any(indicator in ai_response.lower() for indicator in recommendation_indicators)
+        
+        # Determine confidence and add disclaimers
+        if ungrounded_count > 8:  # High number of calculations/projections
             result["confidence"] = "MEDIUM"
-        elif len(result["assumptions"]) > 0:
+            disclaimer_needed = True
+        elif ungrounded_count > 4:
             result["confidence"] = "HIGH"
+            disclaimer_needed = True
+        elif has_recommendations:
+            disclaimer_needed = True
+        elif result["assumptions"]:
+            result["confidence"] = "MEDIUM"
+            disclaimer_needed = True
+        
+        # Add disclaimer if needed but keep the response
+        if disclaimer_needed:
+            disclaimer = (
+                "\n\n⚠️ **Disclaimer**: This analysis includes recommendations and projections "
+                "based on your financial data. All calculations and suggestions should be "
+                "reviewed with a qualified financial advisor before making decisions."
+            )
+            result["response"] = ai_response + disclaimer
         
         return result
     
