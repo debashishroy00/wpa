@@ -21,6 +21,6 @@ export const adaptNewChatResponse = (newResponse) => {
 };
 
 export const shouldUseNewEndpoint = () => {
-  // Feature flag - can be toggled for testing
-  return localStorage.getItem('use_new_chat') === 'true';
+  // Temporarily default to true for testing Context+LLM Intelligence
+  return localStorage.getItem('use_new_chat') !== 'false';
 };
