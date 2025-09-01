@@ -13,6 +13,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.services.vector_db_service import get_vector_db
+from app.services.financial_summary_service import financial_summary_service
 
 logger = structlog.get_logger()
 
