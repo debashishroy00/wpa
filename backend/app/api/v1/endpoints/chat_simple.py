@@ -172,7 +172,8 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             
             # Get LLM response
             llm_request = LLMRequest(
-                provider="openai",  # Default provider
+                provider=request.provider,
+                model_tier=request.model_tier,
                 system_prompt="Financial advisor using provided facts and user's financial history",
                 user_prompt=f"{enhanced_prompt}\n\nUser: {request.message}",
                 temperature=0.3
