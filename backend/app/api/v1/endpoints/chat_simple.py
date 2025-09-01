@@ -88,18 +88,21 @@ async def chat_message(
             
             # Search vector store for relevant context
             try:
-                from app.services.simple_vector_store import simple_vector_store
-                relevant_docs = simple_vector_store.search(
+                from app.services.simple_vector_store import SimpleVectorStore
+                vector_store = SimpleVectorStore()
+                relevant_docs = vector_store.search_documents(
                     query=request.message,
-                    user_id=current_user.id,
                     limit=3
                 )
-                vector_context = "\n".join([
-                    f"- {doc.get('content', doc.get('text', str(doc)))}" 
-                    for doc in relevant_docs if doc
-                ])
-                if not vector_context:
-                    vector_context = "No relevant historical context found."
+                
+                vector_context_items = []
+                for doc in relevant_docs:
+                    if isinstance(doc, dict):
+                        content = doc.get('content') or doc.get('text', '')
+                        if content:
+                            vector_context_items.append(f"- {content}")
+                
+                vector_context = "\n".join(vector_context_items) if vector_context_items else "No relevant historical context found."
                 logger.info(f"📚 Vector context: {len(vector_context)} chars from {len(relevant_docs)} docs")
             except Exception as e:
                 logger.warning(f"Vector search failed: {e}")
