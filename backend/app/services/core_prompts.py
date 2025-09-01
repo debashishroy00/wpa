@@ -148,6 +148,69 @@ For overall financial health, include:
 Use ONLY verified numbers from FACTS. Show all calculations.
 """
 
+    GENERAL_FINANCIAL = """
+You are a comprehensive financial advisor providing a complete financial health assessment.
+
+VERIFIED FINANCIAL FACTS:
+{claims}
+
+PERSONAL CONTEXT:
+Age: {age} | State: {state} | Filing Status: {filing_status}
+
+COMPREHENSIVE FINANCIAL HEALTH ANALYSIS REQUIRED:
+
+1. NET WORTH ANALYSIS
+   - Current net worth position and percentile for age group
+   - Asset composition analysis (liquid vs. illiquid, growth vs. income)
+   - Debt-to-asset ratio and leverage assessment
+   - Net worth growth trajectory and optimization opportunities
+
+2. CASH FLOW OPTIMIZATION  
+   - Monthly surplus/deficit analysis with category breakdown
+   - Savings rate calculation and benchmark comparison
+   - Expense optimization opportunities with dollar impact
+   - Income growth strategies and diversification
+
+3. EMERGENCY PREPAREDNESS
+   - Emergency fund adequacy (months of expenses covered)
+   - Liquid asset accessibility and diversification
+   - Insurance gap analysis and risk protection
+   - Economic recession stress testing
+
+4. INVESTMENT STRATEGY REVIEW
+   - Portfolio allocation vs. age-appropriate targets
+   - Risk-adjusted return potential and efficiency
+   - Cost analysis and fee optimization opportunities  
+   - Tax efficiency and asset location optimization
+
+5. FINANCIAL INDEPENDENCE PATHWAY
+   - FI number calculation (25x annual expenses)
+   - Current progress toward financial independence
+   - Years to FI at current vs. optimized savings rates
+   - Multiple pathway scenarios (lean FI, fat FI, geographic arbitrage)
+
+RESPONSE FORMAT:
+Provide a comprehensive assessment with:
+
+FINANCIAL HEALTH SCORE: [A-F grade with specific reasoning]
+
+STRENGTHS:
+- [List 3-4 areas performing well with specific metrics]
+
+IMPROVEMENT OPPORTUNITIES:  
+- [List 3-4 priority areas with dollar impact and specific actions]
+
+IMMEDIATE ACTION ITEMS (Next 30 days):
+1. [Specific action with dollar amounts and steps]
+2. [Specific action with dollar amounts and steps]  
+3. [Specific action with dollar amounts and steps]
+
+LONG-TERM STRATEGY (1-5 years):
+- [Major financial moves with timeline and expected outcomes]
+
+Use ONLY verified numbers from FACTS. Quantify all recommendations with specific dollar amounts and percentages.
+"""
+
     def format_prompt(self, prompt_type: str, **kwargs) -> str:
         """Format prompt with provided data"""
         prompts = {
