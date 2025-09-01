@@ -485,13 +485,22 @@ class AgenticRAG:
         
         return evidence
     
-    async def _generate_response(self, message: str, facts: Dict, evidence: List[Dict], intent: Dict) -> Dict:
-        """NEW: Better response generation."""
+    async def _generate_intelligent_response(self, message: str, facts: Dict, evidence: List[Dict], intent: Dict, gaps: List[Dict]) -> Dict:
+        """Phase 3: Intelligent response generation with gap awareness."""
         
-        # Build context from evidence
-        evidence_text = "\n".join([f"- {e['text']}" for e in evidence])
+        # Build context from evidence with iteration info
+        evidence_text = "\n".join([
+            f"- {e['text']} (iteration: {e.get('iteration', 0)}, score: {e.get('score', 0):.2f})" 
+            for e in evidence
+        ])
         
-        # Enhanced prompt
+        # Gap information
+        gap_text = ""
+        if gaps:
+            gap_descriptions = "\n".join([f"- {gap.get('gap_type', 'unknown')}: {gap.get('description', 'no description')}" for gap in gaps])
+            gap_text = f"\n\nNote: Some information gaps were identified:\n{gap_descriptions}\nAcknowledge these limitations in your response."
+        
+        # Enhanced prompt with gap awareness
         prompt = f"""
         You are a financial advisor. Answer the user's question using the provided facts and evidence.
         
@@ -502,10 +511,12 @@ class AgenticRAG:
         - Monthly Surplus: ${facts.get('monthly_surplus', 0):,.2f}
         - Age: {facts.get('_context', {}).get('age', 'unknown')}
         
-        Relevant Information:
+        Available Evidence (with search iteration details):
         {evidence_text}
+        {gap_text}
         
         Provide a clear, actionable answer. Be specific with numbers and recommendations.
+        If there are information gaps, acknowledge them and provide the best guidance possible with available data.
         """
         
         # Try to use a registered LLM provider
@@ -520,19 +531,36 @@ class AgenticRAG:
         llm_request = LLMRequest(
             provider=selected_provider,
             model_tier="dev",
-            system_prompt="You are a helpful financial advisor.",
+            system_prompt="You are a helpful financial advisor who acknowledges limitations.",
             user_prompt=prompt,
             temperature=0.3
         )
         llm_response = await llm_service.generate(llm_request)
         
-        # Determine confidence based on evidence
-        confidence = "HIGH" if len(evidence) >= 3 else "MEDIUM" if len(evidence) >= 1 else "LOW"
+        # Enhanced confidence assessment
+        base_confidence = min(len(evidence), 6) / 6.0  # 0.0 to 1.0 based on evidence count
+        gap_penalty = len(gaps) * 0.1 if gaps else 0.0
+        iteration_bonus = min(sum([e.get('iteration', 0) for e in evidence]) * 0.05, 0.2)
+        
+        final_confidence = max(0.2, min(1.0, base_confidence - gap_penalty + iteration_bonus))
+        
+        if final_confidence >= 0.75:
+            confidence_level = "HIGH"
+        elif final_confidence >= 0.5:
+            confidence_level = "MEDIUM"
+        else:
+            confidence_level = "LOW"
+        
+        warnings = []
+        if gaps:
+            warnings.append("information_gaps_identified")
         
         return {
             "response": llm_response.content,
-            "insight_cards": [],  # We'll add these in Phase 3
+            "insight_cards": [],  # Future enhancement
             "citations": [f"{e['source']}#{e['doc_id']}" for e in evidence],
-            "confidence": confidence,
-            "warnings": []
+            "confidence": confidence_level,
+            "warnings": warnings,
+            "gaps_identified": len(gaps),
+            "iterations_performed": max([e.get('iteration', 0) for e in evidence]) if evidence else 0
         }
