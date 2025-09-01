@@ -374,11 +374,14 @@ const FinancialAdvisorChat: React.FC = () => {
             }
 
             const data = await response.json();
+            
+            // Adapt response format if using new endpoint
+            const responseData = useNewChat ? adaptNewChatResponse(data) : data;
 
             // Store intelligence metrics if available
-            if (useIntelligentChat && data.intelligence_metrics) {
-                setIntelligenceMetrics(data.intelligence_metrics);
-                console.log('🧠 Intelligence metrics:', data.intelligence_metrics);
+            if (useIntelligentChat && responseData.intelligence_metrics) {
+                setIntelligenceMetrics(responseData.intelligence_metrics);
+                console.log('🧠 Intelligence metrics:', responseData.intelligence_metrics);
             }
 
             // Create assistant message
@@ -386,15 +389,18 @@ const FinancialAdvisorChat: React.FC = () => {
                 id: `msg_${Date.now()}_assistant`,
                 userId,
                 role: 'assistant',
-                content: data.message.content,
+                content: responseData.message.content,
                 timestamp: new Date(),
-                context: data.context_used,
-                tokenCount: data.tokens_used?.total || 0,
-                cost: data.cost_breakdown?.total || 0,
+                context: responseData.context_used,
+                tokenCount: responseData.tokens_used?.total || 0,
+                cost: responseData.cost_breakdown?.total || 0,
                 model: llmSettings.selectedModel,
                 provider: llmSettings.provider,
                 modelTier: llmSettings.modelTier,
-                sessionId: currentSession.sessionId
+                sessionId: responseData.session_id || currentSession.sessionId,
+                confidence: responseData.confidence,
+                assumptions: responseData.assumptions,
+                warnings: responseData.warnings
             };
 
             const finalMessages = [...updatedMessages, assistantMessage];
