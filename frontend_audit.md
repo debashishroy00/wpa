@@ -24,3 +24,15 @@ frontend/src/App.tsx:          const existingTokens = localStorage.getItem('auth
 frontend/src/App.tsx:          console.log('📋 Existing tokens:', existingTokens ? 'FOUND' : 'NOT FOUND')
 frontend/src/App.tsx:            console.log('🔧 Manually populating auth store from existing tokens')
 frontend/src/App.tsx:            const tokens = JSON.parse(existingTokens)
+
+## Response Handling
+frontend/src/components/Chat/ConversationHistory.tsx:      if (!response.ok) {
+frontend/src/components/Chat/ConversationHistory.tsx:        throw new Error(`Failed to load sessions: ${response.statusText}`);
+frontend/src/components/Chat/ConversationHistory.tsx:      const data = await response.json();
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:            if (response.ok) {
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:                const data = await response.json();
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:            if (response.ok) {
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:                const data = await response.json();
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:                const errorData = await response.json();
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:            if (!response.ok) {
+frontend/src/components/Chat/FinancialAdvisorChat.tsx:                const errorText = await response.text();
