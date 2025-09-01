@@ -36,7 +36,7 @@ api_router.include_router(debug.router, prefix="/debug", tags=["step7-debug"])
 # Profile endpoints for user demographics, family, benefits, and tax info
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 # Verification test endpoints for system health and fixes validation
-api_router.include_router(verification_test.router, prefix="/verify", tags=["verification"])
+# api_router.include_router(verification_test.router, prefix="/verify", tags=["verification"])  # Disabled - imports removed services
 # Admin endpoints for system administration (isolated)
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 # Hybrid embedding system endpoints
