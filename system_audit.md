@@ -8,3 +8,4 @@ Backend root endpoint:
 {"message":"WealthPath AI Backend is running","status":"healthy"}
 ### Backend Health Status:
 {"detail":"Not Found"}
+## 2. LLM STATUS echo ### LLM Registration Logs: docker-compose logs backend
