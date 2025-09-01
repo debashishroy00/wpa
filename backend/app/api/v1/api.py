@@ -28,7 +28,7 @@ api_router.include_router(advisor_data.router, prefix="/advisor", tags=["advisor
 api_router.include_router(plan_engine.router, prefix="/plan-engine", tags=["plan-engine"])
 api_router.include_router(advisory.router, prefix="/advisory", tags=["advisory"])
 # Step 5: Original LLM endpoints (working yesterday)
-api_router.include_router(llm.router, prefix="/llm", tags=["step5-llm"])
+# api_router.include_router(llm.router, prefix="/llm", tags=["step5-llm"])  # Disabled - imports removed services
 api_router.include_router(financial_clean.router, prefix="/financial", tags=["financial-clean"])
 api_router.include_router(vector_db.router, prefix="/vector", tags=["vector-database"])
 # Step 6: New chat endpoints (separate from Step 5)
