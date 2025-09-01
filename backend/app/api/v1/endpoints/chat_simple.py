@@ -19,6 +19,7 @@ from app.services.llm_service import llm_service
 from app.models.llm_models import LLMRequest
 from app.services.chat_memory_service import ChatMemoryService
 from app.services.agentic_rag import AgenticRAG
+from app.api.v1.endpoints.debug import store_llm_payload
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
