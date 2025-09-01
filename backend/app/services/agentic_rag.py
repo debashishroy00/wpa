@@ -19,6 +19,14 @@ from app.models.llm_models import LLMRequest
 
 logger = logging.getLogger(__name__)
 
+# Import debug payload storage
+try:
+    from app.api.v1.endpoints.debug import store_llm_payload
+except ImportError:
+    # Fallback if debug module not available
+    def store_llm_payload(user_id, payload):
+        pass
+
 class QueryParser:
     """Phase 1: Simple query parser - extract basic intent."""
     
