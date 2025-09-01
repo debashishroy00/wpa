@@ -88,7 +88,7 @@ async def test_phase3():
     
     # Phase 3 Summary Analysis
     print(f"\n{'='*80}")
-    print(f"📈 PHASE 3 ANALYSIS SUMMARY")
+    print(f"PHASE 3 ANALYSIS SUMMARY")
     print('='*80)
     
     successful_tests = [r for r in results_summary if r['success']]
@@ -96,11 +96,11 @@ async def test_phase3():
     total_gaps = sum([r['gaps'] for r in successful_tests])
     high_confidence = len([r for r in successful_tests if r['confidence'] == 'HIGH'])
     
-    print(f"✅ Successful tests: {len(successful_tests)}/{len(results_summary)}")
-    print(f"🔄 Total iterations performed: {total_iterations}")
-    print(f"🧠 Total gaps identified: {total_gaps}")
-    print(f"📊 HIGH confidence responses: {high_confidence}/{len(successful_tests)}")
-    print(f"📚 Average citations per response: {sum([r['citations'] for r in successful_tests])/len(successful_tests) if successful_tests else 0:.1f}")
+    print(f"Successful tests: {len(successful_tests)}/{len(results_summary)}")
+    print(f"Total iterations performed: {total_iterations}")
+    print(f"Total gaps identified: {total_gaps}")
+    print(f"HIGH confidence responses: {high_confidence}/{len(successful_tests)}")
+    print(f"Average citations per response: {sum([r['citations'] for r in successful_tests])/len(successful_tests) if successful_tests else 0:.1f}")
     
     # Phase 3 Feature Verification
     iterative_refinement_working = total_iterations > 0
