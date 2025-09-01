@@ -122,6 +122,21 @@ class FinancialSummaryService:
             # Calculate debt-to-income ratio
             debt_to_income_ratio = (monthly_debt_payments / float(monthly_income)) * 100 if monthly_income > 0 else 0
             
+            # Calculate specific asset totals for IdentityMath
+            liquid_assets = 0.0
+            investment_total = 0.0 
+            retirement_total = 0.0
+            
+            for category, assets in assets_by_category.items():
+                category_total = sum(asset['value'] for asset in assets)
+                
+                if category in ['cash', 'checking', 'savings', 'money_market']:
+                    liquid_assets += category_total
+                elif category in ['investments', 'stocks', 'bonds', 'mutual_funds', 'etfs', 'brokerage']:
+                    investment_total += category_total
+                elif category in ['retirement', '401k', '403b', 'ira', 'roth_ira', 'pension']:
+                    retirement_total += category_total
+            
             # Build summary
             summary = {
                 'netWorth': float(net_worth),
@@ -135,7 +150,12 @@ class FinancialSummaryService:
                 'savingsRate': savings_rate,
                 'assetsBreakdown': assets_by_category,
                 'liabilitiesBreakdown': liabilities,
-                # Add 401k contribution data for tax calculations
+                # Add fields that IdentityMath expects
+                'liquidAssets': liquid_assets,
+                'investmentTotal': investment_total,
+                'retirementTotal': retirement_total,
+                'annual401k': float(monthly_401k_contribution * 12),
+                # Keep existing 401k fields for backwards compatibility
                 'monthly401kContribution': float(monthly_401k_contribution),
                 'annual401kContribution': float(monthly_401k_contribution * 12)
             }
