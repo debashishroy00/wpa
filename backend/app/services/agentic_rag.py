@@ -238,6 +238,232 @@ class AgenticRAG:
         
         return context
     
+    async def _execute_plan_with_refinement(self, plan: Dict, user_id: int, facts: Dict, original_query: str) -> Dict:
+        """Phase 3: Execute plan with iterative refinement and sufficiency checking."""
+        context = {
+            "rules": [],
+            "facts": facts,
+            "search_results": [],
+            "gaps": [],
+            "iterations": 0
+        }
+        
+        # Execute initial plan
+        for step in plan["steps"]:
+            logger.info(f"Executing initial step {step.get('step', 0)}: {step.get('question', '')}")
+            
+            results = await self.vector_store.query(
+                index=step.get("index", "authority"),
+                query=step.get("search_query", plan["original_query"]),
+                filters={"limit": 3}
+            )
+            
+            for result in results:
+                context["search_results"].append({
+                    "text": result.get("text", ""),
+                    "source": result.get("source", "unknown"),
+                    "doc_id": result.get("doc_id", "unknown"),
+                    "score": result.get("score", 0.0),
+                    "from_step": step.get("step", 0),
+                    "iteration": 0
+                })
+        
+        # Iterative refinement
+        for iteration in range(1, self.max_iterations + 1):
+            logger.info(f"Starting refinement iteration {iteration}")
+            context["iterations"] = iteration
+            
+            # Assess sufficiency
+            sufficiency = await self._assess_sufficiency(original_query, context, facts)
+            logger.info(f"Sufficiency assessment - sufficient: {sufficiency['sufficient']}, gaps: {len(sufficiency['gaps'])}")
+            
+            if sufficiency["sufficient"]:
+                logger.info("Information deemed sufficient, stopping refinement")
+                break
+            
+            # Store gaps for response generation
+            context["gaps"] = sufficiency["gaps"]
+            
+            # Generate follow-up searches
+            follow_ups = await self._generate_follow_up_searches(original_query, sufficiency["gaps"], facts)
+            logger.info(f"Generated {len(follow_ups)} follow-up searches")
+            
+            # Execute follow-up searches
+            for search in follow_ups:
+                logger.info(f"Executing follow-up search: {search['query']}")
+                
+                results = await self.vector_store.query(
+                    index="authority",
+                    query=search["query"],
+                    filters={"limit": 2}  # Fewer results per follow-up
+                )
+                
+                for result in results:
+                    context["search_results"].append({
+                        "text": result.get("text", ""),
+                        "source": result.get("source", "unknown"),
+                        "doc_id": result.get("doc_id", "unknown"),
+                        "score": result.get("score", 0.0) + 0.1,  # Bonus for follow-up
+                        "from_step": search.get("for_gap", "follow_up"),
+                        "iteration": iteration,
+                        "gap_target": search.get("gap_type", "unknown")
+                    })
+        
+        return context
+    
+    async def _assess_sufficiency(self, query: str, context: Dict, facts: Dict) -> Dict:
+        """Phase 3: Assess if we have sufficient information to answer the query."""
+        evidence_text = "\n".join([f"- {r['text'][:200]}..." for r in context["search_results"][:5]])
+        
+        assessment_prompt = f"""
+        Assess if we have sufficient information to answer this financial question comprehensively.
+        
+        Query: {query}
+        
+        User Context:
+        - Age: {facts.get('_context', {}).get('age', 'unknown')}
+        - Net Worth: ${facts.get('net_worth', 0):,.2f}
+        - State: {facts.get('_context', {}).get('state', 'unknown')}
+        
+        Available Evidence:
+        {evidence_text}
+        
+        Return JSON with this structure:
+        {{
+            "sufficient": true/false,
+            "confidence": 0.0-1.0,
+            "gaps": [
+                {{"gap_type": "tax_implications", "description": "Missing state tax information"}},
+                {{"gap_type": "timeline", "description": "No retirement timeline specified"}}
+            ],
+            "reasoning": "Brief explanation"
+        }}
+        
+        Consider gaps in: tax implications, timeline/age factors, risk tolerance, state-specific rules, income details, expense analysis.
+        """
+        
+        try:
+            available_providers = ["openai", "gemini", "claude"]
+            selected_provider = "openai"
+            
+            for provider in available_providers:
+                if provider in llm_service.clients:
+                    selected_provider = provider
+                    break
+            
+            llm_request = LLMRequest(
+                provider=selected_provider,
+                model_tier="dev",
+                system_prompt="You are an assessment engine. Return only valid JSON.",
+                user_prompt=assessment_prompt,
+                temperature=0.2
+            )
+            llm_response = await llm_service.generate(llm_request)
+            
+            assessment = json.loads(llm_response.content)
+            return assessment
+            
+        except Exception as e:
+            logger.warning(f"Sufficiency assessment failed: {e}")
+            # Conservative fallback - always assume more info might be helpful
+            return {
+                "sufficient": len(context["search_results"]) >= 4,
+                "confidence": 0.6,
+                "gaps": [{"gap_type": "general", "description": "Assessment unavailable"}],
+                "reasoning": "Fallback assessment"
+            }
+    
+    async def _generate_follow_up_searches(self, original_query: str, gaps: List[Dict], facts: Dict) -> List[Dict]:
+        """Phase 3: Generate targeted follow-up searches based on identified gaps."""
+        if not gaps:
+            return []
+        
+        gap_descriptions = "\n".join([f"- {gap['gap_type']}: {gap['description']}" for gap in gaps])
+        
+        follow_up_prompt = f"""
+        Generate 1-2 specific follow-up search queries to fill these information gaps.
+        
+        Original Query: {original_query}
+        
+        Identified Gaps:
+        {gap_descriptions}
+        
+        User Context:
+        - Age: {facts.get('_context', {}).get('age', 'unknown')}
+        - State: {facts.get('_context', {}).get('state', 'unknown')}
+        
+        Return JSON array:
+        [
+            {{"query": "specific search query", "gap_type": "tax_implications", "for_gap": "tax rules"}},
+            {{"query": "another search query", "gap_type": "timeline", "for_gap": "retirement planning"}}
+        ]
+        
+        Keep searches specific and actionable.
+        """
+        
+        try:
+            available_providers = ["openai", "gemini", "claude"]
+            selected_provider = "openai"
+            
+            for provider in available_providers:
+                if provider in llm_service.clients:
+                    selected_provider = provider
+                    break
+            
+            llm_request = LLMRequest(
+                provider=selected_provider,
+                model_tier="dev",
+                system_prompt="You are a search query generator. Return only valid JSON.",
+                user_prompt=follow_up_prompt,
+                temperature=0.3
+            )
+            llm_response = await llm_service.generate(llm_request)
+            
+            follow_ups = json.loads(llm_response.content)
+            return follow_ups[:2]  # Limit to 2 follow-ups
+            
+        except Exception as e:
+            logger.warning(f"Follow-up generation failed: {e}")
+            # Simple fallback based on gaps
+            fallback_searches = []
+            for gap in gaps[:2]:
+                fallback_searches.append({
+                    "query": f"{original_query} {gap['gap_type']} considerations",
+                    "gap_type": gap["gap_type"],
+                    "for_gap": gap["description"]
+                })
+            return fallback_searches
+    
+    def _rank_and_package_evidence(self, context: Dict) -> List[Dict]:
+        """Phase 3: Smart evidence ranking with iteration bonuses."""
+        evidence = []
+        
+        for result in context["search_results"]:
+            # Base score
+            score = result.get("score", 0.0)
+            
+            # Iteration bonus (later iterations get bonus for gap-filling)
+            iteration_bonus = result.get("iteration", 0) * 0.05
+            
+            # Gap-targeting bonus
+            gap_bonus = 0.1 if result.get("gap_target") else 0.0
+            
+            # Final score
+            final_score = score + iteration_bonus + gap_bonus
+            
+            evidence.append({
+                "text": result["text"][:500],
+                "source": result["source"],
+                "doc_id": result["doc_id"],
+                "score": final_score,
+                "iteration": result.get("iteration", 0),
+                "gap_target": result.get("gap_target")
+            })
+        
+        # Sort by final score and take top chunks
+        evidence.sort(key=lambda x: x["score"], reverse=True)
+        return evidence[:self.max_chunks]
+    
     def _package_evidence(self, context: Dict) -> List[Dict]:
         """Enhanced evidence packaging."""
         evidence = []
