@@ -54,13 +54,40 @@ async def lifespan(app: FastAPI):
     # Create database tables (tables already created via Alembic)
     logger.info("Database connection verified")
     
-    # Initialize LLM clients
+    # Initialize LLM clients at startup (ensures they're available for all endpoints)
     try:
-        from app.services.llm_service import llm_service as MultiLLMService
-        # Register a basic provider for testing
-        logger.info("LLM service available for new endpoints")
+        from app.services.llm_service import llm_service
+        from app.core.config import settings
+        
+        # Register OpenAI client if API key is available
+        if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+            from app.services.llm_clients.openai_client import OpenAIClient
+            openai_client = OpenAIClient(llm_service.providers["openai"])
+            llm_service.register_client("openai", openai_client)
+            logger.info("✅ OpenAI client registered at startup")
+        
+        # Register Gemini client if API key is available
+        if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+            from app.services.llm_clients.gemini_client import GeminiClient
+            gemini_client = GeminiClient(llm_service.providers["gemini"])
+            llm_service.register_client("gemini", gemini_client)
+            logger.info("✅ Gemini client registered at startup")
+        
+        # Register Anthropic/Claude client if API key is available
+        if hasattr(settings, 'ANTHROPIC_API_KEY') and settings.ANTHROPIC_API_KEY:
+            try:
+                from app.services.llm_clients.claude_client import ClaudeClient
+                claude_client = ClaudeClient(llm_service.providers["claude"])
+                llm_service.register_client("claude", claude_client)
+                logger.info("✅ Claude client registered at startup")
+            except ImportError:
+                logger.info("Claude client not available")
+        
+        registered_clients = list(llm_service.clients.keys())
+        logger.info(f"LLM service initialized with clients: {registered_clients}")
+        
     except Exception as e:
-        logger.warning(f"LLM service initialization skipped: {e}")
+        logger.warning(f"LLM service initialization failed: {e}")
     
     yield
     
