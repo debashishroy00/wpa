@@ -188,7 +188,7 @@ async def test_caching_with_refinement():
     db.close()
 
 if __name__ == "__main__":
-    print("🧪 WealthPath AI - Agentic RAG Phase 3 Tests")
+    print("WealthPath AI - Agentic RAG Phase 3 Tests")
     print("=" * 80)
     
     async def run_all_phase3_tests():
