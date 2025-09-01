@@ -110,6 +110,7 @@ async def chat_message(
             )
         else:
             # General chat
+            logger.info(f"💬 Processing as general chat (no financial context)")
             llm_request = LLMRequest(
                 provider="openai",  # Default provider
                 system_prompt="Helpful assistant",
