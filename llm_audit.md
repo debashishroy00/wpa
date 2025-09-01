@@ -130,3 +130,17 @@ backend/app/api/v1/endpoints/llm.py-            # Stream response
 backend/app/api/v1/endpoints/llm.py-            yield f"data: {json.dumps({'status': 'completed', 'content': advisory_content.dict()})}\n\n"
 backend/app/api/v1/endpoints/llm.py-            
 backend/app/api/v1/endpoints/llm.py-        except Exception as e:
+
+## Environment Configuration
+backend/app/api/v1/endpoints/chat_with_memory.py:    if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+backend/app/api/v1/endpoints/chat_with_memory.py:        if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+backend/app/api/v1/endpoints/embeddings.py:                "openai_key_present": bool(getattr(settings, 'OPENAI_API_KEY', None)),
+backend/app/api/v1/endpoints/llm.py:        if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+backend/app/api/v1/endpoints/llm.py:        if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
+backend/app/api/v1/endpoints/llm.py:        if hasattr(settings, 'ANTHROPIC_API_KEY') and settings.ANTHROPIC_API_KEY:
+backend/app/core/config.py:    OPENAI_API_KEY: str = ""
+backend/app/core/config.py:    GEMINI_API_KEY: str = ""
+backend/app/core/config.py:    ANTHROPIC_API_KEY: str = ""
+backend/app/services/llm_clients/claude_client.py:        self.api_key = getattr(settings, 'ANTHROPIC_API_KEY', None)
+backend/app/services/llm_clients/gemini_client.py:        self.api_key = getattr(settings, 'GEMINI_API_KEY', None)
+backend/app/services/llm_clients/openai_client.py:            api_key=getattr(settings, 'OPENAI_API_KEY', None)
