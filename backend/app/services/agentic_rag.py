@@ -608,6 +608,22 @@ class AgenticRAG:
         )
         llm_response = await llm_service.generate(llm_request)
         
+        # Store LLM payload for debugging
+        store_llm_payload(user_id, {
+            "query": message,
+            "provider": selected_provider,
+            "model_tier": "dev",
+            "system_prompt": "You are a helpful financial advisor who acknowledges limitations.",
+            "user_message": prompt,
+            "context_used": json.dumps({
+                "agentic_rag_used": True,
+                "evidence_count": len(evidence),
+                "gaps_identified": len(gaps),
+                "iterations_performed": max([e.get('iteration', 0) for e in evidence]) if evidence else 0
+            }),
+            "llm_response": llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
+        })
+        
         # Enhanced confidence assessment
         base_confidence = min(len(evidence), 6) / 6.0  # 0.0 to 1.0 based on evidence count
         gap_penalty = len(gaps) * 0.1 if gaps else 0.0
