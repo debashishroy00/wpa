@@ -132,8 +132,17 @@ class AgenticRAG:
                 })
             
             # Step 5: Basic LLM response (no fancy prompting yet)
+            # Try to use a registered LLM provider (fallback to openai if gemini not available)
+            available_providers = ["openai", "gemini", "claude"]
+            selected_provider = "openai"  # Default fallback
+            
+            for provider in available_providers:
+                if provider in llm_service.clients:
+                    selected_provider = provider
+                    break
+            
             llm_request = LLMRequest(
-                provider="gemini",
+                provider=selected_provider,
                 model_tier="dev", 
                 system_prompt="You are a financial advisor. Answer based on the context provided.",
                 user_prompt=f"Context: {json.dumps(facts)[:1000]}\n\nQuestion: {message}",
