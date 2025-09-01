@@ -42,6 +42,9 @@ interface Message {
     provider: 'openai' | 'gemini' | 'claude';
     modelTier: 'dev' | 'prod';
     sessionId: string;
+    confidence?: string;
+    assumptions?: string[];
+    warnings?: string[];
 }
 
 interface ChatSession {
