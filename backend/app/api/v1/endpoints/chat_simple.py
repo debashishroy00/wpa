@@ -86,7 +86,26 @@ async def chat_message(
                     session_id=request.session_id or "new"
                 )
             
-            # Build prompt with facts
+            # Search vector store for relevant context
+            try:
+                from app.services.simple_vector_store import simple_vector_store
+                relevant_docs = simple_vector_store.search(
+                    query=request.message,
+                    user_id=current_user.id,
+                    limit=3
+                )
+                vector_context = "\n".join([
+                    f"- {doc.get('content', doc.get('text', str(doc)))}" 
+                    for doc in relevant_docs if doc
+                ])
+                if not vector_context:
+                    vector_context = "No relevant historical context found."
+                logger.info(f"📚 Vector context: {len(vector_context)} chars from {len(relevant_docs)} docs")
+            except Exception as e:
+                logger.warning(f"Vector search failed: {e}")
+                vector_context = "Vector search unavailable."
+            
+            # Build prompt with facts + vector context
             prompt = core_prompts.format_prompt(
                 prompt_type=insight_type,
                 claims=facts,
@@ -95,11 +114,21 @@ async def chat_message(
                 filing_status=facts["_context"].get("filing_status")
             )
             
+            # Enhanced prompt with vector context
+            enhanced_prompt = f"""
+{prompt}
+
+RELEVANT CONTEXT FROM YOUR FINANCIAL HISTORY:
+{vector_context}
+
+INSTRUCTIONS: Use the above context to provide personalized, specific advice based on the user's actual financial history and preferences, not generic recommendations.
+"""
+            
             # Get LLM response
             llm_request = LLMRequest(
                 provider="openai",  # Default provider
-                system_prompt="Financial advisor using only provided facts",
-                user_prompt=f"{prompt}\n\nUser: {request.message}",
+                system_prompt="Financial advisor using provided facts and user's financial history",
+                user_prompt=f"{enhanced_prompt}\n\nUser: {request.message}",
                 temperature=0.3
             )
             response = await llm_service.generate(llm_request)
