@@ -82,14 +82,14 @@ class IdentityMath:
                 "years_to_fi": 0.0,  # calculation based on savings rate
                 "investment_allocation": 0.0,  # investment_total / total_assets
                 
-                # Context for LLM reasoning
+                # Context for LLM reasoning - from user profile
                 "_context": {
-                    "age": _int(data.get("age")),
-                    "state": _str(data.get("state")),
-                    "filing_status": _str(data.get("filingStatus")),
-                    "dependents": _int(data.get("dependents")),
-                    "marital_status": _str(data.get("maritalStatus")),
-                    "risk_tolerance": _str(data.get("riskTolerance"))
+                    "age": user_profile.age if user_profile and user_profile.age else None,
+                    "state": user_profile.state if user_profile and user_profile.state else None,
+                    "filing_status": self._map_marital_to_filing(user_profile.marital_status) if user_profile and user_profile.marital_status else None,
+                    "dependents": _int(data.get("dependents")),  # From financial data for now
+                    "marital_status": user_profile.marital_status if user_profile and user_profile.marital_status else None,
+                    "risk_tolerance": user_profile.risk_tolerance if user_profile and user_profile.risk_tolerance else None
                 },
                 
                 # Evidence trail
