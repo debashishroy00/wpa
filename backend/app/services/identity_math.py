@@ -173,12 +173,15 @@ class IdentityMath:
         if "asOf" not in raw_data:
             facts["_warnings"].append("missing_as_of_date")
             
-        # Track missing context
+        # Track missing context and provide reasonable defaults
         if not facts["_context"]["age"]:
             facts["_missing"].append("age")
+            facts["_context"]["age"] = 45  # Default working age for financial planning
         if not facts["_context"]["state"]:
-            facts["_missing"].append("state")
+            facts["_missing"].append("state") 
+            facts["_context"]["state"] = "CA"  # Default to California for tax calculations
         if not facts["_context"]["filing_status"]:
             facts["_missing"].append("filing_status")
+            facts["_context"]["filing_status"] = "married_filing_jointly"  # Common default
 
 # No singleton - create instances as needed
