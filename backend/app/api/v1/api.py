@@ -9,7 +9,7 @@ from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, 
 # Temporarily disabled endpoints that import removed services:
 # projections, verification_test, tax
 # Keep original LLM endpoints for Step 5 (working yesterday)
-from app.api.v1.endpoints import llm
+# from app.api.v1.endpoints import llm  # Disabled - imports removed calculation_validator
 # Import the missing endpoints
 from app.api.v1.endpoints import estate_planning, insurance, investment_preferences
 
