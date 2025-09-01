@@ -37,21 +37,8 @@ class IdentityMath:
         """Returns raw facts and mathematical identities only"""
         try:
             # Get raw data
-            try:
-                from app.services.financial_summary_service import financial_summary_service
-                data = financial_summary_service.get_user_financial_summary(user_id, db)
-            except ImportError:
-                # Fallback with sample data for testing
-                logger.warning("Using fallback data - financial_summary_service not available")
-                data = {
-                    "totalAssets": 256000,
-                    "totalLiabilities": 45000,
-                    "monthlyIncome": 8500,
-                    "monthlyExpenses": 6200,
-                    "age": 35,
-                    "state": "CA",
-                    "filingStatus": "single"
-                }
+            from app.services.financial_summary_service import financial_summary_service
+            data = financial_summary_service.get_user_financial_summary(user_id, db)
             
             if not data:
                 return {"error": "No data", "_warnings": ["no_data"]}
