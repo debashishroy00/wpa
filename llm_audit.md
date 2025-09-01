@@ -1,0 +1,2 @@
+=== LLM INTEGRATION AUDIT ===
+Generated: Sun, Aug 31, 2025 11:41:32 PM
