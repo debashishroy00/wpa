@@ -252,11 +252,20 @@ class AgenticRAG:
         for step in plan["steps"]:
             logger.info(f"Executing initial step {step.get('step', 0)}: {step.get('question', '')}")
             
+            search_query = step.get("search_query", plan["original_query"])
             results = await self.vector_store.query(
                 index=step.get("index", "authority"),
-                query=step.get("search_query", plan["original_query"]),
+                query=search_query,
                 filters={"limit": 3}
             )
+            
+            # ADD DEBUG LOGGING
+            logger.info(f"Vector search returned {len(results)} results for query: '{search_query}'")
+            if results:
+                logger.info(f"First result preview: {results[0].get('text', '')[:100]}...")
+                logger.info(f"Result sources: {[r.get('source', 'unknown') for r in results]}")
+            else:
+                logger.warning(f"No results returned for search query: '{search_query}'")
             
             for result in results:
                 context["search_results"].append({
