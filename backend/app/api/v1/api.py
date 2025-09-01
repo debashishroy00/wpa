@@ -32,7 +32,7 @@ api_router.include_router(llm.router, prefix="/llm", tags=["step5-llm"])
 api_router.include_router(financial_clean.router, prefix="/financial", tags=["financial-clean"])
 api_router.include_router(vector_db.router, prefix="/vector", tags=["vector-database"])
 # Step 6: New chat endpoints (separate from Step 5)
-api_router.include_router(chat.router, prefix="/chat", tags=["step6-chat"])
+# api_router.include_router(chat.router, prefix="/chat", tags=["step6-chat"])  # Disabled - imports removed services
 # Step 7: Debug endpoints for visibility
 api_router.include_router(debug.router, prefix="/debug", tags=["step7-debug"])
 # Profile endpoints for user demographics, family, benefits, and tax info
