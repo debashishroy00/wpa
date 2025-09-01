@@ -616,6 +616,7 @@ class AgenticRAG:
         intent_type = intent.get("intent", "GENERAL_FINANCIAL")
         system_prompt = core_prompts.format_prompt(
             prompt_type=intent_type,
+            user_query=message,  # Pass the actual user question
             claims=facts,
             age=facts.get("_context", {}).get("age"),
             state=facts.get("_context", {}).get("state"),
