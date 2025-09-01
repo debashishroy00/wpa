@@ -600,10 +600,20 @@ class AgenticRAG:
                 selected_provider = provider
                 break
         
+        # Generate proper system prompt using CorePrompts
+        intent_type = intent.get("intent", "GENERAL_FINANCIAL")
+        system_prompt = core_prompts.format_prompt(
+            prompt_type=intent_type,
+            claims=facts,
+            age=facts.get("_context", {}).get("age"),
+            state=facts.get("_context", {}).get("state"),
+            filing_status=facts.get("_context", {}).get("filing_status")
+        )
+        
         llm_request = LLMRequest(
             provider=selected_provider,
             model_tier="dev",
-            system_prompt="You are a helpful financial advisor who acknowledges limitations.",
+            system_prompt=system_prompt,
             user_prompt=prompt,
             temperature=0.3
         )
