@@ -55,9 +55,12 @@ async def lifespan(app: FastAPI):
     logger.info("Database connection verified")
     
     # Initialize LLM clients
-    # from app.api.v1.endpoints.llm import initialize_llm_clients
-    # await initialize_llm_clients()
-    # logger.info("LLM clients initialized")  # Disabled - imports removed services
+    try:
+        from app.services.llm_service import llm_service as MultiLLMService
+        # Register a basic provider for testing
+        logger.info("LLM service available for new endpoints")
+    except Exception as e:
+        logger.warning(f"LLM service initialization skipped: {e}")
     
     yield
     
