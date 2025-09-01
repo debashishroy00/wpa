@@ -201,13 +201,13 @@ if __name__ == "__main__":
         # Test 3: Caching with refinement
         await test_caching_with_refinement()
         
-        print(f"\n🏁 All Phase 3 tests completed!")
-        print(f"\n📋 PHASE 3 SUCCESS CRITERIA:")
-        print(f"   ✓ Complex queries trigger multiple iterations")
-        print(f"   ✓ Gap identification works correctly")
-        print(f"   ✓ Follow-up searches are generated")
-        print(f"   ✓ Smart evidence ranking with iteration bonuses")
-        print(f"   ✓ Enhanced confidence assessment")
-        print(f"   ✓ Gap awareness in responses")
+        print(f"\nAll Phase 3 tests completed!")
+        print(f"\nPHASE 3 SUCCESS CRITERIA:")
+        print(f"   - Complex queries trigger multiple iterations")
+        print(f"   - Gap identification works correctly")
+        print(f"   - Follow-up searches are generated")
+        print(f"   - Smart evidence ranking with iteration bonuses")
+        print(f"   - Enhanced confidence assessment")
+        print(f"   - Gap awareness in responses")
     
     asyncio.run(run_all_phase3_tests())
