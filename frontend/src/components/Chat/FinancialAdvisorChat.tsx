@@ -27,6 +27,7 @@ import LLMProviderSettings from './LLMProviderSettings';
 import LLMSettingsService, { ChatSettings } from '../../services/LLMSettingsService';
 import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
+import { adaptNewChatResponse, shouldUseNewEndpoint } from '../../utils/chatAdapter';
 
 interface Message {
     id: string;
