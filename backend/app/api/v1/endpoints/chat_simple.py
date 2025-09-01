@@ -23,6 +23,9 @@ from app.services.agentic_rag import AgenticRAG
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Initialize Agentic RAG once
+agentic_rag = AgenticRAG()
+
 # Initialize LLM service with clients on first import
 try:
     from app.services.llm_service import llm_service
