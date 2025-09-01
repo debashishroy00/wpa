@@ -65,11 +65,13 @@ async def chat_message(
             )
             
             # Get LLM response
-            response = await llm_service.generate(
+            llm_request = LLMRequest(
+                provider="openai",  # Default provider
                 system_prompt="Financial advisor using only provided facts",
                 user_prompt=f"{prompt}\n\nUser: {request.message}",
                 temperature=0.3
             )
+            response = await llm_service.generate(llm_request)
             
             # Validate
             engine = TrustEngine()
