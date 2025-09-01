@@ -66,10 +66,13 @@ async def chat_message(
         
         if insight_type != "general_chat":
             # Financial question - use facts + LLM
+            logger.info(f"🔬 Processing financial question with IdentityMath...")
             math = IdentityMath()
             facts = math.compute_claims(current_user.id, db)
+            logger.info(f"📊 Got facts: {len(facts)} fields")
             
             if "error" in facts:
+                logger.error(f"❌ IdentityMath error: {facts['error']}")
                 return ChatResponse(
                     response="Please update your financial profile first.",
                     confidence="LOW",
