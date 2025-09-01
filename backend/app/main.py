@@ -57,6 +57,7 @@ async def lifespan(app: FastAPI):
     # Initialize LLM clients at startup (ensures they're available for all endpoints)
     try:
         from app.services.llm_service import llm_service
+        from app.core.config import settings
         
         # Register OpenAI client if API key is available
         if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
