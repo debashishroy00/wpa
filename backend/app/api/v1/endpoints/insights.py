@@ -21,7 +21,7 @@ from app.models.llm_models import LLMRequest
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Initialize LLM service with clients (same pattern as working chat_with_memory.py)  
+# Initialize LLM service with clients on first import
 try:
     from app.services.llm_service import llm_service
     from app.services.llm_clients.openai_client import OpenAIClient
@@ -31,7 +31,7 @@ try:
     if hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
         openai_client = OpenAIClient(llm_service.providers["openai"])
         llm_service.register_client("openai", openai_client)
-        logger.info("✅ OpenAI client registered for insights")
+        logger.info("OpenAI client registered for insights")
     
     # Try Gemini client
     try:
@@ -39,12 +39,12 @@ try:
         if hasattr(settings, 'GEMINI_API_KEY') and settings.GEMINI_API_KEY:
             gemini_client = GeminiClient(llm_service.providers["gemini"])
             llm_service.register_client("gemini", gemini_client)
-            logger.info("✅ Gemini client registered for insights")
+            logger.info("Gemini client registered for insights")
     except ImportError:
-        logger.info("Gemini client not available for insights")
+        logger.info("Gemini client not available")
 
 except ImportError as e:
-    logger.warning(f"LLM service initialization failed for insights: {e}")
+    logger.warning(f"LLM service initialization failed: {e}")
     llm_service = None
 
 class InsightRequest(BaseModel):
