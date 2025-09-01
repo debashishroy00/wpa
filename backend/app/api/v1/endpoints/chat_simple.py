@@ -225,6 +225,23 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             )
             response = await llm_service.generate(llm_request)
             
+            # Store LLM payload for debugging
+            store_llm_payload(current_user.id, {
+                "query": request.message,
+                "provider": request.provider,
+                "model_tier": request.model_tier,
+                "system_prompt": "Financial advisor using provided facts and user's financial history",
+                "user_message": f"{enhanced_prompt}\n\nUser: {request.message}",
+                "context_used": json.dumps({
+                    "financial_data_included": True,
+                    "conversation_context_included": bool(conversation_context.get("recent_messages")),
+                    "vector_context_included": bool(vector_context_items),
+                    "vector_context_items": len(vector_context_items) if vector_context_items else 0,
+                    "facts_keys": list(facts.keys()) if facts else []
+                }),
+                "llm_response": response.content if hasattr(response, 'content') else str(response)
+            })
+            
             # Validate
             engine = TrustEngine()
             validated = engine.validate(response.content, facts)
