@@ -281,6 +281,22 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             )
             response = await llm_service.generate(llm_request)
             
+            # Store LLM payload for debugging
+            store_llm_payload(current_user.id, {
+                "query": request.message,
+                "provider": request.provider,
+                "model_tier": request.model_tier,
+                "system_prompt": "Helpful assistant",
+                "user_message": request.message,
+                "context_used": json.dumps({
+                    "financial_data_included": False,
+                    "conversation_context_included": False,
+                    "vector_context_included": False,
+                    "chat_type": "general_chat"
+                }),
+                "llm_response": response.content if hasattr(response, 'content') else str(response)
+            })
+            
             # Save conversation to memory
             memory_service.add_message_pair(
                 session=session,
