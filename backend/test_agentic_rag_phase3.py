@@ -12,7 +12,7 @@ from app.db.session import SessionLocal
 
 async def test_phase3():
     """Test Phase 3 iterative refinement and sufficiency checking."""
-    print("🚀 Starting Phase 3 Agentic RAG tests...")
+    print("Starting Phase 3 Agentic RAG tests...")
     print("Testing iterative refinement and sufficiency checking")
     
     rag = AgenticRAG()
