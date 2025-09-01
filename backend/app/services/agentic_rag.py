@@ -1,12 +1,15 @@
 """
-Agentic RAG for WealthPath AI - Phase 1: Foundation
-Start simple, test everything works, then build up.
+Agentic RAG for WealthPath AI - Phase 2: Query Decomposition & Smart Planning
+Adds intelligent query planning and multi-step execution.
 """
 
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 import logging
 import json
+import asyncio
+from datetime import datetime
+from hashlib import md5
 
 from app.services.identity_math import IdentityMath
 from app.services.simple_vector_store import SimpleVectorStore
