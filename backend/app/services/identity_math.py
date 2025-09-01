@@ -67,6 +67,15 @@ class IdentityMath:
                 "net_worth": 0.0,  # Will be calculated below
                 "monthly_surplus": 0.0,  # Will be calculated below
                 
+                # Derived financial metrics for LLM context
+                "savings_rate": 0.0,  # monthly_surplus / monthly_income
+                "debt_to_asset_ratio": 0.0,  # total_liabilities / total_assets
+                "liquid_months": 0.0,  # liquid_assets / monthly_expenses
+                "fi_number": 0.0,  # monthly_expenses * 12 * 25 (4% rule)
+                "fi_progress": 0.0,  # net_worth / fi_number
+                "years_to_fi": 0.0,  # calculation based on savings rate
+                "investment_allocation": 0.0,  # investment_total / total_assets
+                
                 # Context for LLM reasoning
                 "_context": {
                     "age": _int(data.get("age")),
