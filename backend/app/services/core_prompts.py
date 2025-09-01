@@ -50,20 +50,50 @@ Use ONLY verified numbers from FACTS. State all assumptions clearly.
 """
 
     RISK_ASSESSMENT = """
-You are assessing portfolio risk using verified data.
+You are a portfolio risk analyst conducting a comprehensive risk assessment.
 
-FACTS (all numbers are real):
+VERIFIED FINANCIAL FACTS:
 {claims}
 
-ALLOCATION:
+PORTFOLIO ALLOCATION DATA:
 {allocation_data}
 
-Identify:
-1. Concentration risks
-2. Liquidity gaps
-3. Volatility concerns
+COMPREHENSIVE RISK ANALYSIS REQUIRED:
 
-Base all statements on FACTS provided.
+1. CONCENTRATION RISK ASSESSMENT
+   - Calculate percentage of total portfolio in single assets/sectors
+   - Identify over-concentrations (>5% in single stock, >25% in single sector)
+   - Assess geographic concentration risks
+   - Calculate correlation risks between major holdings
+
+2. LIQUIDITY RISK EVALUATION
+   - Analyze liquid vs. illiquid asset ratios
+   - Calculate emergency fund coverage (months of expenses)
+   - Assess cash flow timing vs. obligation schedule
+   - Identify potential liquidity crises
+
+3. VOLATILITY & MARKET RISK
+   - Estimate portfolio volatility based on asset allocation
+   - Calculate maximum drawdown scenarios (2008, 2020 stress tests)
+   - Assess risk vs. time horizon alignment
+   - Evaluate sequence of returns risk for retirement accounts
+
+4. SPECIFIC RISK FACTORS
+   - Interest rate sensitivity analysis
+   - Inflation protection adequacy
+   - Currency/international exposure risks
+   - Sector rotation vulnerabilities
+
+RESPONSE FORMAT:
+For each risk identified, provide:
+- Risk Type: [Concentration/Liquidity/Volatility/Other]
+- Current Exposure: [specific dollar amounts and percentages from FACTS]
+- Risk Level: [Low/Medium/High with quantitative reasoning]
+- Potential Impact: [dollar loss scenarios in market stress]
+- Mitigation Strategy: [specific rebalancing recommendations with target allocations]
+- Timeline: [Immediate/3-month/6-month implementation]
+
+Base all analysis strictly on verified FACTS. Quantify all risk assessments.
 """
 
     GOAL_PROGRESS = """
