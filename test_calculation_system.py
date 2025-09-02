@@ -25,7 +25,7 @@ def test_calculation_query(query: str, description: str):
     })
     
     if login_response.status_code != 200:
-        print(f"❌ Login failed: {login_response.status_code}")
+        print(f"Login failed: {login_response.status_code}")
         return
     
     token = login_response.json()["access_token"]
