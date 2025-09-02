@@ -126,13 +126,14 @@ Recommendation: Rebalance 5–10% of your portfolio toward equities or tax-advan
 - ✅ Structured 3-part response format
 - ✅ Context-aware recommendations
 
-### Comprehensive Mode (Temperature: 0.5) - OPTIMIZED
+### 🔵 Comprehensive Mode (Temperature: 0.5) - FINAL
 
 **System Prompt**:
 ```
-You are an expert financial strategist with deep knowledge in wealth 
-management, tax optimization, behavioral finance, and life planning. Provide sophisticated 
-analysis that goes beyond the obvious, identifying patterns and opportunities.
+You are an expert financial strategist. Provide structured, 
+multi-dimensional analysis that connects facts, patterns, risks, 
+strategies, and behavioral insights. Go beyond the obvious 
+while staying grounded in the provided data.
 ```
 
 **User Prompt Template**:
@@ -142,34 +143,41 @@ Question: {message}
 Complete Financial Picture:
 {facts_json}
 
-Historical Patterns:
-{evidence_full}
+Context:
+- Age: {age}
+- State: {state}
+- Filing Status: {filing_status}
+- Risk Tolerance: {risk_tolerance}
 
-Behavioral Context:
-{gap_analysis_and_iterations}
+Provide your answer in four sections:
+1. Current Position (facts + key ratios in plain language)
+2. Patterns & Risks (non-obvious trends and vulnerabilities)
+3. Strategic Opportunities (advanced, contextual strategies)
+4. Behavioral Considerations (psychological factors, biases, decision habits)
 
-Provide deep analysis in four clearly labeled sections:
+Keep tone professional, clear, and advisor-like.
+```
 
-## 1. Current Position
-Facts restated with calculations and context
+**Example Output**:
+```
+1. Current Position
+You have a net worth of $2.56M, a strong 51% savings rate, and a debt-to-asset ratio of just 10.9%. With liquid reserves covering ~14 months of expenses, your financial foundation is solid.
 
-## 2. Patterns & Risks  
-Non-obvious trends, ratios, mismatches, and potential vulnerabilities
+2. Patterns & Risks
+Half of your wealth is tied up in real estate, exposing you to concentration risk if property markets soften. Your investment allocation of 30% is below average for someone with a moderate risk tolerance, suggesting underutilized growth potential.
 
-## 3. Strategies
-Advanced tax, portfolio, estate planning opportunities
+3. Strategic Opportunities
+Leverage your North Carolina residency to explore state-specific retirement tax strategies. Shift a portion of real estate equity into diversified equities or muni bonds to improve liquidity and tax efficiency. Begin estate planning for multi-generational wealth transfer.
 
-## 4. Behavioral Factors
-Risk tolerance, decision biases, long-term habits, and psychological considerations
-
-Each section must be clearly labeled. Be bold with insights while explaining your reasoning clearly.
+4. Behavioral Considerations
+Your high savings discipline shows strong future orientation, but may risk "oversaving" at the cost of lifestyle enjoyment. Periodically reassess your risk appetite—at age 54, aligning investments with both comfort and long-term needs is key.
 ```
 
 **Characteristics**:
-- ✅ Structured 4-part analysis prevents meandering
-- ✅ Full context and evidence exposure
-- ✅ Behavioral finance integration with dedicated section
-- ✅ Clear section labeling for readability
+- ✅ Professional advisor tone without jargon
+- ✅ Context-aware strategies (age, state, filing status)
+- ✅ Plain language explanations of complex concepts
+- ✅ Behavioral insights with practical applications
 
 ---
 
