@@ -705,18 +705,10 @@ class AgenticRAG:
             # Format evidence properly
             formatted_evidence = self._format_evidence_for_prompt(evidence)
             
-            # Format conversation history for direct mode
-            history_context = ""
-            if conversation_history:
-                history_context = "\nPrevious context: "
-                recent_questions = [msg['content'] for msg in conversation_history if msg['role'] == 'user']
-                if recent_questions:
-                    history_context += f"User previously asked about: {', '.join(recent_questions[-2:])}\n"
-            
             user_prompt = f"""
             Question: {message}
             
-            {history_context}
+            {history_text}
             
             Core Facts: {json.dumps(facts, indent=2)}
             
