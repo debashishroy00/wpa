@@ -133,6 +133,7 @@
       "Bash(npx playwright:*)",
       "Bash(claude mcp add:*)",
       "Bash(powershell:*)",
+      "Read(\\mnt\\c\\projects/**)",
       "Read(\\mnt\\c\\projects/**)"
     ],
     "deny": [],
