@@ -94,11 +94,9 @@ async def chat_message(
         insight_type = _detect_insight_type(request.message)
         logger.info(f"🔍 Message: '{request.message}' -> Detected type: '{insight_type}'")
         
-        # Check if this needs Agentic RAG (Phase 1: specific financial queries)
-        rag_triggers = ["net worth", "worth", "401k", "retirement", "tax", "taxes", "assets", "wealth", "financial", "picture", "complete", "summary", "overview", "surplus", "invest", "save", "savings", "budget", "plan", "advice", "recommend", "should i", "what do", "help me", "expenses", "expense", "spending", "spend", "advise", "cut", "reduce"]
-        should_use_rag = any(trigger in request.message.lower() for trigger in rag_triggers)
-        
-        if should_use_rag:
+        # Use AgenticRAG for ALL queries - every question deserves intelligent analysis
+        # No more restrictive triggers - real estate, mortgages, etc all need full intelligence
+        try:
             logger.info(f"🤖 Using Agentic RAG for financial query: {request.message}")
             logger.info(f"🎛️ Passing mode to AgenticRAG: {request.insight_level}")
             try:
