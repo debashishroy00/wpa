@@ -9,7 +9,7 @@ export interface ChatSettings {
     selectedModel: string;
     estimatedCostPerMessage: number;
     temperature: number;
-    insightLevel: 'focused' | 'balanced' | 'comprehensive';
+    insightLevel: 'direct' | 'balanced' | 'comprehensive';
 }
 
 export interface ModelConfig {
