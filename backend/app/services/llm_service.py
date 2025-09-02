@@ -315,6 +315,24 @@ class MultiLLMService:
         logger.info(f"Generated response using {request.provider} in {time.time() - start_time:.2f}s (mode: {mode}, temp: {request.temperature})")
         return response
     
+    def _get_temperature_for_mode(self, mode: str, default: float) -> float:
+        """Set temperature based on response mode."""
+        temps = {
+            'direct': 0.1,      # Very deterministic
+            'balanced': 0.3,    # Some creativity
+            'comprehensive': 0.5  # More creative
+        }
+        return temps.get(mode.lower(), default)
+    
+    def _enhance_prompt_for_mode(self, prompt: str, mode: str) -> str:
+        """Enhance system prompt based on mode."""
+        mode_enhancements = {
+            'direct': "\n\nProvide only factual information directly from the data. Be concise. Do not infer or extrapolate.",
+            'balanced': "\n\nProvide accurate information with practical insights. Base recommendations on the data and established best practices.",
+            'comprehensive': "\n\nProvide deep analysis with sophisticated insights. Identify patterns, make connections, consider behavioral factors. Be thorough and insightful."
+        }
+        return prompt + mode_enhancements.get(mode.lower(), "")
+    
     async def compare_providers(self, 
                                request: LLMRequest, 
                                providers: Optional[List[str]] = None) -> LLMComparison:
