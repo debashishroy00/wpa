@@ -119,7 +119,7 @@ def main():
     )
     
     print(f"\n{'='*60}")
-    print("🏁 Testing completed!")
+    print("Testing completed!")
     print("="*60)
 
 if __name__ == "__main__":
