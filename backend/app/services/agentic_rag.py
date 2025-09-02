@@ -641,10 +641,6 @@ class AgenticRAG:
             temperature = 0.1
             
         elif mode == "comprehensive":
-            system_prompt = f"""You are {first_name}'s personal CFO writing their quarterly wealth report. Use specific calculations, 
-            not generic observations. Every insight must include a number from their data. Never say 
-            "consider" - say "do this" with specific amounts and dates."""
-            
             # Extract comprehensive user context for human-advisor replacement
             first_name = facts.get('_context', {}).get('first_name', 'User')
             age = facts.get('_context', {}).get('age', 'unknown')
@@ -654,6 +650,10 @@ class AgenticRAG:
             risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
             fi_progress = facts.get('FI_progress', 'unknown')
             retirement_timeline = facts.get('_context', {}).get('retirement_timeline', 'unknown')
+            
+            system_prompt = f"""You are {first_name}'s personal CFO writing their quarterly wealth report. Use specific calculations, 
+            not generic observations. Every insight must include a number from their data. Never say 
+            "consider" - say "do this" with specific amounts and dates."""
             
             user_prompt = f"""
             Client: {first_name}, {age}, {city}, {state}
