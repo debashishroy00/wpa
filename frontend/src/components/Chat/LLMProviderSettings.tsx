@@ -18,7 +18,7 @@ const LLMProviderSettings: React.FC = () => {
         LLMSettingsService.updateSettings({ modelTier });
     };
 
-    const handleInsightLevelChange = (insightLevel: 'focused' | 'balanced' | 'comprehensive') => {
+    const handleInsightLevelChange = (insightLevel: 'direct' | 'balanced' | 'comprehensive') => {
         LLMSettingsService.updateSettings({ insightLevel });
     };
 
