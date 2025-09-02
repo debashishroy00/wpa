@@ -70,7 +70,7 @@ class CalculationRouter:
                     r'(?i).*(\d+(?:\.\d+)?)%.*investment'
                 ],
                 'extract_growth_rate': True,
-                'redirect_to': 'years_to_retirement_goal'  # Usually what they want
+                'redirect_to': 'compound_growth_scenarios'  # Show investment growth scenarios
             },
             
             'tax_analysis': {
