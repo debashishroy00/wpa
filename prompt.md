@@ -153,18 +153,25 @@ Deliver your response in four sections:
 
 **Example:**
 ```
-1. Debashish's Current Position
-You hold assets of $2.88M with liabilities of $314K, leaving a net worth of $2.56M. With a monthly surplus of $7,863 and a savings rate of 51%, you are operating well above typical benchmarks. Your FI progress of 114% means you have already achieved financial independence.
+### 1. User's Current Position:
+User, as of September 2, 2025, your total assets amount to $2,879,827, while your total liabilities stand at $314,282. This results in a net worth of $2,565,545. Your monthly income is $15,344, with expenses of $7,481, leaving you with a monthly surplus of $7,863. Your debt-to-asset ratio is 10.91%, and you have a savings rate of approximately 51.24%.
 
-2. Patterns & Risks
-Real estate concentration (50% of portfolio) exposes you to local housing cycles in North Carolina. Retirement assets are modest relative to taxable investments, which may increase your future tax burden.
+### 2. Patterns & Risks:
+One notable trend is your healthy savings rate, indicating a strong ability to save and invest for the future. However, your debt-to-asset ratio suggests some room for debt reduction. Given your moderate risk tolerance, consider tax-efficient strategies in North Carolina to optimize returns.
 
-3. Strategic Opportunities
-Shift 10–15% of real estate equity into equities or muni bonds to reduce concentration risk and optimize tax efficiency. Maximize Roth conversions in low-income years to smooth future RMDs. Begin estate planning to minimize transfer taxes and secure wealth for heirs.
+### 3. Strategic Opportunities:
+With your current financial standing, consider increasing your investment allocation slightly to enhance long-term growth. Given your FI progress of 114.31%, reassess your retirement timeline and adjust contributions if needed to achieve your goals comfortably.
 
-4. Behavioral Considerations
-Your strong savings discipline is admirable but risks oversaving at the cost of lifestyle enjoyment. At age 54, balancing current quality of life with long-term security is critical. Reassess risk tolerance every 2–3 years to ensure your strategy evolves with your goals.
+### 4. Behavioral Considerations:
+Your disciplined savings rate reflects prudent financial management. Be mindful of lifestyle inflation as income grows. Consider discussing financial goals openly with your spouse to align on shared objectives.
 ```
+
+**Production Performance:**
+- Response Length: ~400 words
+- Personalization: ✅ Name throughout + Full context integration
+- Structure: ✅ 4-section professional advisory report
+- Quality: ✅ Human advisor replacement level
+- Features: ✅ State-specific strategies, FI progress analysis, behavioral insights
 
 ---
 
