@@ -626,13 +626,17 @@ class AgenticRAG:
         if mode == "direct":
             system_prompt = """You are a financial data assistant. Provide only factual information 
             directly from the provided data. Do not infer, interpret, or provide recommendations 
-            beyond what is explicitly stated in the facts."""
+            beyond what is explicitly stated in the facts.
+            
+            Never invent or infer values. If a fact is missing, say "Not available."
+            """
             
             user_prompt = f"""
             Question: {message}
             Facts: {json.dumps(facts, indent=2)}
             
             Answer using only the provided facts. Be concise and factual.
+            Do not calculate, estimate, or suggest anything not explicitly present in the data.
             """
             temperature = 0.1
             
