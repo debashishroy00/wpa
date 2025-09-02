@@ -490,7 +490,7 @@ const FinancialAdvisorChat: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <BarChart3 className="w-4 h-4" />
-                                <span>Response: {llmSettings.insightLevel === 'focused' ? 'Focused' : 
+                                <span>Response: {llmSettings.insightLevel === 'direct' ? 'Direct' : 
                                               llmSettings.insightLevel === 'balanced' ? 'Balanced' : 'Comprehensive'}</span>
                             </div>
                             {LLMSettingsService.isCheapestOption(llmSettings.provider, llmSettings.modelTier) && (
