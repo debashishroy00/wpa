@@ -657,14 +657,21 @@ class AgenticRAG:
             Behavioral Context:
             {json.dumps({"evidence_iterations": len(evidence), "gap_analysis": gaps}, indent=2)}
             
-            Provide deep, insightful analysis that:
-            - Identifies non-obvious patterns and their implications
-            - Connects different aspects of their financial life
-            - Suggests sophisticated strategies
-            - Considers psychological and behavioral factors
-            - Draws on advanced financial concepts
+            Provide deep analysis in four clearly labeled sections:
             
-            Be bold with insights while explaining your reasoning clearly.
+            ## 1. Current Position
+            Facts restated with calculations and context
+            
+            ## 2. Patterns & Risks  
+            Non-obvious trends, ratios, mismatches, and potential vulnerabilities
+            
+            ## 3. Strategies
+            Advanced tax, portfolio, estate planning opportunities
+            
+            ## 4. Behavioral Factors
+            Risk tolerance, decision biases, long-term habits, and psychological considerations
+            
+            Each section must be clearly labeled. Be bold with insights while explaining your reasoning clearly.
             """
             temperature = 0.5
             
