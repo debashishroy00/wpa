@@ -670,7 +670,11 @@ class AgenticRAG:
             
         else:  # balanced
             system_prompt = """You are a practical financial advisor. Provide accurate information 
-            enhanced with relevant insights and actionable recommendations."""
+            enhanced with relevant insights and actionable recommendations.
+            Do not speculate beyond provided data and evidence."""
+            
+            # Limited evidence for balanced mode (top 3 pieces)
+            limited_evidence = evidence[:3] if evidence else []
             
             user_prompt = f"""
             Question: {message}
@@ -679,13 +683,13 @@ class AgenticRAG:
             {json.dumps(facts, indent=2)}
             
             Context:
-            {self._format_evidence(evidence)[:1000]}  # Limited context
+            {self._format_evidence(limited_evidence)}
             
-            Provide helpful analysis that:
-            - Answers the question directly
-            - Includes relevant insights
-            - Offers practical recommendations
-            - Stays grounded in the data
+            Provide concise analysis that:
+            - States the direct answer
+            - Explains the key calculation or rule
+            - Highlights 1–2 practical recommendations
+            Do not speculate beyond provided data and evidence.
             """
             temperature = 0.3
         
