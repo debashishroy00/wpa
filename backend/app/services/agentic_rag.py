@@ -686,6 +686,15 @@ class AgenticRAG:
         
         # Generate mode-specific prompts
         logger.info(f"🎛️ About to generate prompts for mode: {mode}")
+        
+        # Format conversation history for all modes
+        history_text = ""
+        if conversation_history:
+            history_text = "\nCONVERSATION HISTORY:\n"
+            for msg in conversation_history:
+                history_text += f"{msg['role'].title()}: {msg['content']}\n"
+            history_text += f"\nCURRENT QUESTION: {message}\n"
+        
         if mode == "direct":
             system_prompt = """You are a precise financial data assistant. 
             Provide a direct, factual answer using the specific data provided."""
