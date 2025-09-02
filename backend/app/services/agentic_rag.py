@@ -684,18 +684,28 @@ class AgenticRAG:
         logger.info(f"🎛️ About to generate prompts for mode: {mode}")
         if mode == "direct":
             system_prompt = """You are a precise financial data assistant. 
-            Provide a single factual sentence, grounded only in the provided numbers. 
-            If the user's name is available, address them directly."""
+            Provide a direct, factual answer using the specific data provided."""
             
             # Extract user name
             first_name = facts.get('_context', {}).get('first_name', 'User')
             
+            # Format evidence properly
+            formatted_evidence = self._format_evidence_for_prompt(evidence)
+            
             user_prompt = f"""
             Question: {message}
-            Facts: {json.dumps(facts, indent=2)}
+            
+            Core Facts: {json.dumps(facts, indent=2)}
+            
+            DETAILED DATA FROM DATABASE:
+            {formatted_evidence}
+            
             Name: {first_name}
             
-            Answer with exactly one sentence.
+            Instructions:
+            - If asked about specific categories (expenses, income, assets, etc.), use the detailed data above
+            - Provide a direct, factual answer with specific numbers
+            - Keep response concise but complete
             
             {f"Note: Answer limited due to {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
