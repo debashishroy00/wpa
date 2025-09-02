@@ -640,9 +640,16 @@ class AgenticRAG:
             temperature = 0.1
             
         elif mode == "comprehensive":
-            system_prompt = """You are an expert financial strategist with deep knowledge in wealth 
-            management, tax optimization, behavioral finance, and life planning. Provide sophisticated 
-            analysis that goes beyond the obvious, identifying patterns and opportunities."""
+            system_prompt = """You are an expert financial strategist. Provide structured, 
+            multi-dimensional analysis that connects facts, patterns, risks, 
+            strategies, and behavioral insights. Go beyond the obvious 
+            while staying grounded in the provided data."""
+            
+            # Extract comprehensive user context
+            age = facts.get('_context', {}).get('age', 'unknown')
+            state = facts.get('_context', {}).get('state', 'unknown') 
+            filing_status = facts.get('_context', {}).get('filing_status', 'unknown')
+            risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
             
             user_prompt = f"""
             Question: {message}
@@ -650,27 +657,19 @@ class AgenticRAG:
             Complete Financial Picture:
             {json.dumps(facts, indent=2)}
             
-            Historical Patterns:
-            {self._format_evidence(evidence)}
+            Context:
+            - Age: {age}
+            - State: {state}
+            - Filing Status: {filing_status}
+            - Risk Tolerance: {risk_tolerance}
             
-            Behavioral Context:
-            {json.dumps({"evidence_iterations": len(evidence), "gap_analysis": gaps}, indent=2)}
+            Provide your answer in four sections:
+            1. Current Position (facts + key ratios in plain language)
+            2. Patterns & Risks (non-obvious trends and vulnerabilities)
+            3. Strategic Opportunities (advanced, contextual strategies)
+            4. Behavioral Considerations (psychological factors, biases, decision habits)
             
-            Provide deep analysis in four clearly labeled sections:
-            
-            ## 1. Current Position
-            Facts restated with calculations and context
-            
-            ## 2. Patterns & Risks  
-            Non-obvious trends, ratios, mismatches, and potential vulnerabilities
-            
-            ## 3. Strategies
-            Advanced tax, portfolio, estate planning opportunities
-            
-            ## 4. Behavioral Factors
-            Risk tolerance, decision biases, long-term habits, and psychological considerations
-            
-            Each section must be clearly labeled. Be bold with insights while explaining your reasoning clearly.
+            Keep tone professional, clear, and advisor-like.
             """
             temperature = 0.5
             
