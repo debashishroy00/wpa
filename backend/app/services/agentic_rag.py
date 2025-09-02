@@ -637,6 +637,8 @@ class AgenticRAG:
             
             Answer using only the provided facts. Be concise and factual.
             Do not calculate, estimate, or suggest anything not explicitly present in the data.
+            
+            {f"If gaps exist: Answer limited because {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
             temperature = 0.1
             
