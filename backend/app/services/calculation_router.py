@@ -61,11 +61,13 @@ class CalculationRouter:
             
             'growth_rate_impact': {
                 'patterns': [
-                    r'(?i).*(\d+)%.*growth.*rate',
-                    r'(?i).*growth.*rate.*(\d+)',
-                    r'(?i).*(\d+)%.*return',
-                    r'(?i).*consider.*(\d+)%',
-                    r'(?i).*assume.*(\d+)%'
+                    r'(?i).*(\d+(?:\.\d+)?)%.*growth',
+                    r'(?i).*growth.*(\d+(?:\.\d+)?)%',
+                    r'(?i).*(\d+(?:\.\d+)?)%.*return',
+                    r'(?i).*consider.*(\d+(?:\.\d+)?)%',
+                    r'(?i).*assume.*(\d+(?:\.\d+)?)%',
+                    r'(?i).*investment.*growth.*(\d+(?:\.\d+)?)%',
+                    r'(?i).*(\d+(?:\.\d+)?)%.*investment'
                 ],
                 'extract_growth_rate': True,
                 'redirect_to': 'years_to_retirement_goal'  # Usually what they want
