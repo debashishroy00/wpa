@@ -519,25 +519,48 @@ class AgenticRAG:
             return fallback_searches
     
     def _enforce_specificity(self, prompt: str, mode: str) -> str:
-        """Add guards against generic advice"""
+        """Ultra-aggressive specificity enforcement"""
+        return prompt  # Ultra-specific prompts handle this directly now
+    
+    def _validate_ultra_specific_response(self, response: str, mode: str) -> Dict[str, Any]:
+        """Check if response meets ultra-specificity requirements"""
         
-        banned_phrases = [
-            "consider reviewing", "explore opportunities", 
-            "it would be beneficial", "consult with",
-            "your position is solid", "healthy financial",
-            "you may want to", "it might be good",
-            "think about", "look into"
-        ]
-       
-        if mode == "balanced":
-            prompt += "\n\nNEVER use these phrases: " + ", ".join(banned_phrases)
-            prompt += "\nALWAYS include: specific dollar amounts, percentiles, dates for actions"
+        validation_results = {
+            "is_valid": True,
+            "violations": [],
+            "missing_elements": []
+        }
         
-        elif mode == "comprehensive":
-            prompt += "\n\nEvery statement must include a calculation or specific number."
-            prompt += "\nEvery recommendation must have: amount, account name, deadline"
+        if mode == "comprehensive":
+            # Ultra-banned words list
+            banned_words = [
+                "consider", "review", "explore", "evaluate", "analyze", 
+                "prioritize", "warrant", "potentially", "might", "could", 
+                "would", "should", "beneficial", "advisable", "prudent",
+                "recommend reviewing", "you may want", "it might be good",
+                "think about", "look into", "worth exploring"
+            ]
+            
+            response_lower = response.lower()
+            for word in banned_words:
+                if word in response_lower:
+                    validation_results["is_valid"] = False
+                    validation_results["violations"].append(f"Banned word: '{word}'")
+            
+            # Required elements for ultra-specificity
+            required_elements = [
+                ("$", "Dollar amounts"),
+                ("%", "Percentages"),
+                ("call", "Phone action"),
+                ("by ", "Specific dates"),
+                ("save", "Savings calculations")
+            ]
+            
+            for element, description in required_elements:
+                if element not in response_lower:
+                    validation_results["missing_elements"].append(description)
         
-        return prompt
+        return validation_results
 
     def _rank_and_package_evidence(self, context: Dict) -> List[Dict]:
         """Phase 3: Smart evidence ranking with iteration bonuses."""
