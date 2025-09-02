@@ -635,23 +635,40 @@ class AgenticRAG:
             gap_descriptions = "\n".join([f"- {gap.get('gap_type', 'unknown')}: {gap.get('description', 'no description')}" for gap in gaps])
             gap_text = f"\n\nNote: Some information gaps were identified:\n{gap_descriptions}\nAcknowledge these limitations in your response."
         
-        # Enhanced prompt with gap awareness
+        # Build comprehensive evidence text with proper formatting
+        formatted_evidence = self._format_evidence_for_prompt(evidence)
+        
+        # Enhanced prompt that REQUIRES using evidence
         prompt = f"""
-        You are a financial advisor. Answer the user's question using the provided facts and evidence.
+        You are a financial advisor with access to the user's complete financial database.
         
         User Question: {message}
         
-        User Facts:
+        CORE FINANCIAL FACTS:
         - Net Worth: ${facts.get('net_worth', 0):,.2f}
+        - Monthly Income: ${facts.get('monthly_income', 0):,.2f}
+        - Monthly Expenses: ${facts.get('monthly_expenses', 0):,.2f}
         - Monthly Surplus: ${facts.get('monthly_surplus', 0):,.2f}
+        - Investment Total: ${facts.get('investment_total', 0):,.2f}
+        - Retirement Total: ${facts.get('retirement_total', 0):,.2f}
         - Age: {facts.get('_context', {}).get('age', 'unknown')}
+        - State: {facts.get('_context', {}).get('state', 'unknown')}
         
-        Available Evidence (with search iteration details):
-        {evidence_text}
+        RETRIEVED DETAILED DATA FROM DATABASE:
+        {formatted_evidence}
         {gap_text}
         
-        Provide a clear, actionable answer. Be specific with numbers and recommendations.
-        If there are information gaps, acknowledge them and provide the best guidance possible with available data.
+        CRITICAL INSTRUCTIONS:
+        1. USE THE DETAILED DATA ABOVE to answer the question
+        2. If asked about expenses → use expense breakdown from retrieved data
+        3. If asked about income → use income breakdown from retrieved data  
+        4. If asked about assets → use asset allocation from retrieved data
+        5. If asked about goals → use financial goals from retrieved data
+        6. If asked about insurance/estate → use estate & insurance data
+        7. NEVER make up categories or amounts - use ONLY what's provided above
+        8. Always cite specific numbers from the retrieved data
+        
+        Answer the question using the specific data provided above.
         """
         
         # Try to use a registered LLM provider
