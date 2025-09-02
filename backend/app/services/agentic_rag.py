@@ -693,15 +693,14 @@ class AgenticRAG:
             monthly_surplus = facts.get('monthly_surplus', 0)
             investment_total = facts.get('investment_total', 0)
             
-            system_prompt = f"""You are a sophisticated financial advisor providing personalized analysis for a client with:
+            system_prompt = f"""You are a sophisticated financial advisor with access to complete financial data for a client with:
             - Net worth: ${net_worth:,.0f}
             - Age: {age}
             - State: {state}
             - Monthly surplus: ${monthly_surplus:,.0f}
             - Current investments: ${investment_total:,.0f}
             
-            Provide intelligent, personalized advice that matches their actual wealth level and situation.
-            No templates. No examples. No generic recommendations. Just thoughtful analysis based on THEIR data."""
+            IMPORTANT: Use ALL the evidence and data provided below to answer questions accurately."""
             
             user_prompt = f"""
             Client: {first_name}, Age {age}, {state}
@@ -710,14 +709,17 @@ class AgenticRAG:
             Their Complete Financial Data:
             {json.dumps(facts, indent=2)}
             
-            Provide sophisticated advice appropriate for someone with their actual financial situation.
-            Base everything on the data above - their real numbers, not examples.
+            RETRIEVED EVIDENCE FROM DATABASE:
+            {evidence_text if evidence else "No additional evidence found"}
             
-            If they already have ${investment_total:,.0f} invested, don't tell them to "start investing".
-            If they're {age} years old, give age-appropriate strategies.
-            If they have ${monthly_surplus:,.0f} surplus, suggest realistic allocation.
+            CRITICAL INSTRUCTIONS:
+            1. If asked about expenses, use the expense breakdown from the evidence above
+            2. If asked about assets, use the asset allocation from the evidence above
+            3. If asked about goals, use the financial goals from the evidence above
+            4. Always cite specific numbers from the data and evidence provided
+            5. Never make up categories or amounts - use only what's provided
             
-            Be specific but varied. Different situations require different solutions.
+            Answer their question using the specific data provided above.
             """
             
             temperature = 0.4  # Allow more natural variation
