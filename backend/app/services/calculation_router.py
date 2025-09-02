@@ -240,28 +240,43 @@ class CalculationRouter:
     def _extract_numbers_from_message(self, message: str) -> List[float]:
         """Extract monetary amounts from message"""
         
-        # Pattern for currency amounts
-        money_patterns = [
-            r'\$[\d,]+(?:\.\d{2})?',  # $1,000,000 or $1,000,000.00
-            r'[\d,]+(?:\.\d{2})?\s*(?:million|m)',  # 3.5 million
-            r'[\d,]+(?:\.\d{2})?'  # Plain numbers
-        ]
-        
         numbers = []
-        for pattern in money_patterns:
-            matches = re.findall(pattern, message, re.IGNORECASE)
-            for match in matches:
-                # Clean and convert
-                clean_number = re.sub(r'[^\d.]', '', match)
-                try:
-                    value = float(clean_number)
-                    if 'million' in match.lower() or 'm' in match.lower():
-                        value *= 1000000
-                    numbers.append(value)
-                except ValueError:
-                    continue
         
-        return numbers
+        # Pattern 1: Dollar amounts like $3M, $3,000,000, $1.5M
+        dollar_pattern = r'\$(\d+(?:[.,]\d+)*)\s*([Mm]illion|[Mm])?'
+        for match in re.finditer(dollar_pattern, message):
+            number_str = match.group(1).replace(',', '')
+            multiplier_str = match.group(2)
+            
+            try:
+                value = float(number_str)
+                if multiplier_str and multiplier_str.lower().startswith('m'):
+                    value *= 1000000
+                numbers.append(value)
+            except ValueError:
+                continue
+        
+        # Pattern 2: Plain numbers with million/M suffix
+        million_pattern = r'(\d+(?:[.,]\d+)*)\s*([Mm]illion|[Mm])\b'
+        for match in re.finditer(million_pattern, message):
+            number_str = match.group(1).replace(',', '')
+            try:
+                value = float(number_str) * 1000000
+                numbers.append(value)
+            except ValueError:
+                continue
+        
+        # Pattern 3: Large plain numbers (likely dollar amounts)
+        large_number_pattern = r'\b(\d{7,})\b'  # 7+ digits, likely dollar amounts
+        for match in re.finditer(large_number_pattern, message):
+            try:
+                value = float(match.group(1))
+                numbers.append(value)
+            except ValueError:
+                continue
+        
+        # Remove duplicates and sort
+        return sorted(list(set(numbers)))
     
     def _extract_growth_rate(self, message: str, match_obj) -> float:
         """Extract growth rate percentage from message"""
