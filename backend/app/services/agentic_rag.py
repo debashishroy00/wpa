@@ -805,6 +805,12 @@ class AgenticRAG:
         )
         llm_response = await llm_service.generate(llm_request)
         
+        # Validate ultra-specificity for comprehensive mode
+        validation = self._validate_ultra_specific_response(llm_response.content, mode)
+        if not validation["is_valid"] and mode == "comprehensive":
+            logger.warning(f"Response failed ultra-specificity check: {validation['violations']}")
+            # Could implement retry logic here, but for now just log
+        
         # Store LLM payload for debugging
         store_llm_payload(user_id, {
             "query": message,
