@@ -706,6 +706,9 @@ class AgenticRAG:
             Every statement must include a calculation or specific number.
             Every recommendation must have: amount, account name, deadline.
             """
+            
+            # Apply specificity enforcement
+            user_prompt = self._enforce_specificity(user_prompt, mode)
             temperature = 0.5
             
         else:  # balanced
