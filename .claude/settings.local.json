@@ -128,7 +128,8 @@
       "Read(\\mnt\\c\\projects/**)",
       "Bash(timeout 30s docker-compose logs backend --tail 20)",
       "Bash(timeout 30s docker-compose logs backend -f --tail 5)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(npm init:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
