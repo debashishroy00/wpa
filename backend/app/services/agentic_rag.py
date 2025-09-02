@@ -201,7 +201,7 @@ class AgenticRAG:
             llm_request = LLMRequest(
                 provider=selected_provider,
                 model_tier="dev",
-                system_prompt="You are a query planner. Return only valid JSON.",
+                system_prompt="You are a financial query planner. Return only valid JSON.",
                 user_prompt=decomposition_prompt,
                 temperature=0.3
             )
