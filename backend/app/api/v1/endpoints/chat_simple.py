@@ -59,6 +59,7 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     provider: str = 'gemini'
     model_tier: str = 'dev'
+    insight_level: str = 'balanced'  # direct, balanced, comprehensive
 
 class ChatResponse(BaseModel):
     response: str
