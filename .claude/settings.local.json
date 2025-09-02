@@ -130,7 +130,8 @@
       "Bash(timeout 30s docker-compose logs backend -f --tail 5)",
       "Bash(timeout:*)",
       "Bash(npm init:*)",
-      "Bash(npx playwright:*)"
+      "Bash(npx playwright:*)",
+      "Bash(claude mcp add:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
