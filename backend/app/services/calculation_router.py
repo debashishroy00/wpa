@@ -276,13 +276,25 @@ class CalculationRouter:
             except ValueError:
                 continue
         
-        # Pattern 3: Large plain numbers (likely dollar amounts) including with commas
-        large_number_pattern = r'\b(\d{1,3}(?:,\d{3})*)\b'  # Numbers with commas like 2,500,000
-        for match in re.finditer(large_number_pattern, message):
+        # Pattern 3: Numbers with commas (proper and improper formatting)
+        # This handles both 2,500,000 and 2,500000 formats
+        comma_number_pattern = r'\b(\d+,\d+(?:,\d+)*)\b'
+        for match in re.finditer(comma_number_pattern, message):
             try:
-                value = float(match.group(1).replace(',', ''))
-                if value >= 1000:  # Only consider significant amounts
-                    numbers.append(value)
+                # Handle cases like 2,500000 by treating as 2,500,000
+                number_str = match.group(1)
+                # If we have something like 2,500000 (comma but then 6 digits), fix it
+                if ',' in number_str:
+                    parts = number_str.split(',')
+                    if len(parts) == 2 and len(parts[1]) == 6:  # Like 2,500000
+                        # Treat as 2500000
+                        value = float(parts[0] + parts[1])
+                    else:
+                        # Normal comma-separated number
+                        value = float(number_str.replace(',', ''))
+                    
+                    if value >= 1000:  # Only consider significant amounts
+                        numbers.append(value)
             except ValueError:
                 continue
         
