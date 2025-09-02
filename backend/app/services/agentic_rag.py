@@ -675,29 +675,35 @@ class AgenticRAG:
             temperature = 0.5
             
         else:  # balanced
-            system_prompt = """You are a practical financial advisor. Provide accurate information 
-            enhanced with relevant insights and actionable recommendations.
-            Do not speculate beyond provided data and evidence."""
+            system_prompt = """You are a practical financial advisor. Provide concise, accurate answers 
+            that combine facts with 2–3 actionable insights, personalized to the user's 
+            age, state, and risk tolerance."""
             
             # Limited evidence for balanced mode (top 3 pieces)
             limited_evidence = evidence[:3] if evidence else []
             
+            # Extract user context
+            age = facts.get('_context', {}).get('age', 'unknown')
+            state = facts.get('_context', {}).get('state', 'unknown')
+            risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
+            
             user_prompt = f"""
             Question: {message}
             
-            Financial Facts:
+            Facts:
             {json.dumps(facts, indent=2)}
             
-            Context:
-            {self._format_evidence(limited_evidence)}
+            User Context:
+            - Age: {age}
+            - State: {state}
+            - Risk Tolerance: {risk_tolerance}
             
-            Provide concise analysis that:
-            - States the direct answer
-            - Explains the key calculation or rule
-            - Highlights 1–2 practical recommendations
-            Do not speculate beyond provided data and evidence.
+            Answer with:
+            1. Direct factual answer (one sentence).
+            2. Two short, personalized insights relevant to their context.
+            3. One practical recommendation.
             
-            {f"Note: Answer limited because {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
+            {f"Note: Limited by {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
             temperature = 0.3
         
