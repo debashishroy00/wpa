@@ -106,9 +106,13 @@ class AgenticRAG:
         self.max_iterations = 2  # Phase 3: iterative refinement limit
         self.decomposition_cache = {}  # NEW: cache plans
 
-    async def handle_query(self, user_id: int, message: str, db: Session, mode: str = "balanced") -> Dict[str, Any]:
+    async def handle_query(self, user_id: int, message: str, db: Session, mode: str = "balanced", session_id: str = None) -> Dict[str, Any]:
         """Phase 3: Add iterative refinement and sufficiency checking."""
         logger.info(f"🎛️ Mode in handle_query: {mode}")
+        
+        # Get conversation history for context
+        conversation_history = self._get_conversation_history(user_id, session_id, db) if session_id else []
+        
         try:
             # Steps 1-2: Same as Phase 1
             intent = self.parser.parse(message)
