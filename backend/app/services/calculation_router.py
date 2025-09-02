@@ -212,8 +212,16 @@ class CalculationRouter:
             params.update(self._handle_goal_adjustment_params(user_message, user_context, calculation_info))
         
         elif calc_type == 'compound_growth_scenarios':
-            params['rates'] = [0.05, 0.07, 0.09]  # Default scenario rates
+            # If user specified a growth rate, use it plus scenarios around it
+            if 'growth_rate' in params:
+                user_rate = params.pop('growth_rate')  # Remove from params
+                params['rates'] = [user_rate - 0.02, user_rate, user_rate + 0.02]
+            else:
+                params['rates'] = [0.05, 0.07, 0.09]  # Default scenario rates
             params['principal'] = params.get('current_assets', 0)
+            # Ensure we have years parameter
+            if 'years' not in params:
+                params['years'] = 10  # Default 10 year projection
         
         return params
     
