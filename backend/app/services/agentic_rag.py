@@ -743,6 +743,9 @@ class AgenticRAG:
             
             {f"Note: Limited by {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
+            
+            # Apply specificity enforcement
+            user_prompt = self._enforce_specificity(user_prompt, mode)
             temperature = 0.3
         
         llm_request = LLMRequest(
