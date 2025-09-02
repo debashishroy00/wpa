@@ -340,8 +340,9 @@ class CalculationRouter:
         
         params = {}
         
-        # Get original goal from context
-        params['original_goal'] = user_context.get('retirement_goal_amount', 3500000)
+        # Get original goal from context - avoid hardcoding
+        default_goal = user_context.get('_context', {}).get('retirement_goal', 3500000)
+        params['original_goal'] = user_context.get('retirement_goal_amount', default_goal)
         
         # Try to extract new goal from message
         if 'extracted_numbers' in calculation_info:
