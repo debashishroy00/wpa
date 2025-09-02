@@ -131,7 +131,8 @@
       "Bash(timeout:*)",
       "Bash(npm init:*)",
       "Bash(npx playwright:*)",
-      "Bash(claude mcp add:*)"
+      "Bash(claude mcp add:*)",
+      "Bash(powershell:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
