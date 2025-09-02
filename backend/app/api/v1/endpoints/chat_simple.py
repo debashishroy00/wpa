@@ -103,7 +103,8 @@ async def chat_message(
                 rag_response = await agentic_rag.handle_query(
                     user_id=current_user.id,
                     message=request.message,
-                    db=db
+                    db=db,
+                    mode=request.insight_level
                 )
                 
                 # Save conversation to memory
