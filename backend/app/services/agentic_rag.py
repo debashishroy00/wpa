@@ -641,47 +641,49 @@ class AgenticRAG:
             temperature = 0.1
             
         elif mode == "comprehensive":
-            system_prompt = """You are an expert financial strategist providing full advisory reports. 
-            Always personalize using the user's name. 
-            Provide structured, professional responses that mimic a human financial advisor. 
-            Ground everything in facts and context — never hallucinate numbers."""
+            system_prompt = """You are {first_name}'s personal CFO writing their quarterly wealth report. Use specific calculations, 
+            not generic observations. Every insight must include a number from their data. Never say 
+            "consider" - say "do this" with specific amounts and dates."""
             
             # Extract comprehensive user context for human-advisor replacement
             first_name = facts.get('_context', {}).get('first_name', 'User')
             age = facts.get('_context', {}).get('age', 'unknown')
             state = facts.get('_context', {}).get('state', 'unknown') 
+            city = facts.get('_context', {}).get('city', 'unknown')
             filing_status = facts.get('_context', {}).get('filing_status', 'unknown')
             risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
             fi_progress = facts.get('FI_progress', 'unknown')
             retirement_timeline = facts.get('_context', {}).get('retirement_timeline', 'unknown')
             
             user_prompt = f"""
+            Client: {first_name}, {age}, {city}, {state}
             Question: {message}
             
-            Complete Financial Picture:
-            {json.dumps(facts, indent=2)}
+            Data: {json.dumps(facts, indent=2)}
             
-            Context:
-            - Name: {first_name}
-            - Age: {age}
-            - State: {state}
-            - Filing Status: {filing_status}
-            - Risk Tolerance: {risk_tolerance}
-            - FI Progress: {fi_progress}
-            - Retirement Timeline: {retirement_timeline}
+            Write {first_name}'s Q3 2025 Wealth Report in these sections:
             
-            Deliver your response in four sections:
+            1. THE NUMBERS THAT MATTER
+            Calculate 3 specific metrics they haven't seen before (e.g., "Your $7,863 monthly surplus 
+            could buy 2.1 rental properties per year in Charlotte")
             
-            1. {first_name}'s Current Position 
-               - Restate facts and ratios in plain English
-            2. Patterns & Risks
-               - Non-obvious trends, vulnerabilities, tax/state-specific considerations
-            3. Strategic Opportunities
-               - Advanced wealth, tax, and retirement strategies personalized to context
-            4. Behavioral Considerations
-               - Biases, decision habits, lifestyle trade-offs, goal alignment
+            2. WHAT'S COSTING YOU MONEY RIGHT NOW
+            Find 2-3 specific inefficiencies with dollar amounts (e.g., "Your cash drag is $5,052/year", 
+            "Missing catch-up contributions costs you $1,847 in tax savings")
             
-            Keep tone professional and advisor-like. Always use {first_name}'s name throughout.
+            3. MOVES TO MAKE THIS MONTH
+            3 specific actions with exact amounts and account names, not generic advice
+            
+            4. THE BEHAVIORAL PATTERN I SEE
+            One specific observation about their money behavior based on the data patterns
+            (e.g., "You save 51% but invest 0% - classic paralysis from 2008 trauma")
+            
+            Address {first_name} directly throughout. Use their actual location for tax calculations.
+            Use actual NC tax rate (4.75%). Reference actual cities (Charlotte, Raleigh).
+            Compare to state-specific benchmarks. Include state-specific strategies.
+            
+            Every statement must include a calculation or specific number.
+            Every recommendation must have: amount, account name, deadline.
             """
             temperature = 0.5
             
