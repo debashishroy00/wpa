@@ -165,28 +165,26 @@ class AgenticRAG:
         
         # Try LLM decomposition
         try:
+            first_name = facts.get('_context', {}).get('first_name', 'User')
+            age = facts.get('_context', {}).get('age', 'unknown')
+            state = facts.get('_context', {}).get('state', 'unknown')
+            
             decomposition_prompt = f"""
-            You are a financial query planner. Your job is to decompose user queries 
-            into 2–3 precise financial sub-questions.
+            You are a financial query planner. Break down user questions into precise 
+            sub-questions categorized as FACT, RULE, or PATTERN. 
+            Return only valid JSON.
+            
+            Break down this query into 2–3 sub-questions.
             
             Query: {message}
-            User context: Age {facts.get('_context', {}).get('age', 'unknown')}, 
-                         State: {facts.get('_context', {}).get('state', 'unknown')}
-            Intent type: {intent['intent']}
+            User context: Name {first_name}, Age {age}, State {state}, Intent {intent['intent']}
             
-            Categorize each sub-question as:
-            - FACT: requires numeric/user data (assets, income, liabilities, etc.)
-            - RULE: requires authority context (IRS, state tax code, retirement rules)
-            - PATTERN: requires historical or behavioral context
-            
-            Return a JSON array of steps:
+            Return JSON:
             [
-                {{"step": 1, "type": "FACT", "question": "...", "search_query": "...", "index": "user_facts"}},
-                {{"step": 2, "type": "RULE", "question": "...", "search_query": "...", "index": "authority"}},
-                {{"step": 3, "type": "PATTERN", "question": "...", "search_query": "...", "index": "user_history"}}
+              {{"step": 1, "type": "FACT", "question": "...", "index": "facts"}},
+              {{"step": 2, "type": "RULE", "question": "...", "index": "authority"}},
+              {{"step": 3, "type": "PATTERN", "question": "...", "index": "history"}}
             ]
-            
-            Keep it simple - max 3 steps.
             """
             
             # Try to use a registered LLM provider
