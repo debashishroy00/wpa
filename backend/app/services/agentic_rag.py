@@ -778,10 +778,21 @@ class AgenticRAG:
             
             Use the evidence and data provided to give accurate, specific answers."""
             
+            # Format conversation history
+            history_text = ""
+            if conversation_history:
+                history_text = "\nRECENT CONVERSATION:\n"
+                for msg in conversation_history:
+                    history_text += f"{msg['role'].title()}: {msg['content']}\n"
+                history_text += f"\nCURRENT QUESTION: {message}\n"
+            
             user_prompt = f"""
             Question: {message}
             
             Client: {first_name}, Age {age}, {state}
+            
+            {history_text}
+            
             Financial Data: {json.dumps(facts, indent=2)}
             
             EVIDENCE FROM DATABASE:
@@ -791,6 +802,7 @@ class AgenticRAG:
             1. Answer with specific numbers from the data/evidence above
             2. Explain what this means for their situation
             3. Suggest one concrete action
+            4. If there's conversation history, build upon previous context
             
             If asked about expenses, use the expense breakdown from evidence.
             If asked about assets, use the asset allocation from evidence.
