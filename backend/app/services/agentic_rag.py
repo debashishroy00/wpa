@@ -958,3 +958,372 @@ class AgenticRAG:
         except Exception as e:
             logger.warning(f"Failed to get conversation history: {e}")
             return []
+    
+    async def _handle_calculation(self, calculation_info: Dict, message: str, facts: Dict, 
+                                user_id: int, mode: str, conversation_history: List[Dict]) -> Dict[str, Any]:
+        """Handle mathematical calculations using ComprehensiveFinancialCalculator"""
+        
+        try:
+            logger.info(f"🧮 Starting calculation: {calculation_info['calculation_type']}")
+            
+            # Extract calculation parameters from user message and context
+            calculation_params = calculation_router.extract_calculation_params(
+                message, facts, calculation_info
+            )
+            
+            logger.info(f"📊 Calculation parameters: {calculation_params}")
+            
+            # Execute calculation with intelligent growth rate handling
+            calculation_result = comprehensive_calculator.calculate_with_assumptions(
+                calculation_info['calculation_type'],
+                facts,  # user_context
+                calculation_params
+            )
+            
+            logger.info(f"✅ Calculation completed successfully: {calculation_result.get('success', False)}")
+            
+            if not calculation_result.get('success', False):
+                return {
+                    "response": f"I encountered an error performing the calculation: {calculation_result.get('error', 'Unknown error')}",
+                    "insight_cards": [],
+                    "citations": [],
+                    "confidence": "LOW",
+                    "warnings": ["calculation_error"]
+                }
+            
+            # Format calculation results for natural language response
+            response_text = self._format_calculation_response(
+                calculation_result, message, mode, conversation_history
+            )
+            
+            # Store calculation payload for debugging
+            store_llm_payload(user_id, {
+                "query": message,
+                "calculation_type": calculation_info['calculation_type'],
+                "calculation_params": calculation_params,
+                "calculation_result": calculation_result,
+                "response": response_text,
+                "mode": mode,
+                "assumptions_used": calculation_result.get('assumptions', {})
+            })
+            
+            # Determine confidence based on calculation certainty
+            confidence = self._assess_calculation_confidence(calculation_result)
+            
+            return {
+                "response": response_text,
+                "insight_cards": [],
+                "citations": [f"calculation#{calculation_info['calculation_type']}"],
+                "confidence": confidence,
+                "warnings": self._get_calculation_warnings(calculation_result),
+                "calculation_performed": True,
+                "calculation_type": calculation_info['calculation_type']
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Calculation handling failed: {e}")
+            import traceback
+            logger.error(f"Calculation traceback: {traceback.format_exc()}")
+            
+            return {
+                "response": f"I encountered an unexpected error while performing the calculation. Please try rephrasing your question or provide more specific parameters.",
+                "insight_cards": [],
+                "citations": [],
+                "confidence": "LOW",
+                "warnings": ["calculation_system_error"]
+            }
+    
+    def _format_calculation_response(self, calculation_result: Dict, original_message: str, 
+                                   mode: str, conversation_history: List[Dict]) -> str:
+        """Format calculation results into natural language response"""
+        
+        calc_type = calculation_result.get('calculation_type', 'unknown')
+        assumptions = calculation_result.get('assumptions', {})
+        
+        # Build response based on calculation type
+        if calc_type == 'years_to_retirement_goal':
+            return self._format_retirement_timeline_response(calculation_result, assumptions, mode)
+        
+        elif calc_type == 'retirement_goal_adjustment':
+            return self._format_goal_adjustment_response(calculation_result, assumptions, mode)
+        
+        elif calc_type == 'required_monthly_savings':
+            return self._format_savings_requirement_response(calculation_result, assumptions, mode)
+        
+        elif calc_type in ['tax_analysis', 'retirement_contribution_optimization']:
+            return self._format_tax_optimization_response(calculation_result, assumptions, mode)
+        
+        elif calc_type == 'emergency_fund_analysis':
+            return self._format_emergency_fund_response(calculation_result, mode)
+        
+        else:
+            return self._format_generic_calculation_response(calculation_result, assumptions, mode)
+    
+    def _format_retirement_timeline_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
+        """Format retirement timeline calculation response"""
+        
+        if result.get('already_achieved', False):
+            return f"""
+🎉 **Great news!** You've already achieved your retirement goal!
+
+**Current Status:**
+• Your current assets: ${result.get('current_assets', 0):,.0f}
+• Your retirement goal: ${result.get('target_goal', 0):,.0f}  
+• Surplus: ${result.get('surplus', 0):,.0f}
+
+{self._format_assumptions_text(assumptions)}
+
+You're in excellent shape for retirement and could potentially retire now if desired.
+            """.strip()
+        
+        years = result.get('years', 0)
+        if years == float('inf'):
+            return f"""
+⚠️ **Timeline Challenge:** Based on current projections, reaching your retirement goal may take longer than expected.
+
+**Recommendation:** Consider increasing your monthly savings or reviewing your retirement goal.
+
+{self._format_assumptions_text(assumptions)}
+            """.strip()
+        
+        final_amount = result.get('final_amount', 0)
+        total_contributions = result.get('total_contributions', 0)
+        growth_component = result.get('growth_component', 0)
+        
+        if mode == 'direct':
+            return f"""
+**{years:.1f} years** to reach your retirement goal.
+
+{self._format_assumptions_text(assumptions)}
+            """.strip()
+        
+        elif mode == 'comprehensive':
+            # Check for sensitivity analysis
+            sensitivity = result.get('sensitivity', {})
+            sensitivity_text = ""
+            
+            if sensitivity.get('show_ranges', False):
+                scenarios = sensitivity.get('scenarios', {})
+                sensitivity_text = f"""
+**📊 Scenario Analysis:**
+• Conservative ({scenarios.get('conservative', {}).get('rate', 0.05):.1%}): {scenarios.get('conservative', {}).get('years', 0):.1f} years
+• Moderate ({scenarios.get('moderate', {}).get('rate', 0.07):.1%}): {scenarios.get('moderate', {}).get('years', 0):.1f} years  
+• Optimistic ({scenarios.get('optimistic', {}).get('rate', 0.09):.1%}): {scenarios.get('optimistic', {}).get('years', 0):.1f} years
+
+⚠️ Growth rate assumptions significantly impact your timeline.
+"""
+            
+            return f"""
+🎯 **Retirement Timeline Analysis**
+
+**Primary Result:** {years:.1f} years to reach your goal
+
+**Financial Breakdown:**
+• Final projected amount: ${final_amount:,.0f}
+• Total contributions needed: ${total_contributions:,.0f}
+• Growth from investments: ${growth_component:,.0f}
+
+{sensitivity_text}
+
+{self._format_assumptions_text(assumptions)}
+
+**💡 Key Insight:** With your current surplus and growth assumptions, you're well-positioned to achieve your retirement goal.
+            """.strip()
+        
+        else:  # balanced mode
+            return f"""
+🎯 **{years:.1f} years** to reach your retirement goal
+
+**Key Details:**
+• Final amount: ${final_amount:,.0f}
+• Growth from investments: ${growth_component:,.0f}
+
+{self._format_assumptions_text(assumptions)}
+            """.strip()
+    
+    def _format_goal_adjustment_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
+        """Format goal adjustment calculation response"""
+        
+        original_goal = result.get('original_goal', 0)
+        new_goal = result.get('new_goal', 0)
+        years_saved = result.get('years_saved', 0)
+        original_years = result.get('original_years', 0)
+        new_years = result.get('new_years', 0)
+        
+        if mode == 'direct':
+            return f"""
+**{years_saved:.1f} years saved** by reducing your goal from ${original_goal:,.0f} to ${new_goal:,.0f}.
+
+{self._format_assumptions_text(assumptions)}
+            """.strip()
+        
+        else:  # balanced or comprehensive
+            goal_reduction = result.get('goal_reduction', 0)
+            goal_reduction_percent = result.get('goal_reduction_percent', 0)
+            
+            return f"""
+💰 **Goal Adjustment Impact Analysis**
+
+**Timeline Improvement:**
+• Original timeline: {original_years:.1f} years to ${original_goal:,.0f}
+• New timeline: {new_years:.1f} years to ${new_goal:,.0f}
+• **Years saved: {years_saved:.1f} years** ⏰
+
+**Goal Change:**
+• Reduction: ${goal_reduction:,.0f} ({goal_reduction_percent:.1f}%)
+• This brings your retirement {years_saved:.1f} years closer!
+
+{self._format_assumptions_text(assumptions)}
+
+💡 **Insight:** This adjustment significantly accelerates your retirement timeline while still maintaining a substantial retirement fund.
+            """.strip()
+    
+    def _format_assumptions_text(self, assumptions: Dict) -> str:
+        """Format assumptions information for transparency"""
+        
+        if not assumptions:
+            return ""
+        
+        rate = assumptions.get('rate', 0)
+        explanation = assumptions.get('explanation', '')
+        source = assumptions.get('source', '')
+        confidence = assumptions.get('confidence', 'medium')
+        
+        confidence_icon = "🟢" if confidence == 'high' else "🟡" if confidence == 'medium' else "🔴"
+        
+        return f"""
+📊 **Assumptions Used:**
+{explanation}
+{confidence_icon} Confidence: {confidence.title()}
+
+💡 *Want different assumptions? Ask: "What if I assume 8% growth instead?"*
+        """.strip()
+    
+    def _format_savings_requirement_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
+        """Format required savings calculation response"""
+        
+        monthly_needed = result.get('monthly_needed', 0)
+        
+        if monthly_needed == 0:
+            if result.get('already_achieved', False):
+                return "🎉 You've already achieved your goal! No additional savings needed."
+            elif result.get('growth_sufficient', False):
+                return f"""
+🚀 **Excellent news!** Your current assets will grow to your goal with no additional savings needed.
+
+{self._format_assumptions_text(assumptions)}
+                """.strip()
+        
+        if monthly_needed == float('inf'):
+            return "⚠️ The specified timeframe is too short to reach your goal. Consider extending your timeline."
+        
+        annual_needed = result.get('annual_needed', monthly_needed * 12)
+        
+        return f"""
+💰 **Monthly Savings Required: ${monthly_needed:,.0f}**
+
+**Annual requirement:** ${annual_needed:,.0f}
+
+{self._format_assumptions_text(assumptions)}
+        """.strip()
+    
+    def _format_tax_optimization_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
+        """Format tax-related calculation responses"""
+        
+        if 'marginal_rates' in result:
+            # Tax analysis
+            marginal = result['marginal_rates']
+            effective = result['effective_rates']
+            
+            return f"""
+📊 **Tax Analysis**
+
+**Marginal Rates:**
+• Federal: {marginal['federal']:.1%}
+• State: {marginal['state']:.1%}  
+• Combined: {marginal['combined']:.1%}
+
+**Effective Rates:**
+• Federal: {effective['federal']:.1%}
+• Combined: {effective['combined']:.1%}
+            """.strip()
+        
+        elif 'current_contribution' in result:
+            # 401k optimization
+            current = result['current_contribution']
+            max_allowed = result['max_allowed']
+            additional_savings = result.get('additional_tax_savings', 0)
+            
+            return f"""
+🏦 **401k Contribution Analysis**
+
+**Current:** ${current:,.0f} annually
+**Maximum allowed:** ${max_allowed:,.0f}
+**Additional tax savings potential:** ${additional_savings:,.0f}
+
+{result.get('recommendation', '').title()} your contributions for optimal tax benefits.
+            """.strip()
+        
+        return "Tax calculation completed successfully."
+    
+    def _format_emergency_fund_response(self, result: Dict, mode: str) -> str:
+        """Format emergency fund analysis response"""
+        
+        current_months = result.get('current_months_covered', 0)
+        target_months = result.get('target_months', 6)
+        is_adequate = result.get('is_adequate', False)
+        
+        status_icon = "✅" if is_adequate else "⚠️"
+        status_text = "Adequate" if is_adequate else "Needs attention"
+        
+        return f"""
+🛡️ **Emergency Fund Analysis**
+
+{status_icon} **Status:** {status_text}
+**Current coverage:** {current_months:.1f} months of expenses
+**Target:** {target_months} months
+**Fund amount:** ${result.get('current_fund', 0):,.0f}
+        """.strip()
+    
+    def _format_generic_calculation_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
+        """Generic formatter for other calculation types"""
+        
+        return f"""
+📊 **Calculation Results**
+
+{str(result.get('message', 'Calculation completed successfully.'))}
+
+{self._format_assumptions_text(assumptions)}
+        """.strip()
+    
+    def _assess_calculation_confidence(self, calculation_result: Dict) -> str:
+        """Assess confidence level for calculation results"""
+        
+        assumptions = calculation_result.get('assumptions', {})
+        confidence = assumptions.get('confidence', 'medium')
+        
+        # Map assumption confidence to response confidence
+        if confidence == 'high':
+            return 'HIGH'
+        elif confidence == 'low':
+            return 'MEDIUM'  # Still medium because calculation is precise
+        else:
+            return 'HIGH'  # Mathematical calculations are inherently high confidence
+    
+    def _get_calculation_warnings(self, calculation_result: Dict) -> List[str]:
+        """Extract warnings from calculation results"""
+        
+        warnings = []
+        
+        if not calculation_result.get('success', True):
+            warnings.append('calculation_failed')
+        
+        assumptions = calculation_result.get('assumptions', {})
+        if assumptions.get('source') == 'risk_profile':
+            warnings.append('default_assumptions_used')
+        
+        sensitivity = calculation_result.get('sensitivity', {})
+        if sensitivity.get('sensitivity') == 'high':
+            warnings.append('highly_sensitive_to_assumptions')
+        
+        return warnings
