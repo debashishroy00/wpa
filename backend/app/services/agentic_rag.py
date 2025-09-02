@@ -730,3 +730,17 @@ class AgenticRAG:
             "gaps_identified": len(gaps),
             "iterations_performed": max([e.get('iteration', 0) for e in evidence]) if evidence else 0
         }
+    
+    def _format_evidence(self, evidence: List[Dict]) -> str:
+        """Format evidence for inclusion in prompts"""
+        if not evidence:
+            return "No relevant historical context found."
+        
+        formatted = []
+        for i, e in enumerate(evidence[:5]):  # Limit to top 5 pieces
+            text = e.get('text', 'No content')[:300]  # Truncate long content
+            score = e.get('score', 0)
+            iteration = e.get('iteration', 0)
+            formatted.append(f"Evidence {i+1} (score: {score:.2f}, iteration: {iteration}): {text}")
+        
+        return "\n".join(formatted)
