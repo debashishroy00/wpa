@@ -745,14 +745,6 @@ class AgenticRAG:
             
             IMPORTANT: Use ALL the evidence and data provided below to answer questions accurately."""
             
-            # Format conversation history
-            history_text = ""
-            if conversation_history:
-                history_text = "\nCONVERSATION HISTORY:\n"
-                for msg in conversation_history:
-                    history_text += f"{msg['role'].title()}: {msg['content']}\n"
-                history_text += f"\nCURRENT QUESTION: {message}\n"
-            
             user_prompt = f"""
             Client: {first_name}, Age {age}, {state}
             Question: {message}
