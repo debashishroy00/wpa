@@ -17,6 +17,8 @@ from app.services.trust_engine import TrustEngine
 from app.services.llm_service import llm_service
 from app.models.llm_models import LLMRequest
 from app.services.core_prompts import core_prompts
+from app.services.comprehensive_financial_calculator import comprehensive_calculator
+from app.services.calculation_router import calculation_router
 
 logger = logging.getLogger(__name__)
 
