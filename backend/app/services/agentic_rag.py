@@ -699,6 +699,8 @@ class AgenticRAG:
             - Explains the key calculation or rule
             - Highlights 1–2 practical recommendations
             Do not speculate beyond provided data and evidence.
+            
+            {f"Note: Answer limited because {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
             temperature = 0.3
         
