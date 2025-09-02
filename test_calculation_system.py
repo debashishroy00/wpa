@@ -47,10 +47,10 @@ def test_calculation_query(query: str, description: str):
     )
     end_time = time.time()
     
-    print(f"⏱️ Response time: {end_time - start_time:.2f}s")
+    print(f"Response time: {end_time - start_time:.2f}s")
     
     if response.status_code != 200:
-        print(f"❌ Request failed: {response.status_code}")
+        print(f"Request failed: {response.status_code}")
         print(f"Error: {response.text}")
         return
     
@@ -60,25 +60,25 @@ def test_calculation_query(query: str, description: str):
     calculation_performed = "calculation_performed" in result
     calculation_type = result.get("calculation_type", "None")
     
-    print(f"🧮 Calculation performed: {calculation_performed}")
+    print(f"Calculation performed: {calculation_performed}")
     if calculation_performed:
-        print(f"📊 Calculation type: {calculation_type}")
+        print(f"Calculation type: {calculation_type}")
     
-    print(f"🎯 Confidence: {result.get('confidence', 'Unknown')}")
-    print(f"⚠️ Warnings: {result.get('warnings', [])}")
+    print(f"Confidence: {result.get('confidence', 'Unknown')}")
+    print(f"Warnings: {result.get('warnings', [])}")
     
     # Print response (truncated)
     response_text = result.get("response", "No response")
     if len(response_text) > 500:
         response_text = response_text[:500] + "..."
     
-    print(f"\n📝 Response:\n{response_text}")
+    print(f"\nResponse:\n{response_text}")
     
     # Check for mathematical accuracy indicators
     if any(indicator in response_text.lower() for indicator in ["years", "timeline", "goal", "calculate"]):
-        print("✅ Response contains mathematical concepts")
+        print("SUCCESS: Response contains mathematical concepts")
     else:
-        print("⚠️ Response may not contain expected mathematical results")
+        print("WARNING: Response may not contain expected mathematical results")
     
     return result
 
