@@ -136,6 +136,14 @@ class AgenticRAG:
                 }
             logger.info(f"Got facts for user {user_id}: {list(facts.keys())}")
             
+            # NEW: Check if this query requires mathematical calculation
+            calculation_info = calculation_router.detect_calculation_needed(message, conversation_history)
+            if calculation_info:
+                logger.info(f"🧮 Mathematical calculation detected: {calculation_info['calculation_type']}")
+                return await self._handle_calculation(calculation_info, message, facts, user_id, mode, conversation_history)
+            
+            logger.info(f"No calculation needed, proceeding with regular RAG flow")
+            
             # NEW Step 3: Plan the query
             plan = await self._plan_query(message, intent, facts)
             logger.info(f"Generated plan with {len(plan['steps'])} steps")
