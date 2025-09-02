@@ -224,7 +224,8 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
                 model_tier=request.model_tier,
                 system_prompt="Financial advisor using provided facts and user's financial history",
                 user_prompt=f"{enhanced_prompt}\n\nUser: {request.message}",
-                temperature=0.3
+                mode=request.insight_level,
+                temperature=None  # Let mode determine temperature
             )
             response = await llm_service.generate(llm_request)
             
