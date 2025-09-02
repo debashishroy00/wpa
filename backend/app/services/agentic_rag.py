@@ -624,21 +624,18 @@ class AgenticRAG:
         # Generate mode-specific prompts
         logger.info(f"🎛️ About to generate prompts for mode: {mode}")
         if mode == "direct":
-            system_prompt = """You are a financial data assistant. Provide only factual information 
-            directly from the provided data. Do not infer, interpret, or provide recommendations 
-            beyond what is explicitly stated in the facts.
-            
-            Never invent or infer values. If a fact is missing, say "Not available."
-            """
+            system_prompt = """You are a precise financial data assistant. Provide one-sentence factual answers 
+            grounded only in the provided numbers. No analysis, no advice."""
             
             user_prompt = f"""
             Question: {message}
             Facts: {json.dumps(facts, indent=2)}
             
-            Answer using only the provided facts. Be concise and factual.
-            Do not calculate, estimate, or suggest anything not explicitly present in the data.
+            Answer with:
+            1. A single sentence summary.
+            2. Supporting numbers only if directly relevant.
             
-            {f"If gaps exist: Answer limited because {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
+            {f"Note: Answer limited due to {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
             temperature = 0.1
             
