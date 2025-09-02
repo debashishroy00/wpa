@@ -14,7 +14,7 @@ def test_calculation_query(query: str, description: str):
     """Test a query that should trigger mathematical calculation"""
     
     print(f"\n{'='*60}")
-    print(f"🧮 TEST: {description}")
+    print(f"CALCULATION TEST: {description}")
     print(f"Query: '{query}'")
     print("="*60)
     
