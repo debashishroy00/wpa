@@ -733,9 +733,19 @@ class AgenticRAG:
             
             IMPORTANT: Use ALL the evidence and data provided below to answer questions accurately."""
             
+            # Format conversation history
+            history_text = ""
+            if conversation_history:
+                history_text = "\nCONVERSATION HISTORY:\n"
+                for msg in conversation_history:
+                    history_text += f"{msg['role'].title()}: {msg['content']}\n"
+                history_text += f"\nCURRENT QUESTION: {message}\n"
+            
             user_prompt = f"""
             Client: {first_name}, Age {age}, {state}
             Question: {message}
+            
+            {history_text}
             
             Their Complete Financial Data:
             {json.dumps(facts, indent=2)}
@@ -749,8 +759,10 @@ class AgenticRAG:
             3. If asked about goals, use the financial goals from the evidence above
             4. Always cite specific numbers from the data and evidence provided
             5. Never make up categories or amounts - use only what's provided
+            6. If there's conversation history, consider context from previous questions
+            7. For follow-up questions, reference previous answers and build upon them
             
-            Answer their question using the specific data provided above.
+            Answer their question using the specific data provided above and conversation context.
             """
             
             temperature = 0.4  # Allow more natural variation
