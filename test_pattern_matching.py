@@ -29,12 +29,15 @@ def main():
     # Patterns from calculation_router.py
     patterns = {
         'retirement_goal_adjustment': [
-            r'(?i).*reduce.*goal.*(\$?[\d,]+)',
-            r'(?i).*change.*goal.*(\$?[\d,]+)',
-            r'(?i).*goal.*(\$?[\d,]+).*years.*save',
-            r'(?i).*years.*save.*goal.*(\$?[\d,]+)',
-            r'(?i).*shave.*years.*goal.*(\$?[\d,]+)',
-            r'(?i).*(\$?[\d,]+).*goal.*timeline'
+            r'(?i).*reduce.*goal.*(\$?[\d,M]+)',
+            r'(?i).*change.*goal.*(\$?[\d,M]+)',
+            r'(?i).*goal.*(\$?[\d,M]+).*years.*save',
+            r'(?i).*years.*save.*goal.*(\$?[\d,M]+)',
+            r'(?i).*shave.*years.*goal.*(\$?[\d,M]+)',
+            r'(?i).*(\$?[\d,M]+).*goal.*timeline',
+            r'(?i).*how many years.*shave.*off',
+            r'(?i).*years.*can.*shave',
+            r'(?i).*shave.*years'
         ],
         'years_to_retirement_goal': [
             r'(?i).*when can i retire',
