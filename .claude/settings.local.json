@@ -132,7 +132,8 @@
       "Bash(npm init:*)",
       "Bash(npx playwright:*)",
       "Bash(claude mcp add:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Read(\\mnt\\c\\projects/**)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
