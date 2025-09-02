@@ -111,7 +111,12 @@ class AgenticRAG:
         logger.info(f"🎛️ Mode in handle_query: {mode}")
         
         # Get conversation history for context
-        conversation_history = self._get_conversation_history(user_id, session_id, db) if session_id else []
+        try:
+            conversation_history = self._get_conversation_history(user_id, session_id, db) if session_id else []
+            logger.info(f"Retrieved {len(conversation_history)} messages from conversation history")
+        except Exception as e:
+            logger.warning(f"Failed to retrieve conversation history: {e}")
+            conversation_history = []
         
         try:
             # Steps 1-2: Same as Phase 1
