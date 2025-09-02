@@ -518,6 +518,27 @@ class AgenticRAG:
                 })
             return fallback_searches
     
+    def _enforce_specificity(self, prompt: str, mode: str) -> str:
+        """Add guards against generic advice"""
+        
+        banned_phrases = [
+            "consider reviewing", "explore opportunities", 
+            "it would be beneficial", "consult with",
+            "your position is solid", "healthy financial",
+            "you may want to", "it might be good",
+            "think about", "look into"
+        ]
+       
+        if mode == "balanced":
+            prompt += "\n\nNEVER use these phrases: " + ", ".join(banned_phrases)
+            prompt += "\nALWAYS include: specific dollar amounts, percentiles, dates for actions"
+        
+        elif mode == "comprehensive":
+            prompt += "\n\nEvery statement must include a calculation or specific number."
+            prompt += "\nEvery recommendation must have: amount, account name, deadline"
+        
+        return prompt
+
     def _rank_and_package_evidence(self, context: Dict) -> List[Dict]:
         """Phase 3: Smart evidence ranking with iteration bonuses."""
         evidence = []
