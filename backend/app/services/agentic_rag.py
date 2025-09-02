@@ -731,22 +731,26 @@ class AgenticRAG:
             state = facts.get('_context', {}).get('state', 'unknown')
             net_worth = facts.get('net_worth', 0)
             
-            system_prompt = f"""You are a financial advisor providing specific advice for a {age}-year-old in {state} with ${net_worth:,.0f} net worth.
+            system_prompt = f"""You are a financial advisor for a {age}-year-old in {state} with ${net_worth:,.0f} net worth.
             
-            Give direct, actionable advice without generic language. Be specific but natural."""
+            Use the evidence and data provided to give accurate, specific answers."""
             
             user_prompt = f"""
             Question: {message}
             
             Client: {first_name}, Age {age}, {state}
-            Their Financial Data: {json.dumps(facts, indent=2)}
+            Financial Data: {json.dumps(facts, indent=2)}
             
-            Provide 3 elements:
-            1. Direct answer to their question with specific numbers
-            2. What this means for someone in their situation (age {age}, {state} resident, ${net_worth:,.0f} net worth)
-            3. One specific action they can take this week
+            EVIDENCE FROM DATABASE:
+            {evidence_text if evidence else "No additional evidence"}
             
-            Base everything on their actual situation. Vary your recommendations based on their real data.
+            Instructions:
+            1. Answer with specific numbers from the data/evidence above
+            2. Explain what this means for their situation
+            3. Suggest one concrete action
+            
+            If asked about expenses, use the expense breakdown from evidence.
+            If asked about assets, use the asset allocation from evidence.
             """
             
             temperature = 0.3
