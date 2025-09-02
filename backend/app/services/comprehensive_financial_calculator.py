@@ -441,7 +441,7 @@ class TaxCalculations:
         }
     
     def retirement_contribution_optimization(self, salary: float, current_401k: float,
-                                           age: int = 54) -> Dict[str, Any]:
+                                           age: int = 50) -> Dict[str, Any]:
         """Optimize 401k contributions for tax savings"""
         
         limit_category = '50_plus' if age >= 50 else 'under_50'
