@@ -84,39 +84,47 @@ Answer with:
 - ✅ Supporting numbers only when directly relevant
 - ✅ Zero analysis or recommendations
 
-### Balanced Mode (Temperature: 0.3) - OPTIMIZED
+### 🟡 Balanced Mode (Temperature: 0.3) - FINAL
 
 **System Prompt**:
 ```
-You are a practical financial advisor. Provide accurate information 
-enhanced with relevant insights and actionable recommendations.
-Do not speculate beyond provided data and evidence.
+You are a practical financial advisor. Provide concise, accurate answers 
+that combine facts with 2–3 actionable insights, personalized to the user's 
+age, state, and risk tolerance.
 ```
 
 **User Prompt Template**:
 ```
 Question: {message}
 
-Financial Facts:
+Facts:
 {facts_json}
 
-Context:
-{evidence_top_3_pieces}
+User Context:
+- Age: {age}
+- State: {state}
+- Risk Tolerance: {risk_tolerance}
 
-Provide concise analysis that:
-- States the direct answer
-- Explains the key calculation or rule
-- Highlights 1–2 practical recommendations
-Do not speculate beyond provided data and evidence.
+Answer with:
+1. Direct factual answer (one sentence).
+2. Two short, personalized insights relevant to their context.
+3. One practical recommendation.
 
-{if_gaps_exist: "Note: Answer limited because {gap_descriptions}"}
+{if_gaps_exist: "Note: Limited by {gap_descriptions}"}
+```
+
+**Example Output**:
+```
+"Your net worth is $2,565,545, built on $2.88M in assets and $314K in liabilities.
+Given your age (54) and moderate risk tolerance, your 30% investment allocation may be conservative for long-term growth.
+In North Carolina, review state tax implications on retirement withdrawals to maximize efficiency.
+Recommendation: Rebalance 5–10% of your portfolio toward equities or tax-advantaged accounts."
 ```
 
 **Characteristics**:
-- ✅ Anti-speculation guardrail in system prompt
-- ✅ Structured 3-part analysis (answer → rule → recommendations)
-- ✅ Limited to top 3 evidence pieces
-- ✅ Explicit gap acknowledgement
+- ✅ Personalized insights based on age, state, risk tolerance
+- ✅ Structured 3-part response format
+- ✅ Context-aware recommendations
 
 ### Comprehensive Mode (Temperature: 0.5) - OPTIMIZED
 
