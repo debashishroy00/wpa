@@ -12,36 +12,43 @@ The system uses a multi-stage Agentic RAG (Retrieval-Augmented Generation) appro
 
 ---
 
-## 1. Query Planning Prompt
+## 1. Query Planning Prompt (OPTIMIZED)
 
-**Purpose**: Breaks down complex financial queries into structured sub-questions for better information retrieval.
+**Purpose**: Breaks down complex financial queries into domain-specific sub-questions with categorization for better retrieval.
 
 **System Prompt**:
 ```
-You are a query planner. Return only valid JSON.
+You are a financial query planner. Return only valid JSON.
 ```
 
 **User Prompt Template**:
 ```
-Break down this financial query into 2-3 specific sub-questions.
+You are a financial query planner. Your job is to decompose user queries 
+into 2–3 precise financial sub-questions.
 
 Query: {message}
 User context: Age {age}, State: {state}
 Intent type: {intent}
 
+Categorize each sub-question as:
+- FACT: requires numeric/user data (assets, income, liabilities, etc.)
+- RULE: requires authority context (IRS, state tax code, retirement rules)
+- PATTERN: requires historical or behavioral context
+
 Return a JSON array of steps:
 [
-    {"step": 1, "question": "...", "search_query": "...", "index": "authority"},
-    {"step": 2, "question": "...", "search_query": "...", "index": "authority"}
+    {"step": 1, "type": "FACT", "question": "...", "search_query": "...", "index": "user_facts"},
+    {"step": 2, "type": "RULE", "question": "...", "search_query": "...", "index": "authority"},
+    {"step": 3, "type": "PATTERN", "question": "...", "search_query": "...", "index": "user_history"}
 ]
 
 Keep it simple - max 3 steps.
 ```
 
-**Current Issues**:
-- Generic decomposition approach
-- Limited context utilization
-- Fixed JSON structure may be restrictive
+**Optimizations**:
+- ✅ Domain-specific financial categorization (FACT/RULE/PATTERN)
+- ✅ Index routing based on query type
+- ✅ Financial domain expertise in system prompt
 
 ---
 
