@@ -696,8 +696,18 @@ class AgenticRAG:
             # Format evidence properly
             formatted_evidence = self._format_evidence_for_prompt(evidence)
             
+            # Format conversation history for direct mode
+            history_context = ""
+            if conversation_history:
+                history_context = "\nPrevious context: "
+                recent_questions = [msg['content'] for msg in conversation_history if msg['role'] == 'user']
+                if recent_questions:
+                    history_context += f"User previously asked about: {', '.join(recent_questions[-2:])}\n"
+            
             user_prompt = f"""
             Question: {message}
+            
+            {history_context}
             
             Core Facts: {json.dumps(facts, indent=2)}
             
@@ -710,6 +720,7 @@ class AgenticRAG:
             - If asked about specific categories (expenses, income, assets, etc.), use the detailed data above
             - Provide a direct, factual answer with specific numbers
             - Keep response concise but complete
+            - If this is a follow-up question, build on previous context
             
             {f"Note: Answer limited due to {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
             """
