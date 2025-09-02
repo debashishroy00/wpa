@@ -166,17 +166,24 @@ class AgenticRAG:
         # Try LLM decomposition
         try:
             decomposition_prompt = f"""
-            Break down this financial query into 2-3 specific sub-questions.
+            You are a financial query planner. Your job is to decompose user queries 
+            into 2–3 precise financial sub-questions.
             
             Query: {message}
             User context: Age {facts.get('_context', {}).get('age', 'unknown')}, 
                          State: {facts.get('_context', {}).get('state', 'unknown')}
             Intent type: {intent['intent']}
             
+            Categorize each sub-question as:
+            - FACT: requires numeric/user data (assets, income, liabilities, etc.)
+            - RULE: requires authority context (IRS, state tax code, retirement rules)
+            - PATTERN: requires historical or behavioral context
+            
             Return a JSON array of steps:
             [
-                {{"step": 1, "question": "...", "search_query": "...", "index": "authority"}},
-                {{"step": 2, "question": "...", "search_query": "...", "index": "authority"}}
+                {{"step": 1, "type": "FACT", "question": "...", "search_query": "...", "index": "user_facts"}},
+                {{"step": 2, "type": "RULE", "question": "...", "search_query": "...", "index": "authority"}},
+                {{"step": 3, "type": "PATTERN", "question": "...", "search_query": "...", "index": "user_history"}}
             ]
             
             Keep it simple - max 3 steps.
