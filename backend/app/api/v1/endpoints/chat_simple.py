@@ -75,6 +75,7 @@ async def chat_message(
 ):
     """Handle chat with financial intelligence and conversational memory"""
     logger.info(f"🚀 chat_simple endpoint hit with message: '{request.message}'")
+    logger.info(f"🎛️ Mode received from frontend: {request.insight_level}")
     try:
         # Initialize memory service
         memory_service = ChatMemoryService(db)
