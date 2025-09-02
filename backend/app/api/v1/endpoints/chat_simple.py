@@ -100,6 +100,7 @@ async def chat_message(
         
         if should_use_rag:
             logger.info(f"🤖 Using Agentic RAG for financial query: {request.message}")
+            logger.info(f"🎛️ Passing mode to AgenticRAG: {request.insight_level}")
             try:
                 rag_response = await agentic_rag.handle_query(
                     user_id=current_user.id,
