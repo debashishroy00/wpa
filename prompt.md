@@ -204,17 +204,17 @@ Example: *"Retirement timeline is not defined, so strategies assume a standard a
 
 **🟢 Direct:**
 ```
-"Debashish, your net worth is $2,565,545, based on assets of $2,879,827 and liabilities of $314,282."
+"User, your net worth is $2,565,545."
 ```
 
 **🟡 Balanced:**
 ```
-"Debashish, your net worth is $2,565,545. At age 54 with a moderate risk tolerance, your 30% investment allocation is below typical benchmarks for growth. Because you've exceeded your FI number, you could explore semi-retirement. Recommendation: rebalance 5–10% into diversified equities while reviewing NC-specific retirement tax rules."
+"User, your net worth is $2,565,545.00. Given your age of 54 and FI progress of 1.14, you have flexibility for early retirement. Your North Carolina residency offers specific tax advantages. Recommendation: Review portfolio diversification to optimize for your moderate risk tolerance."
 ```
 
 **🔵 Comprehensive:**
 ```
-Full 4-section report (Current Position, Patterns & Risks, Strategic Opportunities, Behavioral).
+Full 4-section advisory report with personalized name usage throughout, state-specific strategies, FI progress analysis, and behavioral insights.
 ```
 
 ---
