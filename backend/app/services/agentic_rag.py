@@ -782,14 +782,6 @@ class AgenticRAG:
             
             Use the evidence and data provided to give accurate, specific answers."""
             
-            # Format conversation history
-            history_text = ""
-            if conversation_history:
-                history_text = "\nRECENT CONVERSATION:\n"
-                for msg in conversation_history:
-                    history_text += f"{msg['role'].title()}: {msg['content']}\n"
-                history_text += f"\nCURRENT QUESTION: {message}\n"
-            
             user_prompt = f"""
             Question: {message}
             
