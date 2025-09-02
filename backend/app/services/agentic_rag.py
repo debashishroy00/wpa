@@ -108,6 +108,7 @@ class AgenticRAG:
 
     async def handle_query(self, user_id: int, message: str, db: Session, mode: str = "balanced") -> Dict[str, Any]:
         """Phase 3: Add iterative refinement and sufficiency checking."""
+        logger.info(f"🎛️ Mode in handle_query: {mode}")
         try:
             # Steps 1-2: Same as Phase 1
             intent = self.parser.parse(message)
