@@ -28,6 +28,7 @@ class LLMRequest(BaseModel):
     knowledge_base_query: Optional[str] = Field(None, description="Knowledge base search query")
     max_tokens: Optional[int] = Field(default=2000)
     temperature: float = Field(default=0.3, ge=0.0, le=2.0)
+    mode: Literal["direct", "balanced", "comprehensive"] = Field(default="balanced", description="Response mode affecting depth and creativity")
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
