@@ -662,54 +662,75 @@ class AgenticRAG:
             temperature = 0.1
             
         elif mode == "comprehensive":
-            # Extract comprehensive user context for human-advisor replacement
+            # Extract comprehensive user context for ultra-aggressive analysis
             first_name = facts.get('_context', {}).get('first_name', 'User')
-            age = facts.get('_context', {}).get('age', 'unknown')
-            state = facts.get('_context', {}).get('state', 'unknown') 
+            age = facts.get('_context', {}).get('age', 54)
+            state = facts.get('_context', {}).get('state', 'NC')
             city = facts.get('_context', {}).get('city', 'unknown')
-            filing_status = facts.get('_context', {}).get('filing_status', 'unknown')
-            risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
-            fi_progress = facts.get('FI_progress', 'unknown')
-            retirement_timeline = facts.get('_context', {}).get('retirement_timeline', 'unknown')
             
-            system_prompt = f"""You are {first_name}'s personal CFO writing their quarterly wealth report. Use specific calculations, 
-            not generic observations. Every insight must include a number from their data. Never say 
-            "consider" - say "do this" with specific amounts and dates."""
+            system_prompt = """You are writing a paid financial analysis for a client who demands specifics.
+            
+            BANNED WORDS: consider, review, explore, evaluate, analyze, prioritize, warrant, potentially, might, could, would, should, beneficial, advisable, prudent, recommend reviewing
+            
+            REQUIRED IN EVERY RESPONSE:
+            - Exact dollar amounts with calculations shown
+            - Specific company/product names (Vanguard VTSAX, not "investment account")
+            - Percentile rankings for their demographic
+            - Actions with calendar dates (not "this month" but "by January 15, 2025")
+            - Phone numbers or websites for taking action
+            
+            If you use any banned word, the response fails."""
             
             user_prompt = f"""
-            Client: {first_name}, {age}, {city}, {state}
+            Client: {first_name}, Age {age}, {state}
+            
             Question: {message}
             
-            Data: {json.dumps(facts, indent=2)}
+            Financial Data:
+            {json.dumps(facts, indent=2)}
             
-            Write {first_name}'s Q3 2025 Wealth Report in these sections:
+            REQUIRED RESPONSE FORMAT:
             
-            1. THE NUMBERS THAT MATTER
-            Calculate 3 specific metrics they haven't seen before (e.g., "Your $7,863 monthly surplus 
-            could buy 2.1 rental properties per year in Charlotte")
+            1. YOUR EXACT POSITION (3 calculations)
+            Example: "You're richer than 89% of 54-year-olds in NC ($2.5M vs median $478K)"
             
-            2. WHAT'S COSTING YOU MONEY RIGHT NOW
-            Find 2-3 specific inefficiencies with dollar amounts (e.g., "Your cash drag is $5,052/year", 
-            "Missing catch-up contributions costs you $1,847 in tax savings")
+            2. MONEY YOU'RE LOSING RIGHT NOW (3 specific leaks)
+            Example: "Cash drag: $421/month, Missing 401k match: $500/month, Wrong mortgage rate: $312/month"
             
-            3. MOVES TO MAKE THIS MONTH
-            3 specific actions with exact amounts and account names, not generic advice
+            3. DO THESE THREE THINGS THIS WEEK
+            Example: "Monday: Call Vanguard 877-662-7447, open VTSAX, transfer $50,000"
+            Not: "Consider reviewing your portfolio"
             
-            4. THE BEHAVIORAL PATTERN I SEE
-            One specific observation about their money behavior based on the data patterns
-            (e.g., "You save 51% but invest 0% - classic paralysis from 2008 trauma")
+            4. THE PATTERN COSTING YOU MOST
+            Example: "You save 51% but invest 0% - textbook 2008 PTSD, costing $241,000 since 2020"
+            Not: "You appear to be conservative"
             
-            Address {first_name} directly throughout. Use their actual location for tax calculations.
-            Use actual NC tax rate (4.75%). Reference actual cities (Charlotte, Raleigh).
-            Compare to state-specific benchmarks. Include state-specific strategies.
-            
-            Every statement must include a calculation or specific number.
-            Every recommendation must have: amount, account name, deadline.
+            For expenses specifically, provide:
+            - Exact cuts with vendor alternatives
+            - Not "reduce restaurants" but "Cancel Ruth's Chris monthly, save $400, go to Olive Garden"
             """
             
-            # Apply specificity enforcement
-            user_prompt = self._enforce_specificity(user_prompt, mode)
-            temperature = 0.5
+            # Add expense-specific requirements if query mentions expenses
+            if "expense" in message.lower() or "spending" in message.lower():
+                user_prompt += """
+                
+                EXPENSE ANALYSIS REQUIREMENTS:
+                
+                For EACH expense category over $500/month:
+                1. The specific vendor/merchant you see most often
+                2. The exact cut amount (not percentage)
+                3. The replacement option with name
+                
+                Example format:
+                "Restaurants $800: You eat at Ruth's Chris 4x/month ($600). Switch to Texas Roadhouse, save $400.
+                Gym $350: Cancel Lifetime Fitness, join Planet Fitness for $10, save $340.
+                Utilities $900: Your Duke Energy bill averages $400. Switch to budget billing, save $100/month."
+                
+                DO NOT SAY: "evaluate the necessity" or "explore alternatives"
+                DO SAY: "Cancel X, switch to Y, save $Z"
+                """
+            
+            temperature = 0.3  # Lower for more consistent specific responses
             
         else:  # balanced
             system_prompt = """You are a financial advisor speaking directly to your client. Never use generic phrases like 
