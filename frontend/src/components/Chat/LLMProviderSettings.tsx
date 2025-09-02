@@ -86,16 +86,16 @@ const LLMProviderSettings: React.FC = () => {
                     <h4 className="text-white font-medium mb-2 text-sm">Response Depth</h4>
                     <div className="grid grid-cols-3 gap-2">
                         <button
-                            onClick={() => handleInsightLevelChange('focused')}
+                            onClick={() => handleInsightLevelChange('direct')}
                             className={`p-2 rounded border transition-all ${
-                                settings.insightLevel === 'focused' 
+                                settings.insightLevel === 'direct' 
                                     ? 'bg-blue-900/30 border-blue-500 text-blue-300' 
                                     : 'bg-gray-700/30 border-gray-600 text-gray-300 hover:bg-gray-700/50'
                             }`}
                         >
                             <div className="text-center">
                                 <div className="text-lg mb-1">🎯</div>
-                                <div className="font-medium text-sm">Focused</div>
+                                <div className="font-medium text-sm">Direct</div>
                                 <div className="text-xs opacity-60">Brief</div>
                             </div>
                         </button>
