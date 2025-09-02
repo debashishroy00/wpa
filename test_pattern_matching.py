@@ -41,7 +41,10 @@ def main():
             r'(?i).*how long.*retirement',
             r'(?i).*years.*retirement goal',
             r'(?i).*timeline.*retirement',
-            r'(?i).*reach.*retirement goal'
+            r'(?i).*reach.*retirement goal',
+            r'(?i).*on track.*retirement',
+            r'(?i).*track.*retirement goal',
+            r'(?i).*retirement.*on track'
         ],
         'growth_rate_impact': [
             r'(?i).*(\d+)%.*growth.*rate',
