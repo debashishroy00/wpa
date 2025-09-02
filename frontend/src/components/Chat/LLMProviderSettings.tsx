@@ -137,7 +137,7 @@ const LLMProviderSettings: React.FC = () => {
                     </div>
                     <div className="text-yellow-300/70 text-xs">
                         {settings.provider.toUpperCase()} {settings.modelTier.toUpperCase()} • {
-                            settings.insightLevel === 'focused' ? 'Brief answers (3-4 sentences)' :
+                            settings.insightLevel === 'direct' ? 'Brief answers (3-4 sentences)' :
                             settings.insightLevel === 'comprehensive' ? 'Detailed analysis with insights' :
                             'Balanced responses with context'
                         }
