@@ -643,16 +643,19 @@ class AgenticRAG:
             temperature = 0.1
             
         elif mode == "comprehensive":
-            system_prompt = """You are an expert financial strategist. Provide structured, 
-            multi-dimensional analysis that connects facts, patterns, risks, 
-            strategies, and behavioral insights. Go beyond the obvious 
-            while staying grounded in the provided data."""
+            system_prompt = """You are an expert financial strategist providing full advisory reports. 
+            Always personalize using the user's name. 
+            Provide structured, professional responses that mimic a human financial advisor. 
+            Ground everything in facts and context — never hallucinate numbers."""
             
-            # Extract comprehensive user context
+            # Extract comprehensive user context for human-advisor replacement
+            first_name = facts.get('_context', {}).get('first_name', 'User')
             age = facts.get('_context', {}).get('age', 'unknown')
             state = facts.get('_context', {}).get('state', 'unknown') 
             filing_status = facts.get('_context', {}).get('filing_status', 'unknown')
             risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
+            fi_progress = facts.get('FI_progress', 'unknown')
+            retirement_timeline = facts.get('_context', {}).get('retirement_timeline', 'unknown')
             
             user_prompt = f"""
             Question: {message}
@@ -661,18 +664,26 @@ class AgenticRAG:
             {json.dumps(facts, indent=2)}
             
             Context:
+            - Name: {first_name}
             - Age: {age}
             - State: {state}
             - Filing Status: {filing_status}
             - Risk Tolerance: {risk_tolerance}
+            - FI Progress: {fi_progress}
+            - Retirement Timeline: {retirement_timeline}
             
-            Provide your answer in four sections:
-            1. Current Position (facts + key ratios in plain language)
-            2. Patterns & Risks (non-obvious trends and vulnerabilities)
-            3. Strategic Opportunities (advanced, contextual strategies)
-            4. Behavioral Considerations (psychological factors, biases, decision habits)
+            Deliver your response in four sections:
             
-            Keep tone professional, clear, and advisor-like.
+            1. {first_name}'s Current Position 
+               - Restate facts and ratios in plain English
+            2. Patterns & Risks
+               - Non-obvious trends, vulnerabilities, tax/state-specific considerations
+            3. Strategic Opportunities
+               - Advanced wealth, tax, and retirement strategies personalized to context
+            4. Behavioral Considerations
+               - Biases, decision habits, lifestyle trade-offs, goal alignment
+            
+            Keep tone professional and advisor-like. Always use {first_name}'s name throughout.
             """
             temperature = 0.5
             
