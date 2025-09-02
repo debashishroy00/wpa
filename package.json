@@ -1,4 +1,3 @@
-
 {
   "dependencies": {
     "playwright": "^1.55.0",
@@ -11,7 +10,6 @@
   "directories": {
     "doc": "docs"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
