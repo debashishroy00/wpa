@@ -33,12 +33,15 @@ class CalculationRouter:
             
             'retirement_goal_adjustment': {
                 'patterns': [
-                    r'(?i).*reduce.*goal.*(\$?[\d,]+)',
-                    r'(?i).*change.*goal.*(\$?[\d,]+)',
-                    r'(?i).*goal.*(\$?[\d,]+).*years.*save',
-                    r'(?i).*years.*save.*goal.*(\$?[\d,]+)',
-                    r'(?i).*shave.*years.*goal.*(\$?[\d,]+)',
-                    r'(?i).*(\$?[\d,]+).*goal.*timeline'
+                    r'(?i).*reduce.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*change.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*goal.*(\$?[\d,M]+).*years.*save',
+                    r'(?i).*years.*save.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*shave.*years.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*(\$?[\d,M]+).*goal.*timeline',
+                    r'(?i).*how many years.*shave.*off',
+                    r'(?i).*years.*can.*shave',
+                    r'(?i).*shave.*years'
                 ],
                 'required_params': ['current_assets', 'original_goal', 'new_goal'],
                 'optional_params': ['monthly_additions', 'growth_rate'],
