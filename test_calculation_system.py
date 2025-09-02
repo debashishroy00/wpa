@@ -85,7 +85,7 @@ def test_calculation_query(query: str, description: str):
 def main():
     """Test the user's original problematic scenarios"""
     
-    print("🚀 Testing ComprehensiveFinancialCalculator System")
+    print("Testing ComprehensiveFinancialCalculator System")
     print("Testing user's original problematic queries...")
     
     # Test 1: Basic retirement timeline (this should work)
