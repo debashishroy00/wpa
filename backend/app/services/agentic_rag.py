@@ -612,23 +612,76 @@ class AgenticRAG:
                 selected_provider = provider
                 break
         
-        # Generate proper system prompt using CorePrompts
-        intent_type = intent.get("intent", "GENERAL_FINANCIAL")
-        system_prompt = core_prompts.format_prompt(
-            prompt_type=intent_type,
-            user_query=message,  # Pass the actual user question
-            claims=facts,
-            age=facts.get("_context", {}).get("age"),
-            state=facts.get("_context", {}).get("state"),
-            filing_status=facts.get("_context", {}).get("filing_status")
-        )
+        # Generate mode-specific prompts
+        if mode == "direct":
+            system_prompt = """You are a financial data assistant. Provide only factual information 
+            directly from the provided data. Do not infer, interpret, or provide recommendations 
+            beyond what is explicitly stated in the facts."""
+            
+            user_prompt = f"""
+            Question: {message}
+            Facts: {json.dumps(facts, indent=2)}
+            
+            Answer using only the provided facts. Be concise and factual.
+            """
+            temperature = 0.1
+            
+        elif mode == "comprehensive":
+            system_prompt = """You are an expert financial strategist with deep knowledge in wealth 
+            management, tax optimization, behavioral finance, and life planning. Provide sophisticated 
+            analysis that goes beyond the obvious, identifying patterns and opportunities."""
+            
+            user_prompt = f"""
+            Question: {message}
+            
+            Complete Financial Picture:
+            {json.dumps(facts, indent=2)}
+            
+            Historical Patterns:
+            {self._format_evidence(evidence)}
+            
+            Behavioral Context:
+            {json.dumps({"evidence_iterations": len(evidence), "gap_analysis": gaps}, indent=2)}
+            
+            Provide deep, insightful analysis that:
+            - Identifies non-obvious patterns and their implications
+            - Connects different aspects of their financial life
+            - Suggests sophisticated strategies
+            - Considers psychological and behavioral factors
+            - Draws on advanced financial concepts
+            
+            Be bold with insights while explaining your reasoning clearly.
+            """
+            temperature = 0.5
+            
+        else:  # balanced
+            system_prompt = """You are a practical financial advisor. Provide accurate information 
+            enhanced with relevant insights and actionable recommendations."""
+            
+            user_prompt = f"""
+            Question: {message}
+            
+            Financial Facts:
+            {json.dumps(facts, indent=2)}
+            
+            Context:
+            {self._format_evidence(evidence)[:1000]}  # Limited context
+            
+            Provide helpful analysis that:
+            - Answers the question directly
+            - Includes relevant insights
+            - Offers practical recommendations
+            - Stays grounded in the data
+            """
+            temperature = 0.3
         
         llm_request = LLMRequest(
             provider=selected_provider,
             model_tier="dev",
             system_prompt=system_prompt,
-            user_prompt=prompt,
-            temperature=0.3
+            user_prompt=user_prompt,
+            mode=mode,
+            temperature=temperature
         )
         llm_response = await llm_service.generate(llm_request)
         
