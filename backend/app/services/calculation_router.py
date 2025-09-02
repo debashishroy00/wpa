@@ -181,7 +181,7 @@ class CalculationRouter:
             'current_401k': user_context.get('retirement_contribution_monthly', 0) * 12,
             'current_fund': user_context.get('liquid_assets', user_context.get('cash_total', 0)),
             'monthly_expenses': user_context.get('monthly_expenses', 0),
-            'age': user_context.get('age', 54),
+            'age': user_context.get('age', user_context.get('_context', {}).get('age')),
             'state': user_context.get('state', 'NC'),
             'filing_status': 'married'  # Default assumption
         }
