@@ -769,7 +769,7 @@ class AgenticRAG:
             Financial Data: {json.dumps(facts, indent=2)}
             
             EVIDENCE FROM DATABASE:
-            {evidence_text if evidence else "No additional evidence"}
+            {self._format_evidence_for_prompt(evidence)}
             
             Instructions:
             1. Answer with specific numbers from the data/evidence above
