@@ -615,6 +615,7 @@ class AgenticRAG:
                 break
         
         # Generate mode-specific prompts
+        logger.info(f"🎛️ About to generate prompts for mode: {mode}")
         if mode == "direct":
             system_prompt = """You are a financial data assistant. Provide only factual information 
             directly from the provided data. Do not infer, interpret, or provide recommendations 
