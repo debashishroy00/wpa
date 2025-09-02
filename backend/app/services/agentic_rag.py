@@ -563,7 +563,7 @@ class AgenticRAG:
         
         return evidence
     
-    async def _generate_intelligent_response(self, user_id: int, message: str, facts: Dict, evidence: List[Dict], intent: Dict, gaps: List[Dict]) -> Dict:
+    async def _generate_intelligent_response(self, user_id: int, message: str, facts: Dict, evidence: List[Dict], intent: Dict, gaps: List[Dict], mode: str = "balanced") -> Dict:
         """Phase 3: Intelligent response generation with gap awareness."""
         
         # Build context from evidence with iteration info
