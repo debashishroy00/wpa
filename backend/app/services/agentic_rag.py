@@ -694,7 +694,7 @@ class AgenticRAG:
         
         # Format conversation history for all modes
         history_text = ""
-        if conversation_history:
+        if conversation_history and len(conversation_history) > 0:
             history_text = "\nCONVERSATION HISTORY:\n"
             for msg in conversation_history:
                 history_text += f"{msg['role'].title()}: {msg['content']}\n"
