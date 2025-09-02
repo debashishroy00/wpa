@@ -737,7 +737,7 @@ class AgenticRAG:
             {json.dumps(facts, indent=2)}
             
             RETRIEVED EVIDENCE FROM DATABASE:
-            {evidence_text if evidence else "No additional evidence found"}
+            {self._format_evidence_for_prompt(evidence)}
             
             CRITICAL INSTRUCTIONS:
             1. If asked about expenses, use the expense breakdown from the evidence above
