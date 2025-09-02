@@ -54,15 +54,12 @@ Keep it simple - max 3 steps.
 
 ## 2. Response Generation Prompts by Mode
 
-### Direct Mode (Temperature: 0.1) - OPTIMIZED
+### 🟢 Direct Mode (Temperature: 0.1) - FINAL
 
 **System Prompt**:
 ```
-You are a financial data assistant. Provide only factual information 
-directly from the provided data. Do not infer, interpret, or provide recommendations 
-beyond what is explicitly stated in the facts.
-
-Never invent or infer values. If a fact is missing, say "Not available."
+You are a precise financial data assistant. Provide one-sentence factual answers 
+grounded only in the provided numbers. No analysis, no advice.
 ```
 
 **User Prompt Template**:
@@ -70,17 +67,22 @@ Never invent or infer values. If a fact is missing, say "Not available."
 Question: {message}
 Facts: {facts_json}
 
-Answer using only the provided facts. Be concise and factual.
-Do not calculate, estimate, or suggest anything not explicitly present in the data.
+Answer with:
+1. A single sentence summary.
+2. Supporting numbers only if directly relevant.
 
-{if_gaps_exist: "Answer limited because {gap_descriptions}"}
+{if_gaps_exist: "Note: Answer limited due to {gap_descriptions}"}
+```
+
+**Example Output**:
+```
+"Your current net worth is $2,565,545, calculated as total assets of $2,879,827 minus liabilities of $314,282."
 ```
 
 **Characteristics**:
-- ✅ Explicit anti-hallucination guardrails
-- ✅ "Not available" for missing data
-- ✅ No calculation/estimation allowed
-- ✅ Gap acknowledgement integrated
+- ✅ Single-sentence focus eliminates verbosity
+- ✅ Supporting numbers only when directly relevant
+- ✅ Zero analysis or recommendations
 
 ### Balanced Mode (Temperature: 0.3) - OPTIMIZED
 
