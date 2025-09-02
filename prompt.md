@@ -82,12 +82,13 @@ Do not calculate, estimate, or suggest anything not explicitly present in the da
 - ✅ No calculation/estimation allowed
 - ✅ Gap acknowledgement integrated
 
-### Balanced Mode (Temperature: 0.3)
+### Balanced Mode (Temperature: 0.3) - OPTIMIZED
 
 **System Prompt**:
 ```
 You are a practical financial advisor. Provide accurate information 
 enhanced with relevant insights and actionable recommendations.
+Do not speculate beyond provided data and evidence.
 ```
 
 **User Prompt Template**:
@@ -98,19 +99,22 @@ Financial Facts:
 {facts_json}
 
 Context:
-{evidence_context_limited}
+{evidence_top_3_pieces}
 
-Provide helpful analysis that:
-- Answers the question directly
-- Includes relevant insights
-- Offers practical recommendations
-- Stays grounded in the data
+Provide concise analysis that:
+- States the direct answer
+- Explains the key calculation or rule
+- Highlights 1–2 practical recommendations
+Do not speculate beyond provided data and evidence.
+
+{if_gaps_exist: "Note: Answer limited because {gap_descriptions}"}
 ```
 
 **Characteristics**:
-- Balanced approach
-- Limited context to prevent over-elaboration
-- Practical focus
+- ✅ Anti-speculation guardrail in system prompt
+- ✅ Structured 3-part analysis (answer → rule → recommendations)
+- ✅ Limited to top 3 evidence pieces
+- ✅ Explicit gap acknowledgement
 
 ### Comprehensive Mode (Temperature: 0.5)
 
