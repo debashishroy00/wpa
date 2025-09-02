@@ -333,12 +333,14 @@ const FinancialAdvisorChat: React.FC = () => {
                 message: content,
                 session_id: currentSession?.sessionId,
                 provider: llmSettings.provider,
-                model_tier: llmSettings.modelTier
+                model_tier: llmSettings.modelTier,
+                insight_level: llmSettings.insightLevel || 'balanced'
             } : (useIntelligentChat ? {
                 message: content,
                 session_id: currentSession.sessionId,
                 provider: llmSettings.provider,
-                model_tier: llmSettings.modelTier
+                model_tier: llmSettings.modelTier,
+                insight_level: llmSettings.insightLevel || 'balanced'
             } : {
                 user_id: userId,
                 message: content,
