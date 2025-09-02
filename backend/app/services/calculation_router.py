@@ -341,8 +341,8 @@ class CalculationRouter:
         
         if calc_type == 'retirement_goal_adjustment':
             if len(numbers) >= 1:
-                # First number is likely the new goal
-                return {'new_goal': numbers[0]}
+                # Take the largest number as the new goal (handles duplicates from different patterns)
+                return {'new_goal': max(numbers)}
         
         return {}
     
