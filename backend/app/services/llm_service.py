@@ -276,11 +276,21 @@ class MultiLLMService:
         logger.info(f"Registered LLM client for provider: {provider_id}")
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
-        """Generate content using specified provider"""
+        """Generate content using specified provider with mode support"""
+        # Extract mode from request (default to balanced)
+        mode = getattr(request, 'mode', 'balanced')
+        
+        # Adjust temperature based on mode
+        original_temp = request.temperature or 0.3
+        request.temperature = self._get_temperature_for_mode(mode, original_temp)
+        
+        # Adjust system prompt based on mode
+        request.system_prompt = self._enhance_prompt_for_mode(request.system_prompt, mode)
+        
         # Check cache first
         cached_response = self.cache.get(request)
         if cached_response:
-            logger.info(f"Returning cached response for {request.provider}")
+            logger.info(f"Returning cached response for {request.provider} (mode: {mode})")
             return cached_response
         
         # Get client
@@ -302,7 +312,7 @@ class MultiLLMService:
         # Cache response
         self.cache.set(request, response)
         
-        logger.info(f"Generated response using {request.provider} in {time.time() - start_time:.2f}s")
+        logger.info(f"Generated response using {request.provider} in {time.time() - start_time:.2f}s (mode: {mode}, temp: {request.temperature})")
         return response
     
     async def compare_providers(self, 
