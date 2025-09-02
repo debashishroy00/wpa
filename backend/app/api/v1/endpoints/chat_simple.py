@@ -97,42 +97,42 @@ async def chat_message(
         # Use AgenticRAG for ALL queries - every question deserves intelligent analysis
         # No more restrictive triggers - real estate, mortgages, etc all need full intelligence
         try:
-            logger.info(f"🤖 Using Agentic RAG for financial query: {request.message}")
-            logger.info(f"🎛️ Passing mode to AgenticRAG: {request.insight_level}")
-            try:
-                rag_response = await agentic_rag.handle_query(
-                    user_id=current_user.id,
-                    message=request.message,
-                    db=db,
-                    mode=request.insight_level
-                )
-                
-                # Save conversation to memory
-                memory_service.add_message_pair(
-                    session=session,
-                    user_message=request.message,
-                    assistant_response=rag_response["response"],
-                    intent_detected=f"rag_{insight_type}",
-                    context_used={
-                        "agentic_rag_used": True,
-                        "rag_confidence": rag_response["confidence"],
-                        "rag_citations": len(rag_response["citations"])
-                    },
-                    tokens_used=0,
-                    model_used=request.model_tier,
-                    provider=request.provider
-                )
-                
-                return ChatResponse(
-                    response=rag_response["response"],
-                    confidence=rag_response["confidence"],
-                    warnings=rag_response["warnings"],
-                    session_id=session.session_id
-                )
-                
-            except Exception as e:
-                logger.error(f"❌ Agentic RAG failed: {e}, falling back to regular flow")
-                # Fall through to regular processing
+            logger.info(f"🤖 Using Agentic RAG for ALL queries: {request.message}")
+            logger.info(f"🎛️ Mode: {request.insight_level}")
+            
+            rag_response = await agentic_rag.handle_query(
+                user_id=current_user.id,
+                message=request.message,
+                db=db,
+                mode=request.insight_level
+            )
+            
+            # Save conversation to memory
+            memory_service.add_message_pair(
+                session=session,
+                user_message=request.message,
+                assistant_response=rag_response["response"],
+                intent_detected=f"rag_{insight_type}",
+                context_used={
+                    "agentic_rag_used": True,
+                    "rag_confidence": rag_response["confidence"],
+                    "rag_citations": len(rag_response["citations"])
+                },
+                tokens_used=0,
+                model_used=request.model_tier,
+                provider=request.provider
+            )
+            
+            return ChatResponse(
+                response=rag_response["response"],
+                confidence=rag_response["confidence"],
+                warnings=rag_response["warnings"],
+                session_id=session.session_id
+            )
+            
+        except Exception as e:
+            logger.error(f"❌ Agentic RAG failed: {e}, providing simple response")
+            # Fallback for true failures only
         
         if insight_type != "general_chat":
             # Financial question - use facts + LLM
