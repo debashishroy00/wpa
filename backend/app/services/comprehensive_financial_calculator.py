@@ -700,9 +700,16 @@ class ComprehensiveFinancialCalculator:
             if 'growth_rate' in calculation_params and calculation_type in [
                 'years_to_retirement_goal', 'retirement_goal_adjustment', 'required_monthly_savings'
             ]:
-                # Get the appropriate calculation method
-                calc_method = getattr(self.retirement, calculation_type.replace('retirement_goal_adjustment', 'goal_adjustment_impact'))
-                if hasattr(self.retirement, calculation_type.split('_')[0]):
+                # Map calculation types to actual method names
+                method_mapping = {
+                    'years_to_retirement_goal': 'years_to_goal',
+                    'retirement_goal_adjustment': 'goal_adjustment_impact',
+                    'required_monthly_savings': 'required_monthly_savings'
+                }
+                
+                method_name = method_mapping.get(calculation_type)
+                if method_name and hasattr(self.retirement, method_name):
+                    calc_method = getattr(self.retirement, method_name)
                     sensitivity = self.growth_manager.assess_growth_sensitivity(
                         calc_method, calculation_params, rate_info['rate']
                     )
