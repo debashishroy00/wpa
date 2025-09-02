@@ -691,14 +691,14 @@ class AgenticRAG:
             "provider": selected_provider,
             "model_tier": "dev",
             "system_prompt": system_prompt,
-            "user_message": prompt,
+            "user_message": user_prompt,
             "context_used": json.dumps({
                 "agentic_rag_used": True,
                 "evidence_count": len(evidence),
                 "gaps_identified": len(gaps),
                 "iterations_performed": max([e.get('iteration', 0) for e in evidence]) if evidence else 0,
-                "intent_type": intent_type,
-                "core_prompts_used": True
+                "mode": mode,
+                "temperature": temperature
             }),
             "llm_response": llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         })
