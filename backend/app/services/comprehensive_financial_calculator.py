@@ -138,7 +138,7 @@ class GrowthRateManager:
     def _get_risk_profile_default(self, user_context: Dict, calculation_type: str) -> Dict[str, Any]:
         """Get default based on user risk profile"""
         
-        age = user_context.get('age', 54)
+        age = user_context.get('age') or user_context.get('_context', {}).get('age', 50)
         net_worth = user_context.get('net_worth', 0)
         
         # Age-based risk assessment
