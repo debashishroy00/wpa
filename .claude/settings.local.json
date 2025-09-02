@@ -129,7 +129,8 @@
       "Bash(timeout 30s docker-compose logs backend --tail 20)",
       "Bash(timeout 30s docker-compose logs backend -f --tail 5)",
       "Bash(timeout:*)",
-      "Bash(npm init:*)"
+      "Bash(npm init:*)",
+      "Bash(npx playwright:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
