@@ -885,3 +885,41 @@ class AgenticRAG:
                 formatted.append(f"\n=== ADDITIONAL DATA (from {source}) ===\n{text}")
         
         return "\n".join(formatted) if formatted else "No detailed data retrieved."
+    
+    def _get_conversation_history(self, user_id: int, session_id: str, db: Session) -> List[Dict[str, str]]:
+        """Get recent conversation history for context"""
+        try:
+            from app.models.chat import ChatSession, ChatMessage
+            
+            # Find the session
+            session = db.query(ChatSession).filter(
+                ChatSession.user_id == user_id,
+                ChatSession.session_id == session_id,
+                ChatSession.is_active == True
+            ).first()
+            
+            if not session:
+                return []
+            
+            # Get last 6 messages (3 exchanges)
+            messages = db.query(ChatMessage).filter(
+                ChatMessage.session_id == session.id
+            ).order_by(ChatMessage.created_at.desc()).limit(6).all()
+            
+            # Reverse to get chronological order
+            messages.reverse()
+            
+            # Format for prompt
+            history = []
+            for msg in messages:
+                history.append({
+                    "role": msg.role,
+                    "content": msg.content[:200] + "..." if len(msg.content) > 200 else msg.content,
+                    "timestamp": msg.created_at.isoformat()
+                })
+            
+            return history
+            
+        except Exception as e:
+            logger.warning(f"Failed to get conversation history: {e}")
+            return []
