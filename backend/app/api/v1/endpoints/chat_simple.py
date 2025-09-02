@@ -104,7 +104,8 @@ async def chat_message(
                 user_id=current_user.id,
                 message=request.message,
                 db=db,
-                mode=request.insight_level
+                mode=request.insight_level,
+                session_id=session.session_id
             )
             
             # Save conversation to memory
