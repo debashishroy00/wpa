@@ -723,38 +723,31 @@ class AgenticRAG:
             temperature = 0.4  # Allow more natural variation
             
         else:  # balanced
-            system_prompt = """You are a paid financial advisor. Client expects specific numbers and actions, not advice-speak.
-            
-            BANNED: consider, review, explore, might, could, should, beneficial, advisable, position, healthy
-            
-            REQUIRED: Exact dollars, specific companies, percentile ranks, action deadlines"""
-            
+            # Extract THIS user's actual data - no hardcoded values
             first_name = facts.get('_context', {}).get('first_name', 'User')
-            age = facts.get('_context', {}).get('age', 54)
-            state = facts.get('_context', {}).get('state', 'NC')
+            age = facts.get('_context', {}).get('age', 'unknown')
+            state = facts.get('_context', {}).get('state', 'unknown')
+            net_worth = facts.get('net_worth', 0)
+            
+            system_prompt = f"""You are a financial advisor providing specific advice for a {age}-year-old in {state} with ${net_worth:,.0f} net worth.
+            
+            Give direct, actionable advice without generic language. Be specific but natural."""
             
             user_prompt = f"""
             Question: {message}
             
             Client: {first_name}, Age {age}, {state}
-            Data: {json.dumps(facts, indent=2)}
+            Their Financial Data: {json.dumps(facts, indent=2)}
             
-            Response format (exactly 3 elements):
+            Provide 3 elements:
+            1. Direct answer to their question with specific numbers
+            2. What this means for someone in their situation (age {age}, {state} resident, ${net_worth:,.0f} net worth)
+            3. One specific action they can take this week
             
-            1. **THE NUMBER:** [Answer with specific dollar amount]
-            
-            2. **WHAT IT MEANS FOR YOU:** You're richer/poorer than X% of {age}-year-olds in {state}. 
-               Calculate specific opportunity cost: "Missing $X/month by not doing Y"
-            
-            3. **ONE ACTION BY FRIDAY:** "Monday: Call [Company] at [Phone], do [Specific Action], transfer $[Amount]"
-               Not: "Consider reviewing" or "explore options"
-            
-            Include phone numbers, company names (Vanguard, Fidelity), specific dates.
-            Calculate percentiles vs {state} demographics.
-            Show opportunity costs in dollars.
+            Base everything on their actual situation. Vary your recommendations based on their real data.
             """
             
-            temperature = 0.2
+            temperature = 0.3
         
         llm_request = LLMRequest(
             provider=selected_provider,
