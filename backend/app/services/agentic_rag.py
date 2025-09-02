@@ -641,7 +641,7 @@ class AgenticRAG:
             temperature = 0.1
             
         elif mode == "comprehensive":
-            system_prompt = """You are {first_name}'s personal CFO writing their quarterly wealth report. Use specific calculations, 
+            system_prompt = f"""You are {first_name}'s personal CFO writing their quarterly wealth report. Use specific calculations, 
             not generic observations. Every insight must include a number from their data. Never say 
             "consider" - say "do this" with specific amounts and dates."""
             
