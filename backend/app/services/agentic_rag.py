@@ -843,3 +843,31 @@ class AgenticRAG:
             formatted.append(f"Evidence {i+1} (score: {score:.2f}, iteration: {iteration}): {text}")
         
         return "\n".join(formatted)
+    
+    def _format_evidence_for_prompt(self, evidence: List[Dict]) -> str:
+        """Format evidence with full content for accurate data retrieval"""
+        if not evidence:
+            return "No detailed data retrieved from database."
+        
+        formatted = []
+        for i, e in enumerate(evidence):
+            source = e.get('source', 'unknown')
+            text = e.get('text', 'No content')  # Don't truncate - we need full data
+            
+            # Add clear headers for different data types
+            if 'expense' in source.lower():
+                formatted.append(f"\n=== EXPENSE BREAKDOWN ===\n{text}")
+            elif 'income' in source.lower():
+                formatted.append(f"\n=== INCOME BREAKDOWN ===\n{text}")
+            elif 'asset' in source.lower() or 'allocation' in source.lower():
+                formatted.append(f"\n=== ASSET ALLOCATION ===\n{text}")
+            elif 'goal' in source.lower():
+                formatted.append(f"\n=== FINANCIAL GOALS ===\n{text}")
+            elif 'insurance' in source.lower() or 'estate' in source.lower():
+                formatted.append(f"\n=== ESTATE & INSURANCE ===\n{text}")
+            elif 'summary' in source.lower():
+                formatted.append(f"\n=== FINANCIAL SUMMARY ===\n{text}")
+            else:
+                formatted.append(f"\n=== ADDITIONAL DATA (from {source}) ===\n{text}")
+        
+        return "\n".join(formatted) if formatted else "No detailed data retrieved."
