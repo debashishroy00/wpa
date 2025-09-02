@@ -756,44 +756,38 @@ class AgenticRAG:
             temperature = 0.3  # Lower for more consistent specific responses
             
         else:  # balanced
-            system_prompt = """You are a financial advisor speaking directly to your client. Never use generic phrases like 
-            "your financial position is solid" or "consider reviewing." Instead, calculate specific numbers 
-            and give concrete actions with deadlines."""
+            system_prompt = """You are a paid financial advisor. Client expects specific numbers and actions, not advice-speak.
             
-            # Limited evidence for balanced mode (top 3 pieces)
-            limited_evidence = evidence[:3] if evidence else []
+            BANNED: consider, review, explore, might, could, should, beneficial, advisable, position, healthy
             
-            # Extract comprehensive user context for advisor-level analysis
+            REQUIRED: Exact dollars, specific companies, percentile ranks, action deadlines"""
+            
             first_name = facts.get('_context', {}).get('first_name', 'User')
-            age = facts.get('_context', {}).get('age', 'unknown')
-            state = facts.get('_context', {}).get('state', 'unknown')
-            city = facts.get('_context', {}).get('city', 'unknown')
-            risk_tolerance = facts.get('_context', {}).get('risk_tolerance', 'moderate')
-            fi_progress = facts.get('FI_progress', 'unknown')
+            age = facts.get('_context', {}).get('age', 54)
+            state = facts.get('_context', {}).get('state', 'NC')
             
             user_prompt = f"""
             Question: {message}
             
-            Client: {first_name}, Age {age}, {state} resident
-            Key Numbers:
-            {json.dumps(facts, indent=2)}
+            Client: {first_name}, Age {age}, {state}
+            Data: {json.dumps(facts, indent=2)}
             
-            Provide exactly 3 elements:
-            1. THE NUMBER: Answer their question with the specific figure
-            2. WHAT IT MEANS FOR THEM: Compare to their age cohort in {state}, calculate specific opportunity costs or gains
-            3. ONE ACTION BY FRIDAY: Not "consider" or "review" - give them something specific to do this week
+            Response format (exactly 3 elements):
             
-            Use {first_name} naturally. Reference their actual city/county if known. No generic advisory language.
+            1. **THE NUMBER:** [Answer with specific dollar amount]
             
-            NEVER use these phrases: "consider reviewing", "explore opportunities", "it would be beneficial", "consult with", "your position is solid", "healthy financial"
-            ALWAYS include: specific dollar amounts, percentiles, dates for actions
+            2. **WHAT IT MEANS FOR YOU:** You're richer/poorer than X% of {age}-year-olds in {state}. 
+               Calculate specific opportunity cost: "Missing $X/month by not doing Y"
             
-            {f"Note: Limited by {[gap.get('description', 'missing data') for gap in gaps]}" if gaps else ""}
+            3. **ONE ACTION BY FRIDAY:** "Monday: Call [Company] at [Phone], do [Specific Action], transfer $[Amount]"
+               Not: "Consider reviewing" or "explore options"
+            
+            Include phone numbers, company names (Vanguard, Fidelity), specific dates.
+            Calculate percentiles vs {state} demographics.
+            Show opportunity costs in dollars.
             """
             
-            # Apply specificity enforcement
-            user_prompt = self._enforce_specificity(user_prompt, mode)
-            temperature = 0.3
+            temperature = 0.2
         
         llm_request = LLMRequest(
             provider=selected_provider,
