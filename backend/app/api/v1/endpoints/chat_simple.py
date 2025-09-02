@@ -280,8 +280,8 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
                 model_tier=request.model_tier,
                 system_prompt="Helpful assistant",
                 user_prompt=request.message,
-                mode=request.insight_level,
-                temperature=None  # Let mode determine temperature
+                mode=request.insight_level
+                # Temperature will be set by LLM service based on mode
             )
             response = await llm_service.generate(llm_request)
             
