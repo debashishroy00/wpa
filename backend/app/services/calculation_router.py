@@ -22,7 +22,10 @@ class CalculationRouter:
                     r'(?i).*how long.*retirement',
                     r'(?i).*years.*retirement goal',
                     r'(?i).*timeline.*retirement',
-                    r'(?i).*reach.*retirement goal'
+                    r'(?i).*reach.*retirement goal',
+                    r'(?i).*on track.*retirement',
+                    r'(?i).*track.*retirement goal',
+                    r'(?i).*retirement.*on track'
                 ],
                 'required_params': ['current_assets', 'target_goal'],
                 'optional_params': ['monthly_additions', 'growth_rate']
