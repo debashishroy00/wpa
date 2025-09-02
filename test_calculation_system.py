@@ -21,7 +21,7 @@ def test_calculation_query(query: str, description: str):
     # Login first
     login_response = requests.post(f"{API_BASE}/api/v1/auth/login", data={
         "username": "debashishroy@gmail.com",
-        "password": "Test123!"
+        "password": "password123"
     })
     
     if login_response.status_code != 200:
