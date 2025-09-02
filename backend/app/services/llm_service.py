@@ -279,10 +279,12 @@ class MultiLLMService:
         """Generate content using specified provider with mode support"""
         # Extract mode from request (default to balanced)
         mode = getattr(request, 'mode', 'balanced')
+        logger.info(f"🎛️ Mode in LLM service: {mode}")
         
         # Adjust temperature based on mode
         original_temp = request.temperature or 0.3
         request.temperature = self._get_temperature_for_mode(mode, original_temp)
+        logger.info(f"🌡️ Temperature being used: {request.temperature} (mode: {mode})")
         
         # Adjust system prompt based on mode
         request.system_prompt = self._enhance_prompt_for_mode(request.system_prompt, mode)
