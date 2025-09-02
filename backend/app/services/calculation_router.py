@@ -266,9 +266,19 @@ class CalculationRouter:
             except ValueError:
                 continue
         
-        # Pattern 3: Large plain numbers (likely dollar amounts)
-        large_number_pattern = r'\b(\d{7,})\b'  # 7+ digits, likely dollar amounts
+        # Pattern 3: Large plain numbers (likely dollar amounts) including with commas
+        large_number_pattern = r'\b(\d{1,3}(?:,\d{3})*)\b'  # Numbers with commas like 2,500,000
         for match in re.finditer(large_number_pattern, message):
+            try:
+                value = float(match.group(1).replace(',', ''))
+                if value >= 1000:  # Only consider significant amounts
+                    numbers.append(value)
+            except ValueError:
+                continue
+        
+        # Pattern 4: Numbers without commas but 6+ digits
+        plain_number_pattern = r'\b(\d{6,})\b'  # 6+ digits like 2500000
+        for match in re.finditer(plain_number_pattern, message):
             try:
                 value = float(match.group(1))
                 numbers.append(value)
