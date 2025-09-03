@@ -50,7 +50,7 @@ def audit_calculation_patterns():
                 matched_pattern = pattern
                 break
         
-        status = "✓ PASS" if matched else "✗ FAIL"
+        status = "PASS" if matched else "FAIL"
         print(f"{status} | Query: '{query}'")
         if matched:
             print(f"       Matched pattern: {matched_pattern}")
