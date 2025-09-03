@@ -1113,21 +1113,32 @@ You're in excellent shape for retirement and could potentially retire now if des
 ⚠️ Growth rate assumptions significantly impact your timeline.
 """
             
+            # Get rate explanation for natural language
+            rate_explanation = assumptions.get('growth_rate_info', {}).get('explanation', 'conservative growth assumptions')
+            current_assets = result.get('current_assets', 0)
+            target_goal = result.get('target_goal', 0)
+            monthly_additions = result.get('monthly_additions', 0)
+            
+            # Check for sensitivity analysis
+            sensitivity = result.get('sensitivity', {})
+            scenario_text = ""
+            
+            if sensitivity.get('show_ranges', False):
+                scenarios = sensitivity.get('scenarios', {})
+                conservative_years = scenarios.get('conservative', {}).get('years', 0)
+                optimistic_years = scenarios.get('optimistic', {}).get('years', 0)
+                
+                if conservative_years != optimistic_years:
+                    scenario_text = f"\n\nDifferent growth scenarios could change this timeline - you might reach your goal anywhere from {optimistic_years:.0f} to {conservative_years:.0f} years depending on market performance."
+            
             return f"""
-🎯 **Retirement Timeline Analysis**
+Based on your current financial position, you're on track to reach your ${target_goal:,.0f} retirement goal in approximately **{years:.0f} years**.
 
-**Primary Result:** {years:.1f} years to reach your goal
+Here's how this works: Starting with your current assets of ${current_assets:,.0f} and consistently adding your monthly surplus of ${monthly_additions:,.0f}, you'll save about ${total_contributions:,.0f} over this period. Combined with projected investment growth of ${growth_component:,.0f} (using {rate_explanation}), your portfolio should reach ${final_amount:,.0f}.
 
-**Financial Breakdown:**
-• Final projected amount: ${final_amount:,.0f}
-• Total contributions needed: ${total_contributions:,.0f}
-• Growth from investments: ${growth_component:,.0f}
+This timeline assumes you maintain your current savings rate and investment approach. If you want to accelerate this, consider increasing your monthly contributions or exploring investment options that align with your risk tolerance.{scenario_text}
 
-{sensitivity_text}
-
-{self._format_assumptions_text(assumptions)}
-
-**💡 Key Insight:** With your current surplus and growth assumptions, you're well-positioned to achieve your retirement goal.
+The good news is that you're in a strong position - your current savings rate and asset base put you well on track for your retirement goals.
             """.strip()
         
         else:  # balanced mode
