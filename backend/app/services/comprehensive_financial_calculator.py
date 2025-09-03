@@ -72,6 +72,49 @@ class GrowthRateManager:
         # Fall back to risk profile default
         return self._get_risk_profile_default(user_context, calculation_type)
     
+    def _get_conservative_retirement_rate(self, user_context: Dict) -> Dict[str, Any]:
+        """Get conservative growth rate specifically for retirement planning"""
+        
+        # Age-based retirement rate adjustment
+        age = user_context.get('age', user_context.get('_context', {}).get('age', 50))
+        
+        # Conservative rates based on time horizon and age
+        if age >= 60:
+            # Near retirement - very conservative
+            base_rate = 0.05  # 5%
+            explanation = "Conservative 5% rate for near-retirement planning"
+        elif age >= 50:
+            # Pre-retirement - moderate conservative
+            base_rate = 0.06  # 6% 
+            explanation = "Moderate conservative 6% rate for pre-retirement planning"
+        else:
+            # Younger - still conservative for retirement goals
+            base_rate = 0.07  # 7%
+            explanation = "Conservative 7% rate for long-term retirement planning"
+        
+        # Never exceed 7% for retirement calculations, regardless of portfolio
+        portfolio_rate = self._calculate_portfolio_weighted_rate(user_context)
+        if portfolio_rate.get('rate', 0) > 0:
+            # Use the lower of portfolio rate or age-appropriate cap
+            actual_rate = min(portfolio_rate['rate'], base_rate)
+            
+            if actual_rate < portfolio_rate['rate']:
+                explanation += f" (capped from portfolio rate of {portfolio_rate['rate']:.1%})"
+        else:
+            actual_rate = base_rate
+        
+        return {
+            'rate': actual_rate,
+            'source': 'conservative_retirement',
+            'explanation': explanation,
+            'confidence': 'high',
+            'assumptions': [
+                f"Age-appropriate retirement rate: {actual_rate:.1%}",
+                "Conservative assumption for retirement planning",
+                f"User age: {age} years"
+            ]
+        }
+    
     def _calculate_portfolio_weighted_rate(self, user_context: Dict) -> Dict[str, Any]:
         """Calculate blended rate based on user's actual asset allocation"""
         
