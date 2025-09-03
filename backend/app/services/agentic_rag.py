@@ -1142,14 +1142,16 @@ The good news is that you're in a strong position - your current savings rate an
             """.strip()
         
         else:  # balanced mode
+            rate_explanation = assumptions.get('growth_rate_info', {}).get('explanation', 'conservative growth assumptions')
+            current_assets = result.get('current_assets', 0)
+            target_goal = result.get('target_goal', 0)
+            
             return f"""
-🎯 **{years:.1f} years** to reach your retirement goal
+You're on track to reach your ${target_goal:,.0f} retirement goal in **{years:.0f} years**. 
 
-**Key Details:**
-• Final amount: ${final_amount:,.0f}
-• Growth from investments: ${growth_component:,.0f}
+With your current assets of ${current_assets:,.0f} and ongoing monthly savings, your portfolio should grow to ${final_amount:,.0f}. This calculation uses {rate_explanation} and assumes you maintain your current savings pattern.
 
-{self._format_assumptions_text(assumptions)}
+If you want to reach this goal sooner, consider increasing your monthly contributions or reviewing your investment allocation within your risk comfort zone.
             """.strip()
     
     def _format_goal_adjustment_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
