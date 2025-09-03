@@ -249,22 +249,32 @@ class CalculationRouter:
     def _get_current_assets(self, user_context: Dict) -> float:
         """Get total assets that count toward retirement"""
         
-        # Try multiple ways to get current retirement-relevant assets
-        if 'net_worth' in user_context:
+        # Primary: Use net_worth if available (most accurate)
+        if 'net_worth' in user_context and user_context['net_worth'] > 0:
             return user_context['net_worth']
         
-        if 'total_assets' in user_context:
+        # Secondary: Use total_assets if available
+        if 'total_assets' in user_context and user_context['total_assets'] > 0:
             return user_context['total_assets']
         
-        # Sum up individual asset categories
+        # Fallback: Calculate net worth from assets - liabilities
+        total_assets = user_context.get('total_assets', 0)
+        total_liabilities = user_context.get('total_liabilities', 0)
+        if total_assets > 0:
+            return max(0, total_assets - total_liabilities)
+        
+        # Last resort: Sum up individual asset categories
         assets = 0
         asset_fields = [
-            'retirement_total', 'investment_total', 'liquid_assets', 
-            'cash_total', 'home_equity', 'bitcoin_value'
+            'retirement_total', 'investment_total', 'liquid_assets'
         ]
         
         for field in asset_fields:
             assets += user_context.get(field, 0)
+        
+        # Log warning if we still have zero
+        if assets == 0:
+            logger.warning(f"Could not extract current assets from context: {list(user_context.keys())}")
         
         return assets
     
