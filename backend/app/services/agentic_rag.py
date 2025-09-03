@@ -1165,9 +1165,7 @@ If you want to reach this goal sooner, consider increasing your monthly contribu
         
         if mode == 'direct':
             return f"""
-**{years_saved:.1f} years saved** by reducing your goal from ${original_goal:,.0f} to ${new_goal:,.0f}.
-
-{self._format_assumptions_text(assumptions)}
+**{years_saved:.0f} years saved** by reducing your goal to ${new_goal:,.0f}.
             """.strip()
         
         else:  # balanced or comprehensive
