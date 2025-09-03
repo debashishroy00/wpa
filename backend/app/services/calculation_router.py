@@ -190,17 +190,22 @@ class CalculationRouter:
         params = {}
         
         # Standard parameter mapping from user context
+        # Note: user_context is the 'facts' object from identity_math.compute_claims
+        
+        # Get values from _context if available
+        context_data = user_context.get('_context', {})
+        
         param_mapping = {
             'current_assets': self._get_current_assets(user_context),
-            'target_goal': user_context.get('retirement_goal_amount', 3500000),
+            'target_goal': context_data.get('retirement_goal', user_context.get('retirement_goal_amount', 3500000)),
             'monthly_additions': user_context.get('monthly_surplus', 0),
             'income': user_context.get('monthly_income', 0) * 12,  # Convert to annual
             'salary': user_context.get('monthly_income', 0) * 12,   # Convert to annual
-            'current_401k': user_context.get('retirement_contribution_monthly', 0) * 12,
-            'current_fund': user_context.get('liquid_assets', user_context.get('cash_total', 0)),
+            'current_401k': user_context.get('annual_401k', 0),  # Already annual
+            'current_fund': user_context.get('liquid_assets', 0),
             'monthly_expenses': user_context.get('monthly_expenses', 0),
-            'age': user_context.get('age', user_context.get('_context', {}).get('age')),
-            'state': user_context.get('state', 'NC'),
+            'age': context_data.get('age', 55),  # Default to 55 if not found
+            'state': context_data.get('state', 'NC'),
             'filing_status': 'married'  # Default assumption
         }
         
