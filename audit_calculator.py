@@ -104,10 +104,10 @@ def test_pattern_matching():
     match = re.search(problem_pattern, problem_query)
     
     if match:
-        print(f"✓ Pattern matches!")
+        print(f"Pattern matches!")
         print(f"  Groups: {match.groups()}")
     else:
-        print(f"✗ Pattern doesn't match")
+        print(f"Pattern doesn't match")
         
         # Try variations
         print("\nTrying pattern variations:")
