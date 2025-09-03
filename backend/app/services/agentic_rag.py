@@ -1183,23 +1183,8 @@ The calculation uses {rate_explanation} and assumes you maintain your current sa
     def _format_assumptions_text(self, assumptions: Dict) -> str:
         """Format assumptions information for transparency"""
         
-        if not assumptions:
-            return ""
-        
-        rate = assumptions.get('rate', 0)
-        explanation = assumptions.get('explanation', '')
-        source = assumptions.get('source', '')
-        confidence = assumptions.get('confidence', 'medium')
-        
-        confidence_icon = "🟢" if confidence == 'high' else "🟡" if confidence == 'medium' else "🔴"
-        
-        return f"""
-📊 **Assumptions Used:**
-{explanation}
-{confidence_icon} Confidence: {confidence.title()}
-
-💡 *Want different assumptions? Ask: "What if I assume 8% growth instead?"*
-        """.strip()
+        # Assumptions are now naturally embedded in conversational responses
+        return ""
     
     def _format_savings_requirement_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
         """Format required savings calculation response"""
