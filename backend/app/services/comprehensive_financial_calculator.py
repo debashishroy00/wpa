@@ -60,7 +60,11 @@ class GrowthRateManager:
                 'assumptions': [f"User-specified rate: {user_specified_rate:.1%}"]
             }
         
-        # Try portfolio-weighted rate first
+        # For retirement calculations, use conservative assumptions
+        if 'retirement' in calculation_type.lower():
+            return self._get_conservative_retirement_rate(user_context)
+        
+        # Try portfolio-weighted rate for non-retirement calculations
         portfolio_rate = self._calculate_portfolio_weighted_rate(user_context)
         if portfolio_rate['rate'] > 0:
             return portfolio_rate
