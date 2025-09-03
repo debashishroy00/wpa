@@ -1174,21 +1174,14 @@ If you want to reach this goal sooner, consider increasing your monthly contribu
             goal_reduction = result.get('goal_reduction', 0)
             goal_reduction_percent = result.get('goal_reduction_percent', 0)
             
+            rate_explanation = assumptions.get('growth_rate_info', {}).get('explanation', 'conservative growth assumptions')
+            
             return f"""
-💰 **Goal Adjustment Impact Analysis**
+Great question! Reducing your retirement goal from ${original_goal:,.0f} to ${new_goal:,.0f} would **save you {years_saved:.0f} years** - bringing your retirement timeline from {original_years:.0f} years down to just {new_years:.0f} years.
 
-**Timeline Improvement:**
-• Original timeline: {original_years:.1f} years to ${original_goal:,.0f}
-• New timeline: {new_years:.1f} years to ${new_goal:,.0f}
-• **Years saved: {years_saved:.1f} years** ⏰
+This ${goal_reduction:,.0f} reduction ({goal_reduction_percent:.1f}% less) significantly accelerates your path to financial independence. You'd still have a substantial retirement fund while reaching your goal much sooner.
 
-**Goal Change:**
-• Reduction: ${goal_reduction:,.0f} ({goal_reduction_percent:.1f}%)
-• This brings your retirement {years_saved:.1f} years closer!
-
-{self._format_assumptions_text(assumptions)}
-
-💡 **Insight:** This adjustment significantly accelerates your retirement timeline while still maintaining a substantial retirement fund.
+The calculation uses {rate_explanation} and assumes you maintain your current savings rate. This adjustment demonstrates how even modest goal changes can have dramatic impacts on your timeline.
             """.strip()
     
     def _format_assumptions_text(self, assumptions: Dict) -> str:
