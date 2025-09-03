@@ -1092,9 +1092,7 @@ You're in excellent shape for retirement and could potentially retire now if des
         
         if mode == 'direct':
             return f"""
-**{years:.1f} years** to reach your retirement goal.
-
-{self._format_assumptions_text(assumptions)}
+**{years:.0f} years** to reach your retirement goal.
             """.strip()
         
         elif mode == 'comprehensive':
