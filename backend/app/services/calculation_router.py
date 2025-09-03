@@ -33,9 +33,25 @@ class CalculationRouter:
             
             'retirement_goal_adjustment': {
                 'patterns': [
+                    # Decrease patterns
                     r'(?i).*reduce.*goal.*(\$?[\d,M]+)',
-                    r'(?i).*change.*goal.*(\$?[\d,M]+)',
-                    r'(?i).*goal.*(\$?[\d,M]+).*years.*save',
+                    r'(?i).*lower.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*decrease.*goal.*(\$?[\d,M]+)',
+                    
+                    # Increase patterns
+                    r'(?i).*increase.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*raise.*goal.*(\$?[\d,M]+)',
+                    r'(?i).*higher.*goal.*(\$?[\d,M]+)',
+                    
+                    # General adjustment patterns
+                    r'(?i).*change.*goal.*to.*(\$?[\d,M]+)',
+                    r'(?i).*adjust.*goal.*to.*(\$?[\d,M]+)',
+                    r'(?i).*set.*goal.*to.*(\$?[\d,M]+)',
+                    r'(?i).*goal.*to.*(\$?[\d,M]+)',
+                    r'(?i).*my goal is.*(\$?[\d,M]+)',
+                    r'(?i).*if.*goal.*(\$?[\d,M]+)',
+                    
+                    # Timeline impact patterns
                     r'(?i).*years.*save.*goal.*(\$?[\d,M]+)',
                     r'(?i).*shave.*years.*goal.*(\$?[\d,M]+)',
                     r'(?i).*(\$?[\d,M]+).*goal.*timeline',
