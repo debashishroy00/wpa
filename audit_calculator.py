@@ -121,9 +121,9 @@ def test_pattern_matching():
         
         for var in variations:
             if re.search(var, problem_query):
-                print(f"  ✓ '{var}' matches")
+                print(f"  [MATCH] '{var}'")
             else:
-                print(f"  ✗ '{var}' doesn't match")
+                print(f"  [NO MATCH] '{var}'")
 
 if __name__ == "__main__":
     audit_calculation_patterns()
