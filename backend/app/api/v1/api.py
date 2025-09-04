@@ -7,8 +7,9 @@ from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, 
 # Temporarily disabled endpoints that import removed services:
 # intelligence (original), chat_with_memory (imports removed services)
 from app.api.v1.endpoints import intelligence_stub  # Stub to prevent 404s
+from app.api.v1.endpoints import projections_stub  # Stub to prevent 404s
 # Temporarily disabled endpoints that import removed services:
-# projections, verification_test, tax
+# projections (original), verification_test, tax
 # Keep original LLM endpoints for Step 5 (working yesterday)
 from app.api.v1.endpoints import llm  # Re-enabled for frontend compatibility
 # Import the missing endpoints
