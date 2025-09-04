@@ -28,29 +28,29 @@ async def get_comprehensive_projection(
     Returns a basic projection structure
     """
     
-    # Get user's financial data from live entries
-    from app.models.financial import FinancialEntry
-    from app.schemas.financial import EntryCategory
-    from sqlalchemy import and_
+    # Get user's financial data using the working summary calculation
+    from app.api.v1.endpoints.financial import get_financial_summary
     
-    entries = db.query(FinancialEntry).filter(
-        and_(
-            FinancialEntry.user_id == current_user.id,
-            FinancialEntry.is_active == True
-        )
-    ).all()
-    
-    total_assets = sum(
-        float(e.amount) for e in entries 
-        if e.category == EntryCategory.assets
-    )
-    
-    total_liabilities = sum(
-        float(e.amount) for e in entries 
-        if e.category == EntryCategory.liabilities
-    )
-    
-    base_value = total_assets - total_liabilities
+    # Get financial summary which has the correct calculation
+    try:
+        summary = get_financial_summary(current_user, db)
+        base_value = float(summary.net_worth)
+    except:
+        # Fallback calculation if summary fails
+        from app.models.financial import FinancialEntry
+        from app.schemas.financial import EntryCategory
+        from sqlalchemy import and_
+        
+        entries = db.query(FinancialEntry).filter(
+            and_(
+                FinancialEntry.user_id == current_user.id,
+                FinancialEntry.is_active == True
+            )
+        ).all()
+        
+        total_assets = sum(float(e.amount) for e in entries if e.category == EntryCategory.assets)
+        total_liabilities = sum(float(e.amount) for e in entries if e.category == EntryCategory.liabilities)
+        base_value = total_assets - total_liabilities
     
     # Generate basic projection data
     projection_data = []
