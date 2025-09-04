@@ -220,7 +220,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-400">
-                  {formatCurrency(gaps.total_capital_needed).replace('$', '').replace(',', '')}k
+                  {formatCurrency(gaps.total_capital_needed || 0).replace('$', '').replace(',', '')}k
                 </div>
                 <div className="text-gray-400">Total Target</div>
               </div>
