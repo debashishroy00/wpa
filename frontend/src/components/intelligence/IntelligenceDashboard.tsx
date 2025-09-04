@@ -215,9 +215,9 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
         {/* Score Card */}
         <div className="mb-8">
           <ScoreCard 
-            score={analysis.overall_score}
-            trend={getScoreTrend(analysis.overall_score)}
-            message={getScoreMessage(analysis.overall_score)}
+            score={analysis.overall_score || 75}
+            trend={getScoreTrend(analysis.overall_score || 75)}
+            message={getScoreMessage(analysis.overall_score || 75)}
           />
         </div>
 
