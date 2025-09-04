@@ -5,7 +5,8 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, goals_v2, advisor_data, plan_engine, advisory, financial_clean, vector_db, debug, profile, admin, embeddings, insights, chat_simple
 # Temporarily disabled endpoints that import removed services:
-# intelligence, chat_with_memory (imports removed services)
+# intelligence (original), chat_with_memory (imports removed services)
+from app.api.v1.endpoints import intelligence_stub  # Stub to prevent 404s
 # Temporarily disabled endpoints that import removed services:
 # projections, verification_test, tax
 # Keep original LLM endpoints for Step 5 (working yesterday)
