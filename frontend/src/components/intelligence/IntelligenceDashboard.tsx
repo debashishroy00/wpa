@@ -152,16 +152,16 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
   };
 
   const calculateMetrics = (analysis: IntelligenceAnalysis) => {
-    const monthlyGap = analysis.gaps.monthly_shortfall;
-    const successRate = Math.round(analysis.success_probability * 100);
+    const monthlyGap = analysis.gaps?.monthly_shortfall || 0;
+    const successRate = analysis.success_probability ? Math.round(analysis.success_probability * 100) : 85;
     
     // Calculate risk alignment (simplified)
-    const riskAlign = analysis.conflicts.length === 0 ? 95 : 
-                     analysis.conflicts.length === 1 ? 75 : 
+    const riskAlign = analysis.conflicts?.length === 0 ? 95 : 
+                     analysis.conflicts?.length === 1 ? 75 : 
                      60;
     
     // Calculate lifestyle fit based on required changes
-    const lifestyleFit = analysis.scenarios.find(s => s.is_recommended)?.lifestyle_impact * 100 || 85;
+    const lifestyleFit = analysis.scenarios?.find(s => s.is_recommended)?.lifestyle_impact * 100 || 85;
 
     return {
       monthlyGap,
