@@ -242,7 +242,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
                   Recommended Optimization Path Available
                 </h4>
                 <p className="text-green-200 mb-3">
-                  {recommendedScenario.name}: {Math.round(recommendedScenario.success_rate <= 1 ? recommendedScenario.success_rate * 100 : recommendedScenario.success_rate)}% success probability
+                  {recommendedScenario?.name || 'Optimization'}: {Math.round((recommendedScenario?.success_rate || 0) <= 1 ? (recommendedScenario?.success_rate || 0) * 100 : (recommendedScenario?.success_rate || 0))}% success probability
                 </p>
                 <p className="text-sm text-green-300 mb-4">
                   Our analysis suggests specific optimizations that could improve your goal achievement probability.
