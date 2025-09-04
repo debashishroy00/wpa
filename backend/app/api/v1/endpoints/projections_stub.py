@@ -33,10 +33,6 @@ async def get_comprehensive_projection(
     current_year = datetime.now().year
     base_value = 2565545  # Starting net worth
     
-    # Generate basic projection data
-    projection_data = []
-    current_year = datetime.now().year
-    
     for year in range(years + 1):
         growth_rate = 1.06  # 6% annual growth
         value = base_value * (growth_rate ** year)
