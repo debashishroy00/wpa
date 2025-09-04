@@ -2954,17 +2954,19 @@ const WhatIfScenarios: React.FC<{ baseProjection: any }> = ({ baseProjection }) 
 
   const fetchScenario = async (scenarioType: string) => {
     if (scenarioType === 'current') {
-      // For current path, show the baseline projection
+      // For current path, show the baseline projection using the same data as Financial Projections
+      const baselineValues = await getBaselineValues();
+      
       setScenarioData({
         scenario_type: 'current',
         description: 'Your current savings rate and assumptions',
         baseline_projection: {
           years: [5, 10, 20],
-          values: getBaselineValues() ? Object.values(getBaselineValues()) : []
+          values: baselineValues ? Object.values(baselineValues) : []
         },
         scenario_projection: {
           years: [5, 10, 20],
-          values: getBaselineValues() ? Object.values(getBaselineValues()) : []
+          values: baselineValues ? Object.values(baselineValues) : []
         },
         impact_analysis: {} // No impact for baseline
       });
