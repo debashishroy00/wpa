@@ -193,41 +193,29 @@ async def run_projection_scenario(
 ) -> Dict[str, Any]:
     """Run a specific projection scenario with Monte Carlo analysis"""
     
-    # Get user's financial data from existing summary service
-    from app.models.financial import NetWorthSnapshot
-    from sqlalchemy import desc
+    # Get user's financial data from live entries
+    from app.models.financial import FinancialEntry
+    from app.schemas.financial import EntryCategory
+    from sqlalchemy import and_
     
-    # Get latest snapshot (same approach as /financial/summary)
-    latest_snapshot = db.query(NetWorthSnapshot).filter(
-        NetWorthSnapshot.user_id == current_user.id
-    ).order_by(desc(NetWorthSnapshot.snapshot_date)).first()
+    entries = db.query(FinancialEntry).filter(
+        and_(
+            FinancialEntry.user_id == current_user.id,
+            FinancialEntry.is_active == True
+        )
+    ).all()
     
-    if latest_snapshot:
-        current_net_worth = float(latest_snapshot.net_worth)
-    else:
-        # Fallback to live calculation if no snapshot
-        from app.models.financial import FinancialEntry
-        from app.schemas.financial import EntryCategory
-        from sqlalchemy import and_
-        
-        entries = db.query(FinancialEntry).filter(
-            and_(
-                FinancialEntry.user_id == current_user.id,
-                FinancialEntry.is_active == True
-            )
-        ).all()
-        
-        total_assets = sum(
-            float(e.amount) for e in entries 
-            if e.category == EntryCategory.assets
-        )
-        
-        total_liabilities = sum(
-            float(e.amount) for e in entries 
-            if e.category == EntryCategory.liabilities
-        )
-        
-        current_net_worth = total_assets - total_liabilities
+    total_assets = sum(
+        float(e.amount) for e in entries 
+        if e.category == EntryCategory.assets
+    )
+    
+    total_liabilities = sum(
+        float(e.amount) for e in entries 
+        if e.category == EntryCategory.liabilities
+    )
+    
+    current_net_worth = total_assets - total_liabilities
     
     # Extract scenario parameters
     years = scenario_data.get('years', 20)
