@@ -208,7 +208,7 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
 
           {/* Analysis Timestamp */}
           <div className="text-sm text-gray-400">
-            Last updated: {new Date(analysis.timestamp).toLocaleString()}
+            Last updated: {analysis.timestamp ? new Date(analysis.timestamp).toLocaleString() : 'Now'}
           </div>
         </div>
 
