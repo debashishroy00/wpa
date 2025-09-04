@@ -26,7 +26,19 @@ def calculate_401k_tax_savings(salary, contribution, new_total):
     return new_total * 0.24  # Simplified tax savings at 24% bracket
 
 def calculate_employer_match_benefit(salary, contribution, match, limit):
-    return min(contribution * match, salary * limit)  # Basic match calculation
+    current_match = min(contribution * match / 100, salary * limit / 100)  # Current match earned
+    max_possible_match = salary * limit / 100  # Maximum possible match
+    missed_annual = max_possible_match - current_match
+    missed_monthly = missed_annual / 12
+    
+    return {
+        'current_match': round(current_match, 2),
+        'max_possible_match': round(max_possible_match, 2),
+        'missed_annual': round(missed_annual, 2),
+        'missed_monthly': round(missed_monthly, 2),
+        'optimal_contribution_rate': limit,
+        'current_contribution_rate': contribution
+    }
 
 def calculate_investment_fee_savings(balance, old_fee, new_fee):
     return balance * (old_fee - new_fee) / 100
