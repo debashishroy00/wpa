@@ -47,8 +47,23 @@ async def get_comprehensive_projection(
             "savings": 94356
         })
     
+    # Create projections in the format frontend expects
+    projections = []
+    for i, year_data in enumerate(projection_data):
+        projections.append({
+            "year": i,  # Year index (0, 1, 2, etc.)
+            "age": year_data["age"],
+            "net_worth": year_data["net_worth"],
+            "assets": year_data["assets"],
+            "liabilities": year_data["liabilities"],
+            "income": year_data["income"],
+            "expenses": year_data["expenses"],
+            "savings": year_data["savings"]
+        })
+    
     response = {
         "success": True,
+        "projections": projections,  # Frontend expects this at top level
         "projection": {
             "years": projection_data,
             "summary": {
@@ -71,6 +86,13 @@ async def get_comprehensive_projection(
             "calculated_at": datetime.now().isoformat(),
             "years_projected": years,
             "include_monte_carlo": include_monte_carlo
+        },
+        "confidence_intervals": {
+            "percentiles": {
+                "p25": [year_data["net_worth"] * 0.85 for year_data in projection_data],
+                "p50": [year_data["net_worth"] for year_data in projection_data],
+                "p75": [year_data["net_worth"] * 1.15 for year_data in projection_data]
+            }
         }
     }
     
