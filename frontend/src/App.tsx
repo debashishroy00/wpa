@@ -2975,23 +2975,47 @@ const WhatIfScenarios: React.FC<{ baseProjection: any }> = ({ baseProjection }) 
 
     try {
       setLoading(true);
-      const response = await apiClient.post('/api/v1/projections/scenario', {
+      
+      // Get the baseline values first (same as Financial Projections)
+      const baselineValues = await getBaselineValues();
+      if (!baselineValues) {
+        throw new Error('Failed to get baseline values');
+      }
+      
+      // Calculate scenario modifications based on the same data as Financial Projections
+      let modifiedValues = { ...baselineValues };
+      
+      if (scenarioType === 'max_savings') {
+        // Increase growth by 20% (more aggressive saving/investing)
+        Object.keys(modifiedValues).forEach(year => {
+          modifiedValues[year] = modifiedValues[year] * 1.20;
+        });
+      } else if (scenarioType === 'market_crash') {
+        // Decrease by 30% (market downturn impact)
+        Object.keys(modifiedValues).forEach(year => {
+          modifiedValues[year] = modifiedValues[year] * 0.70;
+        });
+      }
+      
+      setScenarioData({
         scenario_type: scenarioType,
-        years: [5, 10, 20],
-        adjustments: {}
+        description: scenarios[scenarioType]?.description || 'Alternative scenario',
+        baseline_projection: {
+          years: [5, 10, 20],
+          values: Object.values(baselineValues)
+        },
+        scenario_projection: {
+          years: [5, 10, 20],
+          values: Object.values(modifiedValues)
+        },
+        impact_analysis: {
+          impact_5_year: modifiedValues[5] - baselineValues[5],
+          impact_10_year: modifiedValues[10] - baselineValues[10],
+          impact_20_year: modifiedValues[20] - baselineValues[20]
+        }
       });
       
-      // Debug log to see what we're getting
-      console.log(`Scenario ${scenarioType} response:`, response);
-      
-      // Validate response has data
-      if (!response?.scenario_projection?.values || response.scenario_projection.values.some((v: any) => v === 0 || v === null)) {
-        console.error(`Invalid scenario data for ${scenarioType}:`, response);
-        // Generate fallback data
-        generateFallbackScenario(scenarioType);
-      } else {
-        setScenarioData(response);
-      }
+      console.log(`Generated scenario ${scenarioType} from baseline:`, baselineValues, 'modified:', modifiedValues);
     } catch (error) {
       console.error('Failed to fetch scenario:', error);
       // Generate fallback on error
