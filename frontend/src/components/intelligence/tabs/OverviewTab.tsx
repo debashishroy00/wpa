@@ -172,19 +172,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
             
             {/* Gap */}
             <div className="text-center">
-              <div className={`text-3xl font-bold mb-2 ${gaps.monthly_shortfall > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                {gaps.monthly_shortfall > 0 ? 
-                  `-${formatCurrency(gaps.monthly_shortfall)}` : 
-                  `+${formatCurrency(Math.abs(gaps.monthly_shortfall))}`
+              <div className={`text-3xl font-bold mb-2 ${(gaps.monthly_shortfall || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                {(gaps.monthly_shortfall || 0) > 0 ? 
+                  `-${formatCurrency(gaps.monthly_shortfall || 0)}` : 
+                  `+${formatCurrency(Math.abs(gaps.monthly_shortfall || 0))}`
                 }
-                {gaps.monthly_shortfall > 0 && <span className="ml-2">❌</span>}
-                {gaps.monthly_shortfall <= 0 && <span className="ml-2">✅</span>}
+                {(gaps.monthly_shortfall || 0) > 0 && <span className="ml-2">❌</span>}
+                {(gaps.monthly_shortfall || 0) <= 0 && <span className="ml-2">✅</span>}
               </div>
               <div className="text-gray-300 font-medium">
-                {gaps.monthly_shortfall > 0 ? 'Gap' : 'Surplus'}
+                {(gaps.monthly_shortfall || 0) > 0 ? 'Gap' : 'Surplus'}
               </div>
               <div className="text-sm text-gray-400">
-                {gaps.monthly_shortfall > 0 ? 'Monthly shortfall' : 'Monthly surplus'}
+                {(gaps.monthly_shortfall || 0) > 0 ? 'Monthly shortfall' : 'Monthly surplus'}
               </div>
             </div>
           </div>
