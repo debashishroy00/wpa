@@ -100,36 +100,36 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
               </thead>
               <tbody>
                 {goals.map((goal) => (
-                  <tr key={goal.goal_id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                  <tr key={goal?.goal_id || Math.random()} className="border-b border-gray-800 hover:bg-gray-800/50">
                     <td className="py-4 px-2">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{getCategoryEmoji(goal.category)}</span>
+                        <span className="text-2xl">{getCategoryEmoji(goal?.category || 'other')}</span>
                         <div>
-                          <div className="text-white font-medium">{goal.name}</div>
+                          <div className="text-white font-medium">{goal?.name || 'Unnamed Goal'}</div>
                           <div className="text-sm text-gray-400 capitalize">
-                            {goal.category.replace('_', ' ')}
+                            {(goal?.category || 'other').replace('_', ' ')}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="text-right py-4 px-2">
-                      <div className="text-white font-medium">{formatCurrency(goal.target_amount)}</div>
+                      <div className="text-white font-medium">{formatCurrency(goal?.target_amount || 0)}</div>
                     </td>
                     <td className="text-right py-4 px-2">
-                      <div className="text-white font-medium">{formatCurrency(goal.monthly_required)}</div>
+                      <div className="text-white font-medium">{formatCurrency(goal?.monthly_required || 0)}</div>
                     </td>
                     <td className="text-center py-4 px-2">
                       <div className="flex flex-col items-center">
-                        <div className={`text-sm font-mono ${getFeasibilityColor(goal.feasibility_score).split(' ')[0]}`}>
-                          {getFeasibilityBars(goal.feasibility_score)}
+                        <div className={`text-sm font-mono ${getFeasibilityColor(goal?.feasibility_score || 0).split(' ')[0]}`}>
+                          {getFeasibilityBars(goal?.feasibility_score || 0)}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          {Math.round(goal.feasibility_score)}%
+                          {Math.round(goal?.feasibility_score || 0)}%
                         </div>
                       </div>
                     </td>
                     <td className="text-center py-4 px-2">
-                      {goal.risk_aligned ? (
+                      {goal?.risk_aligned ? (
                         <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
                       ) : (
                         <AlertTriangle className="w-5 h-5 text-yellow-500 mx-auto" />
