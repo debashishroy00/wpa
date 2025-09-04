@@ -863,8 +863,6 @@ class IntelligenceEngine:
                     monthly_benefit,  # impact
                     6.0,  # effort (moderate complexity)
                     5.0  # urgency (moderate urgency)
-                    goal_alignment=3,         # Affects all 3 major goals
-                    risk_level=6.0           # Medium risk due to volatility increase
                 )
                 
                 success_impact = calculate_success_impact(monthly_benefit, current_gap)
