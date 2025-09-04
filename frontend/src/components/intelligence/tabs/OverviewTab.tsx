@@ -208,13 +208,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-400">
-                  {goals.filter(g => g.feasibility_score >= 80).length}
+                  {goals.filter(g => g && (g.feasibility_score || 0) >= 80).length}
                 </div>
                 <div className="text-gray-400">High Feasibility</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-400">
-                  {goals.filter(g => !g.risk_aligned).length}
+                  {goals.filter(g => g && !g.risk_aligned).length}
                 </div>
                 <div className="text-gray-400">Risk Misaligned</div>
               </div>
