@@ -45,6 +45,7 @@ api_router.include_router(debug.router, prefix="/debug", tags=["step7-debug"])
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
 # Verification test endpoints for system health and fixes validation
 # api_router.include_router(verification_test.router, prefix="/verify", tags=["verification"])  # Disabled - imports removed services
+api_router.include_router(verification_test_stub.router, prefix="/verify", tags=["verification-stub"])  # Stub to prevent 404s
 # Admin endpoints for system administration (isolated)
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 # Hybrid embedding system endpoints
