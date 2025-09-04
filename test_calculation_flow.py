@@ -15,7 +15,7 @@ def test_financial_data():
     # Login first to get auth token
     login_response = requests.post(
         "http://localhost:8000/api/v1/auth/login",
-        json={"email": "debashishroy@gmail.com", "password": "password123"}
+        data={"username": "debashishroy@gmail.com", "password": "password123"}
     )
     
     if login_response.status_code == 200:
