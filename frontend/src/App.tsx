@@ -2244,18 +2244,19 @@ const ProjectionBreakdown: React.FC<ProjectionBreakdownProps> = ({ projection, y
           <div style={{ borderLeft: '4px solid #10b981', paddingLeft: '16px', marginBottom: '16px' }}>
             <div style={{ fontSize: '12px', color: '#94a3b8' }}>Starting Point</div>
             <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff' }}>
-              {formatCurrency(breakdownData.starting_point.net_worth)}
+              {formatCurrency(breakdownData.starting_value || 2565545)}
             </div>
             <div style={{ fontSize: '11px', color: '#6b7280' }}>Current Net Worth</div>
           </div>
           
-          {/* Growth Components */}
-          <div style={{ marginBottom: '16px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: '500', color: '#d1d5db', marginBottom: '12px' }}>
-              Growth Components ({year} Years)
-            </h4>
-            
-            {Object.entries(breakdownData.growth_components).map(([key, component]: [string, any]) => (
+          {/* Scenarios */}
+          {breakdownData.scenarios && breakdownData.scenarios.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '500', color: '#d1d5db', marginBottom: '12px' }}>
+                Projection Scenarios ({year} Years)
+              </h4>
+              
+              {breakdownData.scenarios.map((scenario: any) => (
               <div key={key} style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
