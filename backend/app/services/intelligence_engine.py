@@ -47,11 +47,19 @@ def calculate_refinance_savings(balance, old_rate, new_rate, term):
     new_payment = balance * (new_rate / 12) * (1 + new_rate / 12) ** term / ((1 + new_rate / 12) ** term - 1)
     monthly_savings = old_payment - new_payment
     annual_savings = monthly_savings * 12
+    closing_costs = balance * 0.02  # Estimate 2% of loan balance
+    break_even_months = closing_costs / monthly_savings if monthly_savings > 0 else 999
+    total_savings = annual_savings * term - closing_costs
+    
     return {
         'monthly_savings': round(monthly_savings, 2),
         'annual_savings': round(annual_savings, 2),
         'old_payment': round(old_payment, 2),
-        'new_payment': round(new_payment, 2)
+        'current_payment': round(old_payment, 2),  # Same as old_payment
+        'new_payment': round(new_payment, 2),
+        'closing_costs': round(closing_costs, 2),
+        'break_even_months': round(break_even_months, 1),
+        'total_savings': round(total_savings, 2)
     }
 
 def calculate_priority_score(impact, effort, urgency):
