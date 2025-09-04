@@ -20,7 +20,7 @@ def test_financial_data():
     
     if login_response.status_code == 200:
         token = login_response.json().get("access_token")
-        print(f"✓ Logged in successfully")
+        print(f"[OK] Logged in successfully")
         
         headers = {"Authorization": f"Bearer {token}"}
         
