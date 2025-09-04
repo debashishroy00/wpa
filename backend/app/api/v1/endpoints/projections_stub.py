@@ -193,29 +193,29 @@ async def run_projection_scenario(
 ) -> Dict[str, Any]:
     """Run a specific projection scenario with Monte Carlo analysis"""
     
-    # Get user's financial data from live entries
-    from app.models.financial import FinancialEntry
-    from app.schemas.financial import EntryCategory
-    from sqlalchemy import and_
+    # Get user's financial data using the working summary calculation
+    from app.api.v1.endpoints.financial import get_financial_summary
     
-    entries = db.query(FinancialEntry).filter(
-        and_(
-            FinancialEntry.user_id == current_user.id,
-            FinancialEntry.is_active == True
-        )
-    ).all()
-    
-    total_assets = sum(
-        float(e.amount) for e in entries 
-        if e.category == EntryCategory.assets
-    )
-    
-    total_liabilities = sum(
-        float(e.amount) for e in entries 
-        if e.category == EntryCategory.liabilities
-    )
-    
-    current_net_worth = total_assets - total_liabilities
+    # Get financial summary which has the correct calculation
+    try:
+        summary = get_financial_summary(current_user, db)
+        current_net_worth = float(summary.net_worth)
+    except:
+        # Fallback calculation if summary fails
+        from app.models.financial import FinancialEntry
+        from app.schemas.financial import EntryCategory
+        from sqlalchemy import and_
+        
+        entries = db.query(FinancialEntry).filter(
+            and_(
+                FinancialEntry.user_id == current_user.id,
+                FinancialEntry.is_active == True
+            )
+        ).all()
+        
+        total_assets = sum(float(e.amount) for e in entries if e.category == EntryCategory.assets)
+        total_liabilities = sum(float(e.amount) for e in entries if e.category == EntryCategory.liabilities)
+        current_net_worth = total_assets - total_liabilities
     
     # Extract scenario parameters
     years = scenario_data.get('years', 20)
