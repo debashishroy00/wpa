@@ -2334,10 +2334,28 @@ const AssumptionsPanel: React.FC = () => {
     const fetchAssumptions = async () => {
       try {
         const response = await apiClient.get('/api/v1/projections/assumptions');
-        setAssumptions(response.assumptions);
-        setOriginalAssumptions({ ...response.assumptions });
+        // Flatten the nested structure to match what the UI expects
+        const flatAssumptions = {
+          stock_market_return: response.assumptions?.growth_rates?.stocks || 0.07,
+          real_estate_appreciation: response.assumptions?.growth_rates?.real_estate || 0.04,
+          salary_growth_rate: 0.04, // Default since API doesn't provide this
+          inflation_rate: response.assumptions?.inflation?.rate || 0.025,
+          retirement_account_return: response.assumptions?.growth_rates?.overall_portfolio || 0.06
+        };
+        setAssumptions(flatAssumptions);
+        setOriginalAssumptions({ ...flatAssumptions });
       } catch (error) {
         console.error('Failed to fetch assumptions:', error);
+        // Set default values if API fails
+        const defaultAssumptions = {
+          stock_market_return: 0.07,
+          real_estate_appreciation: 0.04,
+          salary_growth_rate: 0.04,
+          inflation_rate: 0.025,
+          retirement_account_return: 0.06
+        };
+        setAssumptions(defaultAssumptions);
+        setOriginalAssumptions({ ...defaultAssumptions });
       } finally {
         setLoading(false);
       }
