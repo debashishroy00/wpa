@@ -2901,18 +2901,32 @@ const WhatIfScenarios: React.FC<{ baseProjection: any }> = ({ baseProjection }) 
     fetchScenario('current');
   }, [baseProjection]);
   
-  // Extract baseline values for display
-  const getBaselineValues = () => {
-    if (!baseProjection?.projections) return null;
-    
-    const values: any = {};
-    [5, 10, 20].forEach(year => {
-      const yearIndex = year - 1;
-      if (baseProjection.projections[yearIndex]) {
-        values[year] = baseProjection.projections[yearIndex].net_worth;
+  // Extract baseline values for display from breakdown data (same as Financial Projections)
+  const getBaselineValues = async () => {
+    try {
+      // Use the same breakdown endpoint that Financial Projections uses
+      const breakdown = await apiClient.get('/api/v1/projections/breakdown/20');
+      
+      if (breakdown.scenarios) {
+        // Find the "Most Likely" scenario to match Financial Projections
+        const mostLikelyScenario = breakdown.scenarios.find((s: any) => s.name === 'Most Likely') || breakdown.scenarios[1];
+        
+        if (mostLikelyScenario?.projections) {
+          const values: any = {};
+          [5, 10, 20].forEach(year => {
+            const projection = mostLikelyScenario.projections[year]; // year index matches the actual year
+            if (projection) {
+              values[year] = projection.net_worth;
+            }
+          });
+          return values;
+        }
       }
-    });
-    return values;
+      return null;
+    } catch (error) {
+      console.error('Failed to get baseline values:', error);
+      return null;
+    }
   };
 
   const scenarios = {
