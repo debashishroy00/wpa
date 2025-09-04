@@ -3184,9 +3184,8 @@ const WhatIfScenarios: React.FC<{ baseProjection: any }> = ({ baseProjection }) 
           </h4>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-            {[5, 10, 20].map((year) => {
-              const baseline = getBaselineValues();
-              const value = baseline ? baseline[year] : 0;
+            {[5, 10, 20].map((year, index) => {
+              const value = scenarioData?.baseline_projection?.values?.[index] || 0;
               
               return (
                 <div key={year} style={{
