@@ -679,8 +679,7 @@ class IntelligenceEngine:
                     priority_analysis = calculate_priority_score(
                         match_benefit['missed_monthly'],  # impact
                         1.0,  # effort (very easy - just change percentage)
-                        goal_alignment=3,          # Affects retirement, tax savings, wealth building
-                        risk_level=1.0            # No risk - guaranteed return
+                        10.0  # urgency (high urgency for free money)
                     )
                     
                     immediate.append({
