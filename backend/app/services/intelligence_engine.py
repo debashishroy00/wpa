@@ -31,13 +31,19 @@ def calculate_employer_match_benefit(salary, contribution, match, limit):
     missed_annual = max_possible_match - current_match
     missed_monthly = missed_annual / 12
     
+    # Calculate tax savings from additional contributions
+    additional_contribution_needed = (limit - contribution) * salary / 100
+    tax_savings = additional_contribution_needed * 0.24  # Assume 24% tax bracket
+    
     return {
         'current_match': round(current_match, 2),
         'max_possible_match': round(max_possible_match, 2),
         'missed_annual': round(missed_annual, 2),
         'missed_monthly': round(missed_monthly, 2),
         'optimal_contribution_rate': limit,
-        'current_contribution_rate': contribution
+        'current_contribution_rate': contribution,
+        'tax_savings': round(tax_savings, 2),
+        'additional_contribution_needed': round(additional_contribution_needed, 2)
     }
 
 def calculate_investment_fee_savings(balance, old_fee, new_fee):
