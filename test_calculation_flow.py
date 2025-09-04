@@ -82,15 +82,15 @@ def test_calculation_with_data():
         
         if chat_response.status_code == 200:
             response = chat_response.json()
-            print("📝 Chat Response:")
+            print("Chat Response:")
             print(response.get("response", "No response"))
             
             # Check if it contains zeros
             if "$0" in response.get("response", ""):
-                print("\n⚠️ WARNING: Response contains $0 values!")
+                print("\n[WARNING] Response contains $0 values!")
                 print("This indicates user financial data is not properly loaded.")
         else:
-            print(f"✗ Failed to get chat response: {chat_response.status_code}")
+            print(f"[FAIL] Failed to get chat response: {chat_response.status_code}")
             print(chat_response.text)
 
 if __name__ == "__main__":
