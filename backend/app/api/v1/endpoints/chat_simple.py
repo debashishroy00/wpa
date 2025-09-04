@@ -6,7 +6,7 @@ Simplified chat endpoint using insights architecture.
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import logging
 import json
 
@@ -66,6 +66,10 @@ class ChatResponse(BaseModel):
     confidence: str
     warnings: List[str] = []
     session_id: str
+    calculation_id: Optional[str] = None
+    calc_type: Optional[str] = None
+    is_clarify: bool = False
+    clarify: Optional[Dict[str, Any]] = None
 
 @router.post("/message", response_model=ChatResponse)
 async def chat_message(
@@ -74,8 +78,8 @@ async def chat_message(
     db: Session = Depends(get_db)
 ):
     """Handle chat with financial intelligence and conversational memory"""
-    logger.error(f"🚀 CHAT_SIMPLE ENDPOINT HIT with message: '{request.message}'")
-    logger.error(f"🎛️ MODE RECEIVED FROM FRONTEND: {request.insight_level}")
+    logger.info(f"🚀 chat_simple hit: '{request.message}'")
+    logger.info(f"🎛️ mode: {request.insight_level}")
     try:
         # Initialize memory service
         memory_service = ChatMemoryService(db)
@@ -90,9 +94,11 @@ async def chat_message(
         conversation_context = memory_service.get_conversation_context(session)
         logger.info(f"💬 Conversation context: {conversation_context.get('message_count', 0)} messages")
         
-        # Detect question type
+        # Detect question type (rough intent)
         insight_type = _detect_insight_type(request.message)
         logger.info(f"🔍 Message: '{request.message}' -> Detected type: '{insight_type}'")
+
+        # Precision Gate temporarily disabled per product decision.
         
         # Use AgenticRAG for ALL queries - every question deserves intelligent analysis
         # No more restrictive triggers - real estate, mortgages, etc all need full intelligence
@@ -128,7 +134,9 @@ async def chat_message(
                 response=rag_response["response"],
                 confidence=rag_response["confidence"],
                 warnings=rag_response["warnings"],
-                session_id=session.session_id
+                session_id=session.session_id,
+                calculation_id=rag_response.get("calculation_id"),
+                calc_type=rag_response.get("calculation_type")
             )
             
         except Exception as e:
@@ -153,8 +161,8 @@ async def chat_message(
             
             # Search vector store for relevant context
             try:
-                from app.services.simple_vector_store import SimpleVectorStore
-                vector_store = SimpleVectorStore()
+                from app.services.simple_vector_store import get_vector_store
+                vector_store = get_vector_store()
                 
                 # Search with financial keywords for broader results
                 search_query = f"{request.message} financial goals income expenses assets retirement"
@@ -220,8 +228,21 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
 """
             
             # Get LLM response
+            # Choose a working provider if the requested one isn't registered
+            chosen_provider = request.provider
+            try:
+                available = list(llm_service.clients.keys())
+                if chosen_provider not in available and available:
+                    # Prefer the original default order
+                    for p in [request.provider, 'gemini', 'openai', 'claude']:
+                        if p in available:
+                            chosen_provider = p
+                            break
+            except Exception:
+                pass
+
             llm_request = LLMRequest(
-                provider=request.provider,
+                provider=chosen_provider,
                 model_tier=request.model_tier,
                 system_prompt="Financial advisor using provided facts and user's financial history",
                 user_prompt=f"{enhanced_prompt}\n\nUser: {request.message}",
@@ -276,8 +297,20 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
         else:
             # General chat
             logger.info(f"💬 Processing as general chat (no financial context)")
+            # Choose a working provider for general chat as well
+            chosen_provider = request.provider
+            try:
+                available = list(llm_service.clients.keys())
+                if chosen_provider not in available and available:
+                    for p in [request.provider, 'gemini', 'openai', 'claude']:
+                        if p in available:
+                            chosen_provider = p
+                            break
+            except Exception:
+                pass
+
             llm_request = LLMRequest(
-                provider=request.provider,
+                provider=chosen_provider,
                 model_tier=request.model_tier,
                 system_prompt="Helpful assistant",
                 user_prompt=request.message,

@@ -22,6 +22,7 @@ import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import ChatInterface from './ChatInterface';
 import SuggestedQuestions from './SuggestedQuestions';
+// Replaced legacy suggested list with Question Sets panel
 import ContextPanel from './ContextPanel';
 import LLMProviderSettings from './LLMProviderSettings';
 import LLMSettingsService, { ChatSettings } from '../../services/LLMSettingsService';
@@ -388,14 +389,25 @@ const FinancialAdvisorChat: React.FC = () => {
                 console.log('🧠 Intelligence metrics:', responseData.intelligence_metrics);
             }
 
+            // If Precision Gate fired, render a friendly clarifier message
+            let contentToRender = responseData.message.content;
+            if (useNewChat && responseData.is_clarify && responseData.clarify) {
+                const card = responseData.clarify;
+                const opts = (card.options || []).map((o: any, idx: number) => `${idx + 1}. ${o.label}`).join('\n');
+                const fallbacks = (card.fallbacks || []).map((o: any) => `• ${o.label}`).join('\n');
+                const assumptions = (card.assumptions_if_skipped || []).map((a: string) => `• ${a}`).join('\n');
+                const example = (card.options && card.options.length > 0) ? card.options[0].label : 'an option above';
+                contentToRender = `🧭 ${card.message}\n\nOptions:\n${opts}${fallbacks ? `\n\nAlso:\n${fallbacks}` : ''}${assumptions ? `\n\nIf you say "Use defaults", I'll assume:\n${assumptions}` : ''}\n\nReply with one option (e.g., "${example}") or choose "Use defaults".`;
+            }
+
             // Create assistant message
             const assistantMessage: Message = {
                 id: `msg_${Date.now()}_assistant`,
                 userId,
                 role: 'assistant',
-                content: responseData.message.content,
+                content: contentToRender,
                 timestamp: new Date(),
-                context: responseData.context_used,
+                context: (useNewChat && responseData.is_clarify) ? undefined : responseData.context_used,
                 tokenCount: responseData.tokens_used?.total || 0,
                 cost: responseData.cost_breakdown?.total || 0,
                 model: llmSettings.selectedModel,
@@ -464,7 +476,6 @@ const FinancialAdvisorChat: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             <div className="max-w-7xl mx-auto px-4 py-6">
-                
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
@@ -657,10 +668,10 @@ const FinancialAdvisorChat: React.FC = () => {
                         />
                     </div>
                     
-                    {/* Suggested Questions - Sidebar */}
+                    {/* Suggested Questions - Sidebar (compact, avoids page scrolling) */}
                     <div className="lg:col-span-1">
                         <SuggestedQuestions
-                            onQuestionClick={handleSuggestedQuestion}
+                            onQuestionClick={sendMessage}
                             disabled={loading}
                         />
                     </div>

@@ -69,10 +69,15 @@ class CalculationRouter:
                     r'(?i).*how much.*save.*month',
                     r'(?i).*monthly.*savings.*needed',
                     r'(?i).*save.*month.*reach',
-                    r'(?i).*monthly.*contribution.*goal'
+                    r'(?i).*monthly.*contribution.*goal',
+                    # Timeframe variants (e.g., "in 5 years")
+                    r'(?i).*save.*monthly.*in\s*(\d{1,3})\s*years',
+                    r'(?i).*reach.*\$?[\d,\.]+.*in\s*(\d{1,3})\s*years'
                 ],
                 'required_params': ['current_assets', 'target_goal', 'years'],
-                'optional_params': ['growth_rate']
+                'optional_params': ['growth_rate'],
+                'extract_numbers': True,
+                'extract_years': True
             },
             
             'growth_rate_impact': {
@@ -126,11 +131,30 @@ class CalculationRouter:
                     r'(?i).*compound.*growth',
                     r'(?i).*investment.*growth',
                     r'(?i).*portfolio.*growth',
-                    r'(?i).*growth.*scenarios'
+                    r'(?i).*growth.*scenarios',
+                    # Net worth projection phrasing
+                    r'(?i).*net\s*worth.*in\s*(\d{1,3})\s*years',
+                    r'(?i)in\s*(\d{1,3})\s*years.*net\s*worth',
+                    # Time-bound goal phrasing – route to scenarios (goal_for_timeframe)
+                    r'(?i).*retir.*in\s*(\d{1,3})\s*years.*goal',
+                    r'(?i).*in\s*(\d{1,3})\s*years.*what.*goal'
                 ],
                 'required_params': ['principal', 'years'],
-                'optional_params': ['rates', 'monthly_contributions']
+                'optional_params': ['rates', 'monthly_contributions'],
+                'extract_years': True
             }
+        }
+
+        # Add withdrawal sustainability mapping (safe withdrawal)
+        self.CALCULATION_PATTERNS['withdrawal_sustainability'] = {
+            'patterns': [
+                r'(?i).*safe.*withdraw',
+                r'(?i).*withdraw\s*(\d+(?:\.\d+)?)%.*',
+                r'(?i).*withdrawal.*sustain',
+            ],
+            'required_params': ['assets', 'annual_withdrawal', 'years_needed'],
+            'optional_params': ['growth_rate'],
+            'extract_withdraw_percent': True
         }
     
     def detect_calculation_needed(self, user_message: str, conversation_history: List[Dict] = None) -> Optional[Dict[str, Any]]:
@@ -142,7 +166,7 @@ class CalculationRouter:
         math_indicators = [
             'calculate', 'years', 'timeline', 'how long', 'when can', 'growth rate',
             'percentage', '%', 'months', 'savings needed', 'required', 'goal',
-            'shave off', 'reduce goal', 'tax rate', 'contribution'
+            'shave off', 'reduce', 'increase', 'raise', 'lower', 'tax rate', 'contribution'
         ]
         
         if not any(indicator in user_message.lower() for indicator in math_indicators):
@@ -174,11 +198,43 @@ class CalculationRouter:
                         # Redirect to actual calculation type if specified
                         if 'redirect_to' in config:
                             detection_result['calculation_type'] = config['redirect_to']
+                    if config.get('extract_years'):
+                        years = self._extract_years(user_message, match)
+                        if years:
+                            detection_result['extracted_years'] = years
                     
                     return detection_result
         
         # Fallback: check conversation context for calculation hints
-        return self._check_conversation_context(user_message, conversation_history)
+        fallback = self._check_conversation_context(user_message, conversation_history)
+        # Heuristics: handle "reduce/increase to $X" or "reduce/increase by $X" without 'goal'
+        if not fallback:
+            reduce_inc = re.search(r"(?i).*(reduce|increase|raise|lower)\s+to\s+(\$?[\d,\.]+(?:[Mm]illion|[Mm])?)", user_message)
+            if reduce_inc:
+                numbers = self._extract_numbers_from_message(user_message)
+                return {
+                    'calculation_type': 'retirement_goal_adjustment',
+                    'confidence': 0.7,
+                    'pattern_matched': 'reduce/increase to',
+                    'required_params': self.CALCULATION_PATTERNS['retirement_goal_adjustment']['required_params'],
+                    'optional_params': self.CALCULATION_PATTERNS['retirement_goal_adjustment'].get('optional_params', []),
+                    'extract_numbers': True,
+                    'extracted_numbers': numbers,
+                }
+        if not fallback:
+            reduce_by = re.search(r"(?i).*(reduce|lower|decrease|increase|raise)\s+.*?by\s+(\$?[\d,\.]+(?:[Kk]|[Mm]illion|[Mm])?)", user_message)
+            if reduce_by:
+                numbers = self._extract_numbers_from_message(user_message)
+                return {
+                    'calculation_type': 'retirement_goal_adjustment',
+                    'confidence': 0.65,
+                    'pattern_matched': 'reduce/increase by',
+                    'required_params': self.CALCULATION_PATTERNS['retirement_goal_adjustment']['required_params'],
+                    'optional_params': self.CALCULATION_PATTERNS['retirement_goal_adjustment'].get('optional_params', []),
+                    'extract_numbers': True,
+                    'extracted_numbers': numbers,
+                }
+        return fallback
     
     def extract_calculation_params(self, user_message: str, user_context: Dict, 
                                  calculation_info: Dict) -> Dict[str, Any]:
@@ -224,9 +280,34 @@ class CalculationRouter:
         # Handle specific extraction from message
         if 'extracted_numbers' in calculation_info:
             params.update(self._map_extracted_numbers(calculation_info['extracted_numbers'], calc_type))
-        
+
         if 'extracted_growth_rate' in calculation_info:
             params['growth_rate'] = calculation_info['extracted_growth_rate']
+
+        if 'extracted_years' in calculation_info:
+            params['years'] = calculation_info['extracted_years']
+
+        # Withdrawal sustainability special handling
+        if calc_type == 'withdrawal_sustainability':
+            # Assets from context
+            params['assets'] = params.get('assets', self._get_current_assets(user_context))
+            # Years needed default 30 if not extracted
+            params['years_needed'] = params.get('years_needed', 30)
+            # Annual withdrawal from dollar number or percent
+            withdraw_annual = None
+            # Dollar values in message
+            if 'extracted_numbers' in calculation_info and calculation_info['extracted_numbers']:
+                # Take the largest positive as annual withdrawal
+                withdraw_annual = max(calculation_info['extracted_numbers'])
+            if not withdraw_annual:
+                # Try to extract percentage and apply to assets
+                pct = self._extract_percentage(user_message)
+                if pct and params['assets']:
+                    withdraw_annual = float(params['assets']) * (pct / 100.0)
+            if not withdraw_annual and params.get('assets'):
+                # Default to 4% rule
+                withdraw_annual = float(params['assets']) * 0.04
+            params['annual_withdrawal'] = withdraw_annual or 0
         
         # Special handling for specific calculation types
         if calc_type == 'retirement_goal_adjustment':
@@ -239,11 +320,15 @@ class CalculationRouter:
                 params['rates'] = [user_rate - 0.02, user_rate, user_rate + 0.02]
             else:
                 params['rates'] = [0.05, 0.07, 0.09]  # Default scenario rates
-            params['principal'] = params.get('current_assets', 0)
+            # Determine principal from user context (net worth preferred)
+            params['principal'] = self._get_current_assets(user_context)
             # Ensure we have years parameter
             if 'years' not in params:
                 params['years'] = 10  # Default 10 year projection
-        
+            # Use monthly surplus as monthly contributions if available
+            if 'monthly_contributions' not in params:
+                params['monthly_contributions'] = user_context.get('monthly_surplus', 0)
+
         return params
     
     def _get_current_assets(self, user_context: Dict) -> float:
@@ -297,12 +382,21 @@ class CalculationRouter:
             except ValueError:
                 continue
         
-        # Pattern 2: Plain numbers with million/M suffix
+        # Pattern 2: Plain numbers with million/M or thousand/K suffix
         million_pattern = r'(\d+(?:[.,]\d+)*)\s*([Mm]illion|[Mm])\b'
         for match in re.finditer(million_pattern, message):
             number_str = match.group(1).replace(',', '')
             try:
                 value = float(number_str) * 1000000
+                numbers.append(value)
+            except ValueError:
+                continue
+
+        thousand_pattern = r'(\d+(?:[.,]\d+)*)\s*([Kk])\b'
+        for match in re.finditer(thousand_pattern, message):
+            number_str = match.group(1).replace(',', '')
+            try:
+                value = float(number_str) * 1000
                 numbers.append(value)
             except ValueError:
                 continue
@@ -363,34 +457,74 @@ class CalculationRouter:
                 pass
         
         return 0.07  # Default 7%
+
+    def _extract_percentage(self, message: str) -> float:
+        """Extract the first percentage value from the message if present."""
+        import re
+        m = re.search(r'(\d+(?:\.\d+)?)\s*%', message)
+        if m:
+            try:
+                return float(m.group(1))
+            except ValueError:
+                return None
+        return None
+
+    def _extract_years(self, message: str, match_obj) -> int:
+        """Extract horizon in years from message."""
+        # Try capturing group first
+        if match_obj and match_obj.groups():
+            for g in match_obj.groups():
+                if g and g.isdigit():
+                    try:
+                        val = int(g)
+                        if 1 <= val <= 100:
+                            return val
+                    except ValueError:
+                        pass
+        # Fallback generic search
+        m = re.search(r"(?i)in\s*(\d{1,3})\s*years", message)
+        if m:
+            try:
+                val = int(m.group(1))
+                if 1 <= val <= 100:
+                    return val
+            except ValueError:
+                pass
+        return None
     
     def _map_extracted_numbers(self, numbers: List[float], calc_type: str) -> Dict[str, float]:
         """Map extracted numbers to appropriate parameters"""
-        
+
         if not numbers:
             return {}
-        
+
         if calc_type == 'retirement_goal_adjustment':
             if len(numbers) >= 1:
                 # Take the largest number as the new goal (handles duplicates from different patterns)
                 return {'new_goal': max(numbers)}
-        
+
+        if calc_type == 'required_monthly_savings':
+            # Use the largest amount as target goal
+            return {'target_goal': max(numbers)}
+
         return {}
     
     def _handle_goal_adjustment_params(self, message: str, user_context: Dict, 
                                      calculation_info: Dict) -> Dict[str, Any]:
         """Special handling for goal adjustment calculations"""
-        
+
         params = {}
-        
+
         # Get original goal from context - avoid hardcoding
         default_goal = user_context.get('_context', {}).get('retirement_goal', 3500000)
         params['original_goal'] = user_context.get('retirement_goal_amount', default_goal)
-        
+
         # Try to extract new goal from message
         if 'extracted_numbers' in calculation_info:
             numbers = calculation_info['extracted_numbers']
-            if numbers:
+            pattern = calculation_info.get('pattern_matched', '')
+            # Only set absolute target when matched pattern indicates 'to'
+            if numbers and ('to' in pattern):
                 params['new_goal'] = numbers[0]
         else:
             # Try common goal amounts mentioned in text
@@ -407,7 +541,21 @@ class CalculationRouter:
                 if phrase in message_lower:
                     params['new_goal'] = amount
                     break
-        
+
+        # Handle relative adjustments like "reduce by $200k" or "increase by 500000"
+        if 'new_goal' not in params:
+            rel = re.search(r"(?i)(reduce|lower|decrease|increase|raise)\s+.*?by\s+(\$?[\d,\.]+(?:[Kk]|[Mm]illion|[Mm])?)", message)
+            if rel:
+                numbers = self._extract_numbers_from_message(message)
+                if numbers:
+                    delta = numbers[0]
+                    original = params.get('original_goal', default_goal)
+                    verb = rel.group(1).lower()
+                    if verb in ['reduce', 'lower', 'decrease']:
+                        params['new_goal'] = max(0, original - delta)
+                    else:
+                        params['new_goal'] = original + delta
+
         return params
     
     def _check_conversation_context(self, message: str, conversation_history: List[Dict]) -> Optional[Dict[str, Any]]:

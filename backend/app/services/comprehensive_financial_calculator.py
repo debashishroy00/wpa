@@ -237,13 +237,16 @@ class GrowthRateManager:
             low_result = calculation_func(**params, growth_rate=low_rate)
             high_result = calculation_func(**params, growth_rate=high_rate)
             
-            # Calculate variance in key metric (usually years or amount)
+            # Calculate variance in key metric (supports years, amount, monthly_needed)
             if 'years' in base_result:
                 variance = high_result['years'] - low_result['years']
                 metric = 'years'
             elif 'amount' in base_result:
                 variance = abs(high_result['amount'] - low_result['amount'])
                 metric = 'amount'
+            elif 'monthly_needed' in base_result:
+                variance = abs(high_result['monthly_needed'] - low_result['monthly_needed'])
+                metric = 'monthly_needed'
             else:
                 return {'sensitivity': 'unknown', 'show_ranges': False}
             
@@ -254,7 +257,7 @@ class GrowthRateManager:
                     sensitivity = 'medium'
                 else:
                     sensitivity = 'low'
-            else:  # amount
+            else:  # amount or monthly_needed
                 if variance > base_result[metric] * 0.2:  # >20% change
                     sensitivity = 'high'
                 elif variance > base_result[metric] * 0.1:  # >10% change
@@ -429,7 +432,7 @@ class TaxCalculations:
     """Tax optimization calculations"""
     
     def __init__(self):
-        # 2024 tax brackets
+        # 2024 tax brackets (simplified)
         self.FEDERAL_BRACKETS_MARRIED = [
             (22000, 0.10),
             (89450, 0.12),
@@ -437,6 +440,15 @@ class TaxCalculations:
             (364200, 0.24),
             (462500, 0.32),
             (693750, 0.35),
+            (float('inf'), 0.37)
+        ]
+        self.FEDERAL_BRACKETS_SINGLE = [
+            (11000, 0.10),
+            (44725, 0.12),
+            (95375, 0.22),
+            (182100, 0.24),
+            (231250, 0.32),
+            (578125, 0.35),
             (float('inf'), 0.37)
         ]
         
@@ -454,8 +466,9 @@ class TaxCalculations:
                              filing_status: str = 'married') -> Dict[str, Any]:
         """Calculate marginal and effective tax rates"""
         
-        # Federal marginal rate
-        federal_marginal = self._get_marginal_rate(income)
+        # Federal marginal rate by filing status
+        brackets = self._get_federal_brackets(filing_status)
+        federal_marginal = self._get_marginal_rate(income, brackets)
         
         # State rate
         state_rate = self.STATE_RATES.get(state, 0.05)
@@ -464,7 +477,7 @@ class TaxCalculations:
         combined_marginal = federal_marginal + state_rate
         
         # Effective rates
-        federal_tax = self._calculate_federal_tax(income)
+        federal_tax = self._calculate_federal_tax(income, brackets)
         federal_effective = federal_tax / income if income > 0 else 0
         
         state_tax = income * state_rate
@@ -513,19 +526,19 @@ class TaxCalculations:
             'recommendation': 'increase' if additional_possible > 0 else 'optimized'
         }
     
-    def _get_marginal_rate(self, income: float) -> float:
-        """Get federal marginal tax rate"""
-        for threshold, rate in self.FEDERAL_BRACKETS_MARRIED:
+    def _get_marginal_rate(self, income: float, brackets: list) -> float:
+        """Get federal marginal tax rate from supplied brackets"""
+        for threshold, rate in brackets:
             if income <= threshold:
                 return rate
         return 0.37  # Highest bracket
     
-    def _calculate_federal_tax(self, income: float) -> float:
-        """Calculate total federal tax owed"""
+    def _calculate_federal_tax(self, income: float, brackets: list) -> float:
+        """Calculate total federal tax owed from supplied brackets"""
         tax = 0
         previous_threshold = 0
         
-        for threshold, rate in self.FEDERAL_BRACKETS_MARRIED:
+        for threshold, rate in brackets:
             if income <= threshold:
                 tax += (income - previous_threshold) * rate
                 break
@@ -534,6 +547,12 @@ class TaxCalculations:
                 previous_threshold = threshold
         
         return tax
+
+    def _get_federal_brackets(self, filing_status: str) -> list:
+        fs = (filing_status or '').lower()
+        if 'single' in fs:  # includes single and head-of-household simplified to single
+            return self.FEDERAL_BRACKETS_SINGLE
+        return self.FEDERAL_BRACKETS_MARRIED
 
 
 class CashFlowCalculations:

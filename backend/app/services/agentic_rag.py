@@ -69,6 +69,17 @@ class VectorStoreWrapper:
             
             formatted_results = []
             for doc_id, score, doc in results:
+                # Optional per-user filtering
+                requested_user = filters.get("user_id")
+                if requested_user is not None:
+                    try:
+                        doc_user = doc.metadata.get("user_id")
+                        # Normalize to strings for comparison
+                        if str(doc_user) != str(requested_user):
+                            continue
+                    except Exception:
+                        # If metadata missing, skip when filtering is requested
+                        continue
                 formatted_results.append({
                     "text": doc.content[:500],  # Limit text length
                     "source": doc.metadata.get("category", "unknown"),
@@ -107,10 +118,33 @@ class AgenticRAG:
         self.max_steps = 4  # NEW: limit iterations
         self.max_iterations = 2  # Phase 3: iterative refinement limit
         self.decomposition_cache = {}  # NEW: cache plans
+        self._session_goal_cache = {}  # session_id -> last known goal
+        # Explainability caches
+        self._calc_record_by_session = {}
+        self._calc_record_by_id = {}
 
     async def handle_query(self, user_id: int, message: str, db: Session, mode: str = "balanced", session_id: str = None) -> Dict[str, Any]:
         """Phase 3: Add iterative refinement and sufficiency checking."""
         logger.info(f"🎛️ Mode in handle_query: {mode}")
+        # Explain last calculation if explicitly requested
+        if self._is_explain_request(message):
+            record = self._calc_record_by_session.get(session_id) if session_id else None
+            if not record:
+                return {
+                    "response": "I don’t have a recent calculation to explain. Ask a calculation (e.g., ‘Am I on track?’) first, then say ‘show me the calculations’.",
+                    "insight_cards": [],
+                    "citations": [],
+                    "confidence": "LOW",
+                    "warnings": ["no_prior_calculation"]
+                }
+            details = self._format_explanation_from_record(record)
+            return {
+                "response": details,
+                "insight_cards": [],
+                "citations": [],
+                "confidence": "HIGH",
+                "warnings": []
+            }
         
         # Get conversation history for context
         try:
@@ -140,7 +174,7 @@ class AgenticRAG:
             calculation_info = calculation_router.detect_calculation_needed(message, conversation_history)
             if calculation_info:
                 logger.info(f"🧮 Mathematical calculation detected: {calculation_info['calculation_type']}")
-                return await self._handle_calculation(calculation_info, message, facts, user_id, mode, conversation_history)
+                return await self._handle_calculation(calculation_info, message, facts, user_id, mode, conversation_history, session_id)
             
             logger.info(f"No calculation needed, proceeding with regular RAG flow")
             
@@ -257,7 +291,7 @@ class AgenticRAG:
             results = await self.vector_store.query(
                 index=step.get("index", "authority"),
                 query=step.get("search_query", plan["original_query"]),
-                filters={"limit": 3}  # Fewer results per step
+                filters={"limit": 3, "user_id": user_id}  # Fewer results per step; user-scoped
             )
             
             # Add to context
@@ -288,7 +322,7 @@ class AgenticRAG:
             
             search_query = step.get("search_query", plan["original_query"])
             index = step.get("index", "authority")
-            filters = {"limit": 3}
+            filters = {"limit": 3, "user_id": user_id}
             
             # CRITICAL DEBUG LOGGING
             logger.error(f"🔍 ABOUT TO SEARCH: query='{search_query}', index='{index}', filters={filters}")
@@ -345,7 +379,7 @@ class AgenticRAG:
                 results = await self.vector_store.query(
                     index="authority",
                     query=search_query,
-                    filters={"limit": 2}  # Fewer results per follow-up
+                    filters={"limit": 2, "user_id": user_id}  # Fewer results per follow-up; user-scoped
                 )
                 
                 # ADD DEBUG LOGGING FOR FOLLOW-UP
@@ -960,7 +994,7 @@ class AgenticRAG:
             return []
     
     async def _handle_calculation(self, calculation_info: Dict, message: str, facts: Dict, 
-                                user_id: int, mode: str, conversation_history: List[Dict]) -> Dict[str, Any]:
+                                user_id: int, mode: str, conversation_history: List[Dict], session_id: str) -> Dict[str, Any]:
         """Handle mathematical calculations using ComprehensiveFinancialCalculator"""
         
         try:
@@ -970,6 +1004,13 @@ class AgenticRAG:
             calculation_params = calculation_router.extract_calculation_params(
                 message, facts, calculation_info
             )
+
+            # Session-aware original goal defaulting for goal adjustments
+            if calculation_info['calculation_type'] == 'retirement_goal_adjustment':
+                if 'original_goal' not in calculation_params:
+                    cached = self._session_goal_cache.get(session_id) if session_id else None
+                    default_goal = facts.get('_context', {}).get('retirement_goal', facts.get('retirement_goal_amount', 3500000))
+                    calculation_params['original_goal'] = cached or default_goal
             
             logger.info(f"📊 Calculation parameters: {calculation_params}")
             
@@ -991,10 +1032,30 @@ class AgenticRAG:
                     "warnings": ["calculation_error"]
                 }
             
+            # Echo key input parameters into the result for consistent formatting
+            try:
+                for k, v in calculation_params.items():
+                    # Preserve existing computed values if present
+                    if k not in calculation_result:
+                        calculation_result[k] = v
+                # Common aliases used by formatters
+                if 'monthly_additions' not in calculation_result and 'monthly_surplus' in facts:
+                    calculation_result['monthly_additions'] = facts.get('monthly_surplus', 0)
+            except Exception:
+                pass
+
             # Format calculation results for natural language response
             response_text = self._format_calculation_response(
                 calculation_result, message, mode, conversation_history
             )
+
+            # If user asked for detailed calculations/assumptions, append a transparent breakdown
+            if self._should_include_details(message):
+                details = self._format_calculation_details(
+                    calculation_result, calculation_result.get('assumptions', {})
+                )
+                if details:
+                    response_text = f"{response_text}\n\n---\n\n{details}"
             
             # Store calculation payload for debugging
             store_llm_payload(user_id, {
@@ -1009,6 +1070,32 @@ class AgenticRAG:
             
             # Determine confidence based on calculation certainty
             confidence = self._assess_calculation_confidence(calculation_result)
+
+            # Update session goal cache if goal known/changed
+            try:
+                if calculation_info['calculation_type'] == 'retirement_goal_adjustment':
+                    new_goal = calculation_result.get('new_goal') or calculation_params.get('new_goal')
+                    if new_goal and session_id:
+                        self._session_goal_cache[session_id] = new_goal
+                elif calculation_info['calculation_type'] == 'years_to_retirement_goal':
+                    goal = calculation_result.get('target_goal') or calculation_params.get('target_goal')
+                    if goal and session_id:
+                        self._session_goal_cache[session_id] = goal
+            except Exception:
+                pass
+
+            # Build and cache calculation record for explainability
+            record = self._build_calculation_record(
+                user_id=user_id,
+                session_id=session_id,
+                calc_type=calculation_info['calculation_type'],
+                inputs=calculation_params,
+                assumptions=calculation_result.get('assumptions', {}),
+                outputs=calculation_result
+            )
+            if session_id:
+                self._calc_record_by_session[session_id] = record
+            self._calc_record_by_id[record['calculation_id']] = record
             
             return {
                 "response": response_text,
@@ -1017,7 +1104,8 @@ class AgenticRAG:
                 "confidence": confidence,
                 "warnings": self._get_calculation_warnings(calculation_result),
                 "calculation_performed": True,
-                "calculation_type": calculation_info['calculation_type']
+                "calculation_type": calculation_info['calculation_type'],
+                "calculation_id": record['calculation_id']
             }
             
         except Exception as e:
@@ -1055,9 +1143,179 @@ class AgenticRAG:
         
         elif calc_type == 'emergency_fund_analysis':
             return self._format_emergency_fund_response(calculation_result, mode)
-        
+
         else:
+            # Special-case compound_growth_scenarios for clearer output
+            if calc_type == 'compound_growth_scenarios':
+                return self._format_growth_projection_response(calculation_result, assumptions, mode)
             return self._format_generic_calculation_response(calculation_result, assumptions, mode)
+
+    def _should_include_details(self, message: str) -> bool:
+        """Detect if user explicitly requested detailed calculations/assumptions."""
+        msg = (message or "").lower()
+        keywords = ["detail", "assumption", "show", "how have you calculated", "breakdown", "formula"]
+        return any(k in msg for k in keywords)
+
+    def _format_calculation_details(self, result: Dict, assumptions: Dict) -> str:
+        """Produce a transparent calculation breakdown for the current calc result."""
+        calc_type = result.get('calculation_type')
+        if not calc_type:
+            return ""
+
+        growth_info = assumptions if isinstance(assumptions, dict) else {}
+        rate = growth_info.get('rate', None)
+        rate_explanation = growth_info.get('explanation', 'conservative growth assumptions')
+
+        lines = []
+        lines.append("Calculation Details")
+        lines.append("")
+
+        if calc_type == 'years_to_retirement_goal':
+            current = result.get('current_assets', 0)
+            goal = result.get('target_goal', 0)
+            monthly = result.get('monthly_additions', 0)
+            years = result.get('years', 0)
+            fv_current = result.get('current_assets_future_value', None)
+            lines += [
+                f"- Type: Years to retirement goal",
+                f"- Inputs: current_assets=${current:,.0f}, target_goal=${goal:,.0f}, monthly_additions=${monthly:,.0f}",
+                f"- Growth rate: {rate:.1%} ({rate_explanation})" if rate is not None else f"- Assumptions: {rate_explanation}",
+                f"- Result: years={years:.0f}",
+            ]
+            if fv_current is not None:
+                lines.append(f"- Current assets future value after {years:.0f} years: ${fv_current:,.0f}")
+
+        elif calc_type == 'retirement_goal_adjustment':
+            og = result.get('original_goal', 0)
+            ng = result.get('new_goal', 0)
+            oy = result.get('original_years', 0)
+            ny = result.get('new_years', 0)
+            ys = result.get('years_saved', 0)
+            lines += [
+                f"- Type: Goal adjustment",
+                f"- Original goal: ${og:,.0f}",
+                f"- New goal: ${ng:,.0f}",
+                f"- Timeline change: {oy:.0f} years → {ny:.0f} years ({'saved' if ys>0 else 'added'} {abs(ys):.0f} years)",
+                f"- Growth assumptions: {rate_explanation} ({rate:.1%} applied)" if rate is not None else f"- Assumptions: {rate_explanation}",
+            ]
+
+        elif calc_type == 'required_monthly_savings':
+            cur = result.get('current_assets', 0)
+            goal = result.get('target_goal', 0)
+            years = result.get('years', 0)
+            need = result.get('monthly_needed', 0)
+            lines += [
+                f"- Type: Required monthly savings",
+                f"- Inputs: current_assets=${cur:,.0f}, target_goal=${goal:,.0f}, years={years}",
+                f"- Growth rate: {rate:.1%} ({rate_explanation})" if rate is not None else f"- Assumptions: {rate_explanation}",
+                f"- Result: monthly_needed=${need:,.0f}",
+            ]
+
+        else:
+            # Generic fallback
+            lines += [
+                f"- Type: {calc_type}",
+                f"- Assumptions: {rate_explanation}",
+            ]
+
+        return "\n".join(lines)
+
+    def _is_explain_request(self, message: str) -> bool:
+        msg = (message or "").lower()
+        tokens = [
+            "show me the calculations",
+            "show calculations",
+            "how have you calculated",
+            "how did you calculate",
+            "show assumptions",
+            "explain this",
+            "explain the calculation",
+            "breakdown"
+        ]
+        return any(t in msg for t in tokens)
+
+    def _format_explanation_from_record(self, record: Dict) -> str:
+        calc_type = record.get('calc_type')
+        outputs = record.get('outputs', {})
+        assumptions = record.get('assumptions', {})
+        header_map = {
+            'years_to_retirement_goal': "Calculation Details – Time to Retirement Goal",
+            'retirement_goal_adjustment': "Calculation Details – Goal Adjustment",
+            'required_monthly_savings': "Calculation Details – Required Monthly Savings",
+            'withdrawal_sustainability': "Calculation Details – Withdrawal Sustainability",
+            'compound_growth_scenarios': "Calculation Details – Growth Projection",
+            'asset_allocation_analysis': "Calculation Details – Asset Allocation",
+            'tax_analysis': "Calculation Details – Tax Analysis",
+            'retirement_contribution_optimization': "Calculation Details – 401k Optimization",
+            'emergency_fund_analysis': "Calculation Details – Emergency Fund",
+            'savings_rate_optimization': "Calculation Details – Savings Rate",
+        }
+        title = header_map.get(calc_type, "Calculation Details")
+        details = self._format_calculation_details(outputs, assumptions)
+        meta = f"\n\nID: {record.get('calculation_id')} • When: {record.get('timestamp')} • Calculator: {record.get('calculator_version', 'v1')}"
+        return f"{title}\n\n{details}{meta}"
+
+    def _build_calculation_record(self, user_id: int, session_id: str, calc_type: str, inputs: Dict, assumptions: Dict, outputs: Dict) -> Dict:
+        from datetime import datetime
+        import hashlib, json
+        ts = datetime.utcnow().isoformat()
+        formula = {
+            'years_to_retirement_goal': "Solve FV = PV(1+r)^n + PMT(((1+r)^n − 1)/r) for n",
+            'required_monthly_savings': "PMT = (FV − PV(1+r)^n) * r / ((1+r)^n − 1)",
+            'compound_growth_scenarios': "FV = PV(1+r)^n + PMT(((1+r)^n − 1)/r)",
+            'retirement_goal_adjustment': "Re-evaluate timeline for new goal using same method",
+            'withdrawal_sustainability': "Iterative: withdraw then apply growth each year",
+        }.get(calc_type, "Deterministic calculator")
+        key = f"{ts}:{user_id}:{session_id or ''}:{calc_type}:{json.dumps(inputs, sort_keys=True)[:256]}"
+        calc_id = hashlib.md5(key.encode()).hexdigest()[:12]
+        return {
+            'calculation_id': calc_id,
+            'user_id': user_id,
+            'session_id': session_id,
+            'calc_type': calc_type,
+            'inputs': inputs,
+            'assumptions': assumptions,
+            'outputs': outputs,
+            'formulas': [formula],
+            'data_sources': ['db:financial_summary', 'identity_math'],
+            'timestamp': ts,
+            'calculator_version': 'v1'
+        }
+
+    def _format_growth_projection_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
+        """Format compound growth scenarios projection response (net worth/investment growth)."""
+        years = result.get('years', 0)
+        principal = result.get('principal', 0)
+        monthly = result.get('monthly_contributions', 0)
+        scenarios = result.get('scenarios', {})
+
+        # Build scenario lines sorted by rate
+        def rate_key(k):
+            try:
+                return float(k.strip('%'))
+            except Exception:
+                return 0.0
+        lines = []
+        for label in sorted(scenarios.keys(), key=rate_key):
+            sc = scenarios[label]
+            lines.append(f"• {label}: final ≈ ${sc.get('final_value', 0):,.0f} (growth ${sc.get('total_growth', 0):,.0f})")
+
+        if mode == 'direct':
+            return f"Projected value in {years} years: {', '.join([l.replace('• ', '') for l in lines])}"
+
+        header = f"Here's how your assets could grow over {years} years starting from ${principal:,.0f}"
+        if monthly and monthly > 0:
+            header += f" with ${monthly:,.0f}/mo contributions."
+        else:
+            header += "."
+
+        return "\n".join([
+            header,
+            "",
+            *lines,
+            "",
+            "These scenarios are illustrative; actual results depend on market performance and contributions."
+        ])
     
     def _format_retirement_timeline_response(self, result: Dict, assumptions: Dict, mode: str) -> str:
         """Format retirement timeline calculation response"""
@@ -1161,24 +1419,43 @@ If you want to reach this goal sooner, consider increasing your monthly contribu
         original_years = result.get('original_years', 0)
         new_years = result.get('new_years', 0)
         
+        # Determine direction of change
+        is_increase = new_goal > original_goal
+        abs_years_change = abs(years_saved)
+
         if mode == 'direct':
-            return f"""
-**{years_saved:.0f} years saved** by reducing your goal to ${new_goal:,.0f}.
-            """.strip()
+            if is_increase:
+                return f"""
+**{abs_years_change:.0f} years added** by increasing your goal to ${new_goal:,.0f}.
+                """.strip()
+            else:
+                return f"""
+**{abs_years_change:.0f} years saved** by reducing your goal to ${new_goal:,.0f}.
+                """.strip()
         
         else:  # balanced or comprehensive
-            goal_reduction = result.get('goal_reduction', 0)
-            goal_reduction_percent = result.get('goal_reduction_percent', 0)
-            
             rate_explanation = assumptions.get('growth_rate_info', {}).get('explanation', 'conservative growth assumptions')
-            
-            return f"""
-Great question! Reducing your retirement goal from ${original_goal:,.0f} to ${new_goal:,.0f} would **save you {years_saved:.0f} years** - bringing your retirement timeline from {original_years:.0f} years down to just {new_years:.0f} years.
 
-This ${goal_reduction:,.0f} reduction ({goal_reduction_percent:.1f}% less) significantly accelerates your path to financial independence. You'd still have a substantial retirement fund while reaching your goal much sooner.
+            if is_increase:
+                goal_increase = new_goal - original_goal
+                goal_increase_percent = (goal_increase / original_goal * 100) if original_goal else 0
+                return f"""
+Increasing your retirement goal from ${original_goal:,.0f} to ${new_goal:,.0f} would **add {abs_years_change:.0f} years** — moving your timeline from {original_years:.0f} years to about {new_years:.0f} years.
 
-The calculation uses {rate_explanation} and assumes you maintain your current savings rate. This adjustment demonstrates how even modest goal changes can have dramatic impacts on your timeline.
-            """.strip()
+This ${goal_increase:,.0f} increase ({goal_increase_percent:.1f}% more) raises the target, which extends your path accordingly.
+
+These estimates use {rate_explanation} and assume your current savings rate continues.
+                """.strip()
+            else:
+                goal_reduction = result.get('goal_reduction', original_goal - new_goal)
+                goal_reduction_percent = (goal_reduction / original_goal * 100) if original_goal else 0
+                return f"""
+Reducing your retirement goal from ${original_goal:,.0f} to ${new_goal:,.0f} would **save you {abs_years_change:.0f} years** — bringing your timeline from {original_years:.0f} years down to about {new_years:.0f} years.
+
+This ${goal_reduction:,.0f} reduction ({goal_reduction_percent:.1f}% less) accelerates your path to financial independence.
+
+The calculation uses {rate_explanation} and assumes you maintain your current savings rate.
+                """.strip()
     
     def _format_assumptions_text(self, assumptions: Dict) -> str:
         """Format assumptions information for transparency"""

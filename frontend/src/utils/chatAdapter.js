@@ -16,7 +16,11 @@ export const adaptNewChatResponse = (newResponse) => {
     // New fields to preserve
     confidence: newResponse.confidence,
     assumptions: newResponse.assumptions || [],
-    warnings: newResponse.warnings || []
+    warnings: newResponse.warnings || [],
+    // Clarifier support
+    is_clarify: !!newResponse.is_clarify,
+    clarify: newResponse.clarify || null,
+    session_id: newResponse.session_id
   };
 };
 
