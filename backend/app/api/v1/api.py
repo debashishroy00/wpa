@@ -25,6 +25,7 @@ api_router.include_router(financial.router, prefix="/financial", tags=["financia
 api_router.include_router(goals_v2.router, tags=["goals-v2"])
 api_router.include_router(goal_templates.router, prefix="/goal-templates", tags=["goal-templates"])
 # api_router.include_router(projections.router, prefix="/projections", tags=["projections"])  # Disabled - imports removed projection_service
+api_router.include_router(projections_stub.router, prefix="/projections", tags=["projections-stub"])  # Stub to prevent 404s
 # api_router.include_router(intelligence.router, prefix="/intelligence", tags=["intelligence"])  # Disabled - imports removed services
 api_router.include_router(intelligence_stub.router, prefix="/intelligence", tags=["intelligence-stub"])  # Stub to prevent 404s
 api_router.include_router(advisor_data.router, prefix="/advisor", tags=["advisor-data"])
