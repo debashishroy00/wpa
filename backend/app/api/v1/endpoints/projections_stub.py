@@ -28,10 +28,35 @@ async def get_comprehensive_projection(
     Returns a basic projection structure
     """
     
+    # Get user's actual financial data
+    from app.models.financial import FinancialEntry
+    from app.schemas.financial import EntryCategory
+    from sqlalchemy import and_
+    
+    # Get all active entries for the user
+    entries = db.query(FinancialEntry).filter(
+        and_(
+            FinancialEntry.user_id == current_user.id,
+            FinancialEntry.is_active == True
+        )
+    ).all()
+    
+    # Calculate actual net worth
+    total_assets = sum(
+        float(e.amount) for e in entries 
+        if e.category == EntryCategory.assets
+    )
+    
+    total_liabilities = sum(
+        float(e.amount) for e in entries 
+        if e.category == EntryCategory.liabilities
+    )
+    
+    base_value = total_assets - total_liabilities  # User's actual net worth
+    
     # Generate basic projection data
     projection_data = []
     current_year = datetime.now().year
-    base_value = 2565545  # Starting net worth
     
     for year in range(years + 1):
         growth_rate = 1.06  # 6% annual growth
