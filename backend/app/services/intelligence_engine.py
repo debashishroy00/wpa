@@ -677,8 +677,8 @@ class IntelligenceEngine:
                     
                     # Calculate professional priority scoring
                     priority_analysis = calculate_priority_score(
-                        monthly_impact=match_benefit['missed_monthly'],
-                        implementation_ease=10.0,  # Very easy - just change percentage
+                        match_benefit['missed_monthly'],  # impact
+                        1.0,  # effort (very easy - just change percentage)
                         goal_alignment=3,          # Affects retirement, tax savings, wealth building
                         risk_level=1.0            # No risk - guaranteed return
                     )
