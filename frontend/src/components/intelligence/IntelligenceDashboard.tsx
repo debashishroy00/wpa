@@ -249,17 +249,17 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
         {/* Tab Content */}
         <div className="mb-8">
           {activeTab === 'overview' && <OverviewTab analysis={analysis} />}
-          {activeTab === 'conflicts' && <ConflictsTab conflicts={analysis.conflicts} />}
+          {activeTab === 'conflicts' && <ConflictsTab conflicts={analysis.conflicts || []} />}
           {activeTab === 'scenarios' && (
             <ScenariosTab 
-              scenarios={analysis.scenarios}
+              scenarios={analysis.scenarios || []}
               onScenarioSelect={setSelectedScenario}
             />
           )}
           {activeTab === 'timeline' && (
             <TimelineTab 
               timeline={{
-                goals: analysis.goals.map(goal => ({
+                goals: (analysis.goals || []).map(goal => ({
                   goal_id: goal.goal_id,
                   name: goal.name,
                   category: goal.category,
