@@ -2257,47 +2257,50 @@ const ProjectionBreakdown: React.FC<ProjectionBreakdownProps> = ({ projection, y
               </h4>
               
               {breakdownData.scenarios.map((scenario: any) => (
-              <div key={key} style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '8px 12px',
-                marginBottom: '8px',
-                backgroundColor: '#374151',
-                borderRadius: '6px'
-              }}>
-                <div>
-                  <div style={{ color: '#fff', fontSize: '13px', fontWeight: '500' }}>
-                    {component.explanation}
+                <div key={scenario.name} style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: '8px 12px',
+                  marginBottom: '8px',
+                  backgroundColor: '#374151',
+                  borderRadius: '6px'
+                }}>
+                  <div>
+                    <div style={{ color: '#fff', fontSize: '13px', fontWeight: '500' }}>
+                      {scenario.name} Scenario
+                    </div>
+                    <div style={{ color: '#94a3b8', fontSize: '11px', marginTop: '2px' }}>
+                      {(scenario.growth_rate * 100).toFixed(1)}% annual growth
+                    </div>
                   </div>
-                  <div style={{ color: '#94a3b8', fontSize: '11px', marginTop: '2px' }}>
-                    {component.calculation}
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: '#10b981', fontSize: '14px', fontWeight: 'bold' }}>
+                      {formatCurrency(scenario.final_value)}
+                    </div>
+                    <div style={{ color: '#6b7280', fontSize: '11px' }}>
+                      +{formatCurrency(scenario.total_growth)}
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ color: '#10b981', fontSize: '14px', fontWeight: 'bold' }}>
-                    {formatCurrency(component.amount)}
-                  </div>
-                  <div style={{ color: '#6b7280', fontSize: '11px' }}>
-                    {component.percentage}%
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           
-          {/* Final Calculation */}
-          <div style={{ borderTop: '1px solid #374151', paddingTop: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: '#94a3b8' }}>Total Projected Value</span>
-              <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#10b981' }}>
-                {formatCurrency(breakdownData.final_calculation.final_projected_value)}
-              </span>
+          {/* Most Likely Scenario Result */}
+          {breakdownData.scenarios && breakdownData.scenarios.length > 0 && (
+            <div style={{ borderTop: '1px solid #374151', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8' }}>Expected Value (Most Likely)</span>
+                <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#10b981' }}>
+                  {formatCurrency(breakdownData.scenarios.find((s: any) => s.name === 'Most Likely')?.final_value || breakdownData.scenarios[1]?.final_value || 0)}
+                </span>
+              </div>
+              <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '4px', textAlign: 'center' }}>
+                Based on 6% annual growth rate
+              </div>
             </div>
-            <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '4px', textAlign: 'center' }}>
-              {breakdownData.final_calculation.verification}
-            </div>
-          </div>
+          )}
           
           {/* Trust Statement */}
           <div style={{ 
