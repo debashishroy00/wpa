@@ -3019,7 +3019,7 @@ const WhatIfScenarios: React.FC<{ baseProjection: any }> = ({ baseProjection }) 
     } catch (error) {
       console.error('Failed to fetch scenario:', error);
       // Generate fallback on error
-      generateFallbackScenario(scenarioType);
+      await generateFallbackScenario(scenarioType);
     } finally {
       setLoading(false);
     }
