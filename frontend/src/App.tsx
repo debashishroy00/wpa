@@ -3026,7 +3026,8 @@ const WhatIfScenarios: React.FC<{ baseProjection: any }> = ({ baseProjection }) 
   };
 
   const generateFallbackScenario = (scenarioType: string) => {
-    const baseline = getBaselineValues() || { 5: 3000000, 10: 5000000, 20: 12000000 };
+    // Use fallback values since we can't await in this context
+    const baseline = { 5: 3433277, 10: 5488116, 20: 11581851 };
     let multipliers = { 5: 1, 10: 1, 20: 1 };
     
     switch(scenarioType) {
