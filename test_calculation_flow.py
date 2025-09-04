@@ -32,7 +32,7 @@ def test_financial_data():
         
         if financial_response.status_code == 200:
             data = financial_response.json()
-            print(f"\n📊 Financial Summary:")
+            print(f"\nFinancial Summary:")
             print(f"  Total Assets: ${data.get('totalAssets', 0):,.0f}")
             print(f"  Total Liabilities: ${data.get('totalLiabilities', 0):,.0f}")
             print(f"  Net Worth: ${data.get('netWorth', 0):,.0f}")
@@ -41,7 +41,7 @@ def test_financial_data():
             print(f"  Monthly Surplus: ${data.get('monthlySurplus', 0):,.0f}")
             
             if data.get('netWorth', 0) == 0:
-                print("\n⚠️ WARNING: Net worth is zero! User may need to input financial data.")
+                print("\n[WARNING] Net worth is zero! User may need to input financial data.")
             
             return data
         else:
