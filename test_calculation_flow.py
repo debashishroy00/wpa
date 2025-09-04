@@ -99,7 +99,7 @@ if __name__ == "__main__":
     if financial_data and financial_data.get('netWorth', 0) > 0:
         test_calculation_with_data()
     else:
-        print("\n❌ USER HAS NO FINANCIAL DATA ENTERED")
+        print("\n[ERROR] USER HAS NO FINANCIAL DATA ENTERED")
         print("The calculator is working, but the user needs to input their financial information first.")
         print("\nTo fix this:")
         print("1. User should go to their profile/financial settings")
