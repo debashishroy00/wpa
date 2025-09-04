@@ -70,12 +70,12 @@ const getFeasibilityBars = (score: number): string => {
 };
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
-  const { goals, gaps } = analysis;
+  const { goals = [], gaps = {}, scenarios = [] } = analysis || {};
   
-  const totalMonthlyRequired = goals.reduce((sum, goal) => sum + goal.monthly_required, 0);
-  const totalAvailable = totalMonthlyRequired - gaps.monthly_shortfall;
+  const totalMonthlyRequired = goals.reduce((sum, goal) => sum + (goal.monthly_required || 0), 0);
+  const totalAvailable = totalMonthlyRequired - (gaps.monthly_shortfall || 0);
   
-  const recommendedScenario = analysis.scenarios.find(s => s.is_recommended);
+  const recommendedScenario = scenarios.find(s => s && s.is_recommended);
 
   return (
     <div className="space-y-6">
