@@ -156,3 +156,43 @@ async def get_projection_scenarios(
             }
         ]
     }
+
+@router.get("/assumptions")
+async def get_projection_assumptions(
+    current_user: User = Depends(get_current_active_user)
+) -> Dict[str, Any]:
+    """Stub endpoint for projection assumptions"""
+    return {
+        "success": True,
+        "assumptions": {
+            "growth_rates": {
+                "stocks": 0.07,
+                "bonds": 0.03,
+                "real_estate": 0.04,
+                "cash": 0.01,
+                "overall_portfolio": 0.06
+            },
+            "inflation": {
+                "rate": 0.025,
+                "source": "Federal Reserve target"
+            },
+            "tax_rates": {
+                "federal": 0.24,
+                "state": 0.0525,
+                "capital_gains": 0.15
+            },
+            "retirement": {
+                "withdrawal_rate": 0.04,
+                "social_security_start": 67,
+                "life_expectancy": 90
+            },
+            "expense_adjustments": {
+                "retirement_factor": 0.80,
+                "healthcare_increase": 1.05
+            }
+        },
+        "metadata": {
+            "last_updated": "2024-01-01",
+            "data_sources": ["Federal Reserve", "IRS", "SSA"]
+        }
+    }
