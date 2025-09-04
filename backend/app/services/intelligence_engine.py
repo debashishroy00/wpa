@@ -14,9 +14,9 @@ from enum import Enum
 from app.models.goals_v2 import Goal, UserPreferences
 from app.models.financial import FinancialEntry, NetWorthSnapshot
 from app.schemas.goals_v2 import GoalResponse
-# Financial calculation functions now handled by formula_library and tax_calculations
+# Financial calculation functions now handled by formula_library
 from app.services.formula_library import formula_library
-from app.services.tax_calculations import tax_calculations
+# Note: tax_calculations not available, using simplified calculations
 
 # Temporary stub functions for intelligence engine compatibility
 def calculate_early_payoff_savings(balance, rate, payment, extra_payment):
