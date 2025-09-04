@@ -56,6 +56,7 @@ api_router.include_router(insurance.router, prefix="/insurance", tags=["insuranc
 api_router.include_router(investment_preferences.router, prefix="/investment-preferences", tags=["investment-preferences"])
 # Tax optimization endpoints
 # api_router.include_router(tax.router, prefix="/tax", tags=["tax-optimization"])  # Disabled - imports removed tax_calculations
+api_router.include_router(tax_stub.router, prefix="/tax", tags=["tax-stub"])  # Stub to prevent 404s
 # New foundation-based insights endpoints
 api_router.include_router(insights.router, prefix="/insights", tags=["insights"])
 # Simplified chat endpoint using new architecture
