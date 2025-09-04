@@ -278,7 +278,7 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
           )}
           {activeTab === 'recommendations' && (
             <RecommendationsTab 
-              recommendations={analysis.recommendations}
+              recommendations={analysis.recommendations || { immediate: [], short_term: [], long_term: [] }}
             />
           )}
         </div>
