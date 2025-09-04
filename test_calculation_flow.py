@@ -45,9 +45,9 @@ def test_financial_data():
             
             return data
         else:
-            print(f"✗ Failed to get financial summary: {financial_response.status_code}")
+            print(f"[FAIL] Failed to get financial summary: {financial_response.status_code}")
     else:
-        print(f"✗ Failed to login: {login_response.status_code}")
+        print(f"[FAIL] Failed to login: {login_response.status_code}")
         print(login_response.text)
     
     return None
