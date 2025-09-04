@@ -114,9 +114,11 @@ async def get_comprehensive_projection(
         },
         "confidence_intervals": {
             "percentiles": {
-                "p25": [year_data["net_worth"] * 0.85 for year_data in projection_data],
+                "p10": [year_data["net_worth"] * (0.75 + year * 0.01) for year, year_data in enumerate(projection_data)],
+                "p25": [year_data["net_worth"] * (0.85 + year * 0.005) for year, year_data in enumerate(projection_data)],
                 "p50": [year_data["net_worth"] for year_data in projection_data],
-                "p75": [year_data["net_worth"] * 1.15 for year_data in projection_data]
+                "p75": [year_data["net_worth"] * (1.15 + year * 0.005) for year, year_data in enumerate(projection_data)],
+                "p90": [year_data["net_worth"] * (1.35 + year * 0.01) for year, year_data in enumerate(projection_data)]
             }
         }
     }
