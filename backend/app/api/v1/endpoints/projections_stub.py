@@ -89,29 +89,24 @@ async def get_comprehensive_projection(
         },
         "confidence_intervals": {
             "percentiles": {
-                "p10": [year_data["net_worth"] * (0.75 + year * 0.01) for year, year_data in enumerate(projection_data)],
-                "p25": [year_data["net_worth"] * (0.85 + year * 0.005) for year, year_data in enumerate(projection_data)],
+                "p25": [year_data["net_worth"] * 0.85 for year_data in projection_data],
                 "p50": [year_data["net_worth"] for year_data in projection_data],
-                "p75": [year_data["net_worth"] * (1.15 + year * 0.005) for year, year_data in enumerate(projection_data)],
-                "p90": [year_data["net_worth"] * (1.35 + year * 0.01) for year, year_data in enumerate(projection_data)]
+                "p75": [year_data["net_worth"] * 1.15 for year_data in projection_data]
             }
         }
     }
     
     if include_monte_carlo:
-        final_year_value = projection_data[-1]["net_worth"]
         response["monte_carlo"] = {
             "iterations": monte_carlo_iterations,
             "percentiles": {
-                "p10": final_year_value * 0.65,
-                "p25": final_year_value * 0.80,
-                "p50": final_year_value,
-                "p75": final_year_value * 1.25,
-                "p90": final_year_value * 1.50
+                "p10": projection_data[-1]["net_worth"] * 0.7,
+                "p25": projection_data[-1]["net_worth"] * 0.85,
+                "p50": projection_data[-1]["net_worth"],
+                "p75": projection_data[-1]["net_worth"] * 1.15,
+                "p90": projection_data[-1]["net_worth"] * 1.3
             },
-            "success_rate": max(0.70, min(0.95, 0.85 - (years - 10) * 0.02)),  # Success rate decreases over time
-            "confidence_score": int(max(60, min(95, 85 - (years - 10) * 1.5))),  # Confidence decreases over time
-            "volatility_estimate": min(0.25, 0.15 + years * 0.005)  # Volatility increases with time horizon
+            "success_rate": 0.85
         }
     
     return response
