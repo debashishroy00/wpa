@@ -2302,7 +2302,7 @@ const ProjectionBreakdown: React.FC<ProjectionBreakdownProps> = ({ projection, y
             </div>
           )}
           
-          {/* Trust Statement */}
+          {/* Calculation Info */}
           <div style={{ 
             marginTop: '16px', 
             padding: '12px', 
@@ -2311,10 +2311,10 @@ const ProjectionBreakdown: React.FC<ProjectionBreakdownProps> = ({ projection, y
             border: '1px solid #1e40af'
           }}>
             <div style={{ color: '#60a5fa', fontSize: '12px', fontWeight: '500', marginBottom: '4px' }}>
-              🔒 {breakdownData.transparency_note}
+              🔒 Transparent Calculations
             </div>
             <div style={{ color: '#94a3b8', fontSize: '11px' }}>
-              Calculation completed in {breakdownData.calculation_metadata.monte_carlo_iterations} Monte Carlo iterations
+              Calculated using compound growth rates. Updated: {breakdownData.metadata?.calculated_at ? new Date(breakdownData.metadata.calculated_at).toLocaleTimeString() : 'Now'}
             </div>
           </div>
         </div>
