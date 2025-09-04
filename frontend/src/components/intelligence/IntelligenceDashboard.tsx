@@ -236,12 +236,12 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
           <TabNavigation 
             activeTab={activeTab}
             onTabChange={handleTabChange}
-            conflictCount={analysis.conflicts.length}
-            scenarioCount={analysis.scenarios.length}
+            conflictCount={analysis.conflicts?.length || 0}
+            scenarioCount={analysis.scenarios?.length || 0}
             recommendationCount={
-              analysis.recommendations.immediate.length + 
-              analysis.recommendations.short_term.length + 
-              analysis.recommendations.long_term.length
+              (analysis.recommendations?.immediate?.length || 0) + 
+              (analysis.recommendations?.short_term?.length || 0) + 
+              (analysis.recommendations?.long_term?.length || 0)
             }
           />
         </div>
