@@ -860,8 +860,9 @@ class IntelligenceEngine:
                 # Calculate priority based on impact and risk
                 monthly_benefit = optimization_impact['annual_benefit'] / 12
                 priority_analysis = calculate_priority_score(
-                    monthly_impact=monthly_benefit,
-                    implementation_ease=6.0,  # Moderate complexity
+                    monthly_benefit,  # impact
+                    6.0,  # effort (moderate complexity)
+                    5.0  # urgency (moderate urgency)
                     goal_alignment=3,         # Affects all 3 major goals
                     risk_level=6.0           # Medium risk due to volatility increase
                 )
