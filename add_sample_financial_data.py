@@ -28,54 +28,60 @@ def add_financial_data():
     # Add financial entries
     financial_entries = [
         {
-            "category": "retirement_accounts",
+            "category": "assets",
             "subcategory": "401k",
             "amount": 310216,
-            "description": "401k retirement account"
+            "description": "401k retirement account",
+            "frequency": "one_time"
         },
         {
-            "category": "investment_accounts", 
+            "category": "assets", 
             "subcategory": "brokerage",
             "amount": 560784,
-            "description": "Investment brokerage account"
+            "description": "Investment brokerage account",
+            "frequency": "one_time"
         },
         {
-            "category": "real_estate",
+            "category": "assets",
             "subcategory": "primary_residence",
             "amount": 1450000,
-            "description": "Primary home value"
+            "description": "Primary home value",
+            "frequency": "one_time"
         },
         {
-            "category": "cash_accounts",
+            "category": "assets",
             "subcategory": "savings",
             "amount": 108945,
-            "description": "Savings account"
+            "description": "Savings account",
+            "frequency": "one_time"
         },
         {
-            "category": "alternative_investments",
+            "category": "assets",
             "subcategory": "cryptocurrency",
             "amount": 114600,
-            "description": "Bitcoin holdings"
+            "description": "Bitcoin holdings",
+            "frequency": "one_time"
         },
         {
             "category": "liabilities",
             "subcategory": "mortgage",
-            "amount": -280000,
-            "description": "Home mortgage balance"
+            "amount": 280000,
+            "description": "Home mortgage balance",
+            "frequency": "one_time"
         },
         {
             "category": "income",
             "subcategory": "salary",
             "amount": 15347,
             "description": "Monthly salary income",
-            "is_monthly": True
+            "frequency": "monthly"
         },
         {
             "category": "expenses",
             "subcategory": "living_expenses",
             "amount": 7484,
             "description": "Monthly living expenses",
-            "is_monthly": True
+            "frequency": "monthly"
         }
     ]
     
