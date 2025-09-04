@@ -35,7 +35,9 @@ async def get_comprehensive_projection(
     try:
         summary = get_financial_summary(current_user, db)
         base_value = float(summary.net_worth)
-    except:
+        print(f"🔍 DEBUG: Got net worth from summary: {base_value}")
+    except Exception as e:
+        print(f"🔍 DEBUG: Summary failed: {e}")
         # Fallback calculation if summary fails
         from app.models.financial import FinancialEntry
         from app.schemas.financial import EntryCategory
@@ -48,9 +50,15 @@ async def get_comprehensive_projection(
             )
         ).all()
         
+        print(f"🔍 DEBUG: Found {len(entries)} entries for user {current_user.id}")
+        
         total_assets = sum(float(e.amount) for e in entries if e.category == EntryCategory.assets)
         total_liabilities = sum(float(e.amount) for e in entries if e.category == EntryCategory.liabilities)
         base_value = total_assets - total_liabilities
+        
+        print(f"🔍 DEBUG: Calculated - Assets: {total_assets}, Liabilities: {total_liabilities}, Net Worth: {base_value}")
+        
+    print(f"🔍 DEBUG: Final base_value: {base_value}")
     
     # Generate basic projection data
     projection_data = []
