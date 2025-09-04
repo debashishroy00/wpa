@@ -190,7 +190,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
           </div>
 
           {/* Action Button */}
-          {gaps.monthly_shortfall > 0 && (
+          {(gaps.monthly_shortfall || 0) > 0 && (
             <div className="mt-6 text-center">
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <TrendingUp className="w-4 h-4 mr-2" />
