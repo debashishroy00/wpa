@@ -45,7 +45,14 @@ def calculate_mortgage_payoff_timeline(balance, payment, rate):
 def calculate_refinance_savings(balance, old_rate, new_rate, term):
     old_payment = balance * (old_rate / 12) * (1 + old_rate / 12) ** term / ((1 + old_rate / 12) ** term - 1)
     new_payment = balance * (new_rate / 12) * (1 + new_rate / 12) ** term / ((1 + new_rate / 12) ** term - 1)
-    return (old_payment - new_payment) * 12
+    monthly_savings = old_payment - new_payment
+    annual_savings = monthly_savings * 12
+    return {
+        'monthly_savings': round(monthly_savings, 2),
+        'annual_savings': round(annual_savings, 2),
+        'old_payment': round(old_payment, 2),
+        'new_payment': round(new_payment, 2)
+    }
 
 def calculate_priority_score(impact, effort, urgency):
     return impact * urgency / max(effort, 1)
