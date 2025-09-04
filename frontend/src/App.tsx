@@ -1896,7 +1896,9 @@ const ComprehensiveTrajectoryProjection: React.FC<{
           <AssumptionsPanel />
           
           {/* 3. CONFIDENCE ANALYSIS - Monte Carlo ranges */}
+          {/* Commented out confidence analysis section as requested
           <MonteCarloVisualization projectionData={projectionData} />
+          */}
           
           {/* 4. METHODOLOGY EXPLAINER - Detailed explanation */}
           <MethodologyExplainer />
