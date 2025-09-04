@@ -75,7 +75,14 @@ def calculate_refinance_savings(balance, old_rate, new_rate, term):
     }
 
 def calculate_priority_score(impact, effort, urgency):
-    return impact * urgency / max(effort, 1)
+    score = impact * urgency / max(effort, 1)
+    return {
+        'score': round(score, 2),
+        'impact': impact,
+        'effort': effort,
+        'urgency': urgency,
+        'priority_level': 'high' if score > 50 else 'medium' if score > 20 else 'low'
+    }
 
 def calculate_portfolio_optimization_impact(balance, old_return, new_return, years):
     old_value = balance * (1 + old_return) ** years
