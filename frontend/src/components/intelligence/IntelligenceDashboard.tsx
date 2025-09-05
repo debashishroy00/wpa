@@ -73,8 +73,12 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
     setActiveTab(tab);
   };
 
-  const handleRunAnalysis = () => {
-    // Use mutation to force fresh data and proper cache invalidation
+  const handleRunAnalysis = async () => {
+    // Clear all React Query cache first
+    const queryClient = runAnalysisMutation.mutationCache.client;
+    await queryClient.clear();
+    
+    // Then trigger a fresh analysis
     runAnalysisMutation.mutate({
       include_simulations: true,
       scenario_count: 3,
