@@ -116,17 +116,28 @@ async def analyze_intelligence(
         progress = (current_amount / target_amount) * 100 if target_amount > 0 else 0
         feasibility_score = min(100, max(20, progress + 30))  # Base score with progress bonus
         
-        analysis_goals.append({
+        goal_data = {
             "goal_id": str(goal.goal_id),
             "name": goal.name,
             "category": goal.category,
             "target_amount": target_amount,
-            "current_amount": current_amount,
+            "current_amount": round(current_amount, 2),
             "target_date": target_date.isoformat(),
             "feasibility_score": round(feasibility_score),
             "monthly_required": round(monthly_required, 2),
             "risk_aligned": feasibility_score >= 70
-        })
+        }
+        
+        # Add calculation breakdown for retirement goals
+        if goal.category == 'retirement' and housing_benefit > 0:
+            goal_data["calculation_breakdown"] = {
+                "investable_assets": round(investable_assets, 2),
+                "housing_benefit": round(housing_benefit, 2),
+                "total_position": round(current_amount, 2),
+                "explanation": "Includes investable assets plus the retirement value of mortgage elimination"
+            }
+        
+        analysis_goals.append(goal_data)
         
         total_target += target_amount
         total_current += current_amount
