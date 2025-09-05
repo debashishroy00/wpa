@@ -37,6 +37,8 @@ def calculate_employer_match_benefit(salary, contribution, match, limit):
     
     # Calculate compound value over 20 years (assume 7% annual return)
     compound_20_year = missed_annual * (((1.07 ** 20) - 1) / 0.07)
+    current_annual_contribution = contribution * salary / 100
+    optimal_annual_contribution = limit * salary / 100
     
     return {
         'current_match': round(current_match, 2),
@@ -47,7 +49,9 @@ def calculate_employer_match_benefit(salary, contribution, match, limit):
         'current_contribution_rate': contribution,
         'tax_savings': round(tax_savings, 2),
         'additional_contribution_needed': round(additional_contribution_needed, 2),
-        'compound_20_year': round(compound_20_year, 2)
+        'compound_20_year': round(compound_20_year, 2),
+        'current_annual_contribution': round(current_annual_contribution, 2),
+        'optimal_annual_contribution': round(optimal_annual_contribution, 2)
     }
 
 def calculate_investment_fee_savings(balance, old_fee, new_fee):
