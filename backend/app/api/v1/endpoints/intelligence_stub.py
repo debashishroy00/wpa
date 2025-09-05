@@ -104,6 +104,13 @@ async def analyze_intelligence(
             # More accurate retirement position with housing benefit
             current_amount = investable_assets + housing_benefit
             
+            # Debug logging for retirement calculation
+            print(f"DEBUG Retirement calculation:")
+            print(f"  Investable assets: ${investable_assets:,.2f}")
+            print(f"  Housing benefit: ${housing_benefit:,.2f}")
+            print(f"  Total current amount: ${current_amount:,.2f}")
+            print(f"  Stored goal amount: ${float(goal.current_amount or 0):,.2f}")
+            
             # Always use our calculated amount for retirement (don't fall back to stored value)
             # The stored value might be outdated or incorrect
         
