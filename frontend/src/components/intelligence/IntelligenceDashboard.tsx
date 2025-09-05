@@ -27,6 +27,7 @@ import { ScenariosTab } from './tabs/ScenariosTab';
 import { TimelineTab } from './tabs/TimelineTab';
 import { RecommendationsTab } from './tabs/RecommendationsTab';
 import { useIntelligenceAnalysis, useRunAnalysisMutation } from '../../hooks/use-intelligence-hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface IntelligenceDashboardProps {
   onNext?: () => void;
