@@ -82,7 +82,7 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
     });
   };
 
-  if (isLoading) {
+  if (isLoading || runAnalysisMutation.isPending) {
     return (
       <div className="min-h-screen bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
