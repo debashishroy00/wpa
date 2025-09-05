@@ -147,11 +147,33 @@ async def analyze_intelligence(
         total_current += current_amount
         total_monthly_required += monthly_required
     
-    # Calculate gaps
-    estimated_monthly_income = 12000  # Fallback estimate
-    estimated_monthly_expenses = 8000
-    monthly_surplus = estimated_monthly_income - estimated_monthly_expenses
-    monthly_shortfall = max(0, total_monthly_required - monthly_surplus)
+    # Calculate gaps using actual financial data
+    from app.models.financial import FinancialEntry
+    from sqlalchemy import func
+    
+    # Get actual monthly income
+    monthly_income_result = db.query(func.sum(FinancialEntry.amount)).filter(
+        FinancialEntry.user_id == current_user.id,
+        FinancialEntry.is_active == True,
+        FinancialEntry.category == 'income',
+        FinancialEntry.frequency == 'monthly'
+    ).scalar()
+    
+    # Get actual monthly expenses
+    monthly_expenses_result = db.query(func.sum(FinancialEntry.amount)).filter(
+        FinancialEntry.user_id == current_user.id,
+        FinancialEntry.is_active == True,
+        FinancialEntry.category == 'expenses',
+        FinancialEntry.frequency == 'monthly'
+    ).scalar()
+    
+    # Convert to float and handle None
+    actual_monthly_income = float(monthly_income_result) if monthly_income_result else 12000
+    actual_monthly_expenses = float(monthly_expenses_result) if monthly_expenses_result else 8000
+    
+    # Calculate actual surplus available for goals
+    monthly_surplus = actual_monthly_income - actual_monthly_expenses
+    monthly_shortfall = total_monthly_required - monthly_surplus
     
     # Calculate overall score
     avg_feasibility = sum(g["feasibility_score"] for g in analysis_goals) / len(analysis_goals)
