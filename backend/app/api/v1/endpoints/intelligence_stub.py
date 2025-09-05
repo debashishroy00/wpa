@@ -66,6 +66,44 @@ async def analyze_intelligence(
         target_amount = float(goal.target_amount)
         current_amount = float(goal.current_amount or 0)
         
+        # Enhanced retirement calculation with housing benefit
+        if goal.category == 'retirement':
+            # Get financial data for more accurate calculation
+            from app.models.financial import FinancialEntry
+            
+            # Calculate investable assets for retirement
+            investable_assets = db.query(db.func.sum(FinancialEntry.amount)).filter(
+                FinancialEntry.user_id == current_user.id,
+                FinancialEntry.is_active == True,
+                FinancialEntry.category == 'assets',
+                FinancialEntry.subcategory.in_([
+                    'retirement_accounts', 
+                    'investment_accounts',
+                    'real_estate'  # Rental properties only
+                ])
+            ).scalar() or 0
+            
+            # Calculate housing benefit from mortgage elimination
+            mortgage_payment = db.query(FinancialEntry.amount).filter(
+                FinancialEntry.user_id == current_user.id,
+                FinancialEntry.is_active == True,
+                FinancialEntry.description.like('%Mortgage%'),
+                FinancialEntry.category == 'expenses'
+            ).first()
+            
+            housing_benefit = 0
+            if mortgage_payment:
+                # Annual mortgage * 25 (4% withdrawal rule inverse)
+                annual_mortgage = float(mortgage_payment[0]) * 12
+                housing_benefit = annual_mortgage / 0.04  # $649,200 for $2,164/month
+            
+            # More accurate retirement position
+            current_amount = investable_assets + housing_benefit
+            
+            # Use calculated amount if greater than stored amount
+            if current_amount < float(goal.current_amount or 0):
+                current_amount = float(goal.current_amount or 0)
+        
         # Calculate months remaining
         target_date = goal.target_date
         months_remaining = max(1, (target_date - datetime.now().date()).days / 30.44)
