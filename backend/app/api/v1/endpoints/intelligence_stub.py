@@ -101,12 +101,11 @@ async def analyze_intelligence(
                 annual_mortgage = float(mortgage_payment[0]) * 12
                 housing_benefit = annual_mortgage / 0.04  # $649,200 for $2,164/month
             
-            # More accurate retirement position
+            # More accurate retirement position with housing benefit
             current_amount = investable_assets + housing_benefit
             
-            # Use calculated amount if greater than stored amount
-            if current_amount < float(goal.current_amount or 0):
-                current_amount = float(goal.current_amount or 0)
+            # Always use our calculated amount for retirement (don't fall back to stored value)
+            # The stored value might be outdated or incorrect
         
         # Calculate months remaining
         target_date = goal.target_date
