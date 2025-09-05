@@ -76,8 +76,7 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
   };
 
   const handleRunAnalysis = async () => {
-    // Clear all React Query cache first
-    const queryClient = runAnalysisMutation.mutationCache.client;
+    // Clear all React Query cache first to ensure fresh data
     await queryClient.clear();
     
     // Then trigger a fresh analysis
