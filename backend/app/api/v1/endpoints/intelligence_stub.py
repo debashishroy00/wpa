@@ -75,7 +75,7 @@ async def analyze_intelligence(
             from sqlalchemy import func
             
             # Calculate investable assets for retirement
-            investable_assets = db.query(func.sum(FinancialEntry.amount)).filter(
+            investable_result = db.query(func.sum(FinancialEntry.amount)).filter(
                 FinancialEntry.user_id == current_user.id,
                 FinancialEntry.is_active == True,
                 FinancialEntry.category == 'assets',
@@ -84,7 +84,8 @@ async def analyze_intelligence(
                     'investment_accounts',
                     'real_estate'  # Rental properties only
                 ])
-            ).scalar() or 0
+            ).scalar()
+            investable_assets = float(investable_result) if investable_result else 0
             
             # Calculate housing benefit from mortgage elimination
             mortgage_payment = db.query(FinancialEntry.amount).filter(
