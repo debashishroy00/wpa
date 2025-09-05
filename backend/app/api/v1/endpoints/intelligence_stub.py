@@ -66,14 +66,16 @@ async def analyze_intelligence(
         target_amount = float(goal.target_amount)
         current_amount = float(goal.current_amount or 0)
         housing_benefit = 0  # Initialize for all goals
+        investable_assets = 0  # Initialize for all goals
         
         # Enhanced retirement calculation with housing benefit
         if goal.category == 'retirement':
             # Get financial data for more accurate calculation
             from app.models.financial import FinancialEntry
+            from sqlalchemy import func
             
             # Calculate investable assets for retirement
-            investable_assets = db.query(db.func.sum(FinancialEntry.amount)).filter(
+            investable_assets = db.query(func.sum(FinancialEntry.amount)).filter(
                 FinancialEntry.user_id == current_user.id,
                 FinancialEntry.is_active == True,
                 FinancialEntry.category == 'assets',
