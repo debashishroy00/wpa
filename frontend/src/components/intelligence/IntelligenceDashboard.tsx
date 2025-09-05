@@ -26,7 +26,7 @@ import { ConflictsTab } from './tabs/ConflictsTab';
 import { ScenariosTab } from './tabs/ScenariosTab';
 import { TimelineTab } from './tabs/TimelineTab';
 import { RecommendationsTab } from './tabs/RecommendationsTab';
-import { useIntelligenceAnalysis } from '../../hooks/use-intelligence-hooks';
+import { useIntelligenceAnalysis, useRunAnalysisMutation } from '../../hooks/use-intelligence-hooks';
 
 interface IntelligenceDashboardProps {
   onNext?: () => void;
