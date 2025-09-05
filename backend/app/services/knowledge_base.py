@@ -40,7 +40,8 @@ class KnowledgeBaseService:
     """Simple knowledge base using JSON vector store"""
     
     def __init__(self, kb_path: str = None):
-        self.kb_path = kb_path or "/mnt/c/projects/wpa/backend/knowledge_base" 
+        # Use the knowledge_base path from the container environment
+        self.kb_path = kb_path or "/app/knowledge_base" 
         self.vector_store = get_vector_store()
         # Simplified context selection - smart_context_selector was removed during cleanup
         self.context_selector = None
@@ -50,9 +51,18 @@ class KnowledgeBaseService:
         self._load_documents_from_filesystem()
     
     def _load_documents_from_filesystem(self):
-        """Load documents from filesystem into vector store if needed"""
-        if self.vector_store.count_documents() > 0:
-            print(f"Vector store already has {self.vector_store.count_documents()} documents")
+        """Load KB documents from filesystem into vector store alongside user data"""
+        total_docs = self.vector_store.count_documents()
+        print(f"Vector store has {total_docs} documents")
+        
+        # Check if KB documents are already loaded
+        kb_docs_loaded = any(
+            doc.metadata.get("kb_id") 
+            for doc in self.vector_store.get_all_documents().values()
+        )
+        
+        if kb_docs_loaded:
+            print("Knowledge base documents already loaded")
             self._update_document_map()
             return
         
@@ -60,7 +70,7 @@ class KnowledgeBaseService:
             print(f"Warning: Knowledge base path {self.kb_path} does not exist")
             return
         
-        print("Loading documents from filesystem...")
+        print("Loading KB documents from filesystem...")
         
         # Scan knowledge base directory
         kb_files = []
@@ -70,26 +80,30 @@ class KnowledgeBaseService:
                     kb_files.append(os.path.join(root, file))
         
         # Process each file
+        loaded_count = 0
         for file_path in kb_files:
             kb_document = self._process_kb_file(file_path)
             if kb_document:
-                # Add to vector store
+                # Add to vector store alongside user data
                 self.vector_store.add_document(
                     content=kb_document.content,
                     doc_id=kb_document.id,
                     embedding=kb_document.embedding,
                     metadata={
                         "title": kb_document.title,
-                        "category": kb_document.category,
+                        "category": "knowledge_base",  # Mark as KB document
                         "kb_id": kb_document.kb_id,
+                        "kb_category": kb_document.category,  # Original category
                         "file_path": kb_document.file_path,
                         "last_updated": kb_document.last_updated,
-                        "tags": kb_document.tags
+                        "tags": kb_document.tags,
+                        "document_type": "professional_knowledge"
                     }
                 )
                 self.document_map[kb_document.id] = kb_document
+                loaded_count += 1
         
-        print(f"Loaded {len(kb_files)} documents into vector store")
+        print(f"✅ Loaded {loaded_count} KB documents into vector store (total: {self.vector_store.count_documents()} documents)")
     
     def _update_document_map(self):
         """Update document map from vector store"""
@@ -161,6 +175,62 @@ class KnowledgeBaseService:
                 metadata['title'] = line[2:].strip()
         
         return metadata
+    
+    def search_contextual(
+        self,
+        query: str,
+        user_id: Optional[int] = None,
+        include_user_data: bool = True,
+        include_knowledge_base: bool = True,
+        top_k: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Enhanced search that combines user financial data with knowledge base
+        Returns both user context and relevant professional knowledge
+        """
+        results = {
+            "user_context": [],
+            "professional_knowledge": [],
+            "query": query
+        }
+        
+        try:
+            # Search all documents
+            all_results = self.vector_store.search(query, limit=top_k * 3)
+            
+            for doc_id, score, simple_doc in all_results:
+                if score < 0.1:  # Minimum relevance threshold
+                    continue
+                
+                metadata = simple_doc.metadata
+                doc_type = metadata.get("document_type", "user_data")
+                
+                result_item = {
+                    "doc_id": doc_id,
+                    "content": simple_doc.content[:500] + "..." if len(simple_doc.content) > 500 else simple_doc.content,
+                    "score": score,
+                    "title": metadata.get("title", "Untitled"),
+                    "category": metadata.get("category", "unknown"),
+                    "metadata": metadata
+                }
+                
+                # Categorize by document type
+                if doc_type == "professional_knowledge" and include_knowledge_base:
+                    results["professional_knowledge"].append(result_item)
+                elif doc_type != "professional_knowledge" and include_user_data:
+                    # Check if this is user's data
+                    if not user_id or metadata.get("user_id") == str(user_id):
+                        results["user_context"].append(result_item)
+            
+            # Limit results
+            results["user_context"] = results["user_context"][:top_k]
+            results["professional_knowledge"] = results["professional_knowledge"][:top_k]
+            
+            return results
+            
+        except Exception as e:
+            print(f"Search error: {e}")
+            return results
     
     def search(
         self,
