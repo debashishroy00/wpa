@@ -72,9 +72,10 @@ export const useIntelligenceAnalysis = () => {
         throw error;
       }
     },
-    staleTime: 1000, // 1 second - very short but prevents loops
-    cacheTime: 5 * 60 * 1000, // 5 minutes cache
+    staleTime: 10 * 60 * 1000, // 10 minutes - stable caching
+    gcTime: 15 * 60 * 1000, // 15 minutes cache (replaces cacheTime)
     retry: 1,
+    refetchOnWindowFocus: false, // Prevent excessive refetching
   });
 };
 
