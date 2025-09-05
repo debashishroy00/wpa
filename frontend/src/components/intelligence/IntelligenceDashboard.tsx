@@ -69,6 +69,7 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
   } = useIntelligenceAnalysis();
   
   const runAnalysisMutation = useRunAnalysisMutation();
+  const queryClient = useQueryClient();
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
