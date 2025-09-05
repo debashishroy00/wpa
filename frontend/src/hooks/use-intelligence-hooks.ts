@@ -72,7 +72,7 @@ export const useIntelligenceAnalysis = () => {
         throw error;
       }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes - stable caching
+    staleTime: 30 * 1000, // 30 seconds - allow fresher data
     gcTime: 15 * 60 * 1000, // 15 minutes cache (replaces cacheTime)
     retry: 1,
     refetchOnWindowFocus: false, // Prevent excessive refetching
