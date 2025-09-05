@@ -216,9 +216,9 @@ const AdvisoryView: React.FC<AdvisoryViewProps> = ({
                 transition-all duration-200 hover:scale-105
                 ${isKnowledgeBase 
                   ? isViewed 
-                    ? 'bg-green-100 text-green-800 border border-green-300' 
-                    : 'bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200'
-                  : 'bg-purple-100 text-purple-800 border border-purple-300'
+                    ? 'bg-green-800 text-green-200 border border-green-600' 
+                    : 'bg-blue-800 text-blue-200 border border-blue-600 hover:bg-blue-700'
+                  : 'bg-purple-800 text-purple-200 border border-purple-600'
                 }
               `}
             >
