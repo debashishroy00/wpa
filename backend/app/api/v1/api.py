@@ -28,8 +28,8 @@ api_router.include_router(goals_v2.router, tags=["goals-v2"])
 api_router.include_router(goal_templates.router, prefix="/goal-templates", tags=["goal-templates"])
 # api_router.include_router(projections.router, prefix="/projections", tags=["projections"])  # Disabled - imports removed projection_service
 api_router.include_router(projections_stub.router, prefix="/projections", tags=["projections-stub"])  # Stub to prevent 404s
-api_router.include_router(intelligence.router, prefix="/intelligence", tags=["intelligence"])  # Re-enabled for working system  
-api_router.include_router(intelligence_stub.router, prefix="/intelligence-stub", tags=["intelligence-stub"])  # Keep as fallback
+# api_router.include_router(intelligence.router, prefix="/intelligence", tags=["intelligence"])  # Disabled - has missing function keys
+api_router.include_router(intelligence_stub.router, prefix="/intelligence", tags=["intelligence-enhanced-stub"])  # Enhanced stub with real goals
 api_router.include_router(advisor_data.router, prefix="/advisor", tags=["advisor-data"])
 api_router.include_router(plan_engine.router, prefix="/plan-engine", tags=["plan-engine"])
 api_router.include_router(advisory.router, prefix="/advisory", tags=["advisory"])
