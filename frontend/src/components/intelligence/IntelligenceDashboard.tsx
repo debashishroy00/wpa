@@ -98,7 +98,10 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
     );
   }
 
-  if (error) {
+  if (error || runAnalysisMutation.error) {
+    const errorMessage = error?.message || runAnalysisMutation.error?.message || 'Unknown error';
+    const isAuthError = errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('authenticate');
+    
     return (
       <div className="min-h-screen bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -107,15 +110,28 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
               <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Analysis Failed</h3>
               <p className="text-gray-300 mb-6">
-                Unable to analyze your goals. Please ensure you have completed Steps 2 and 3.
+                {isAuthError 
+                  ? 'Authentication error. Please refresh the page and try again.'
+                  : 'Unable to analyze your goals. Please ensure you have completed Steps 2 and 3.'
+                }
               </p>
+              {isAuthError && (
+                <p className="text-sm text-gray-400 mb-6">Error: {errorMessage}</p>
+              )}
               <div className="flex gap-4 justify-center">
                 <Button onClick={handleRunAnalysis} className="bg-blue-600 hover:bg-blue-700">
                   Retry Analysis
                 </Button>
-                <Button variant="outline" onClick={() => window.location.href = '/goals'}>
-                  Check Goals Setup
-                </Button>
+                {!isAuthError && (
+                  <Button variant="outline" onClick={() => window.location.href = '/goals'}>
+                    Check Goals Setup
+                  </Button>
+                )}
+                {isAuthError && (
+                  <Button variant="outline" onClick={() => window.location.reload()}>
+                    Refresh Page
+                  </Button>
+                )}
               </div>
             </Card.Body>
           </Card>
