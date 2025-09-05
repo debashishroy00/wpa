@@ -94,7 +94,8 @@ export const useRunAnalysisMutation = () => {
       return data; // apiClient.post already returns response.data
     },
     onSuccess: () => {
-      // Invalidate and refetch intelligence queries
+      // Clear cache completely and refetch
+      queryClient.removeQueries({ queryKey: intelligenceKeys.all });
       queryClient.invalidateQueries({ queryKey: intelligenceKeys.all });
     },
   });
