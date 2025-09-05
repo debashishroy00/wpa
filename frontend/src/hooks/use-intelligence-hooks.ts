@@ -68,8 +68,8 @@ export const useIntelligenceAnalysis = () => {
         return data; // apiClient.post already returns response.data
       } catch (error) {
         console.error('Intelligence analysis failed:', error);
-        // Return mock data for development
-        return {
+        // Re-throw error instead of returning mock data
+        throw error;
           analysis_id: 'mock-analysis',
           timestamp: new Date().toISOString(),
           overall_score: 73,
