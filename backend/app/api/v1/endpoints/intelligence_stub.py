@@ -65,6 +65,7 @@ async def analyze_intelligence(
     for goal in goals:
         target_amount = float(goal.target_amount)
         current_amount = float(goal.current_amount or 0)
+        housing_benefit = 0  # Initialize for all goals
         
         # Enhanced retirement calculation with housing benefit
         if goal.category == 'retirement':
