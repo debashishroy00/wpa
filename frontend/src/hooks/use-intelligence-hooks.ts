@@ -57,13 +57,14 @@ const intelligenceKeys = {
 // Hook: Get Intelligence Analysis
 export const useIntelligenceAnalysis = () => {
   return useQuery({
-    queryKey: intelligenceKeys.analysis(),
+    queryKey: [...intelligenceKeys.analysis(), Date.now()], // Add timestamp to force refresh
     queryFn: async (): Promise<IntelligenceAnalysis> => {
       try {
         const data = await apiClient.post<IntelligenceAnalysis>('/api/v1/intelligence/analyze', {
           include_simulations: true,
           scenario_count: 3,
-          optimization_level: 'balanced'
+          optimization_level: 'balanced',
+          timestamp: Date.now() // Cache buster
         });
         return data; // apiClient.post already returns response.data
       } catch (error) {
@@ -72,7 +73,8 @@ export const useIntelligenceAnalysis = () => {
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache
     retry: 1,
   });
 };
