@@ -74,7 +74,12 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
   };
 
   const handleRunAnalysis = () => {
-    refetch();
+    // Use mutation to force fresh data and proper cache invalidation
+    runAnalysisMutation.mutate({
+      include_simulations: true,
+      scenario_count: 3,
+      optimization_level: 'balanced'
+    });
   };
 
   if (isLoading) {
