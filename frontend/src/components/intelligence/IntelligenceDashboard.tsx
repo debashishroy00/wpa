@@ -26,6 +26,7 @@ import { ConflictsTab } from './tabs/ConflictsTab';
 import { ScenariosTab } from './tabs/ScenariosTab';
 import { TimelineTab } from './tabs/TimelineTab';
 import { RecommendationsTab } from './tabs/RecommendationsTab';
+import { KnowledgeInsights } from './components/KnowledgeInsights';
 import { useIntelligenceAnalysis, useRunAnalysisMutation } from '../../hooks/use-intelligence-hooks';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -273,6 +274,13 @@ const IntelligenceDashboard: React.FC<IntelligenceDashboardProps> = ({ onNext, c
             }
           />
         </div>
+
+        {/* Knowledge Insights - Show on Overview tab */}
+        {activeTab === 'overview' && (
+          <div className="mb-8">
+            <KnowledgeInsights analysis={analysis} />
+          </div>
+        )}
 
         {/* Tab Content */}
         <div className="mb-8">

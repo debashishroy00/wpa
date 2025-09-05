@@ -430,6 +430,91 @@ async def get_debug_vector_status():
             "timestamp": datetime.now().isoformat()
         }
 
+@router.get("/test-contextual-search")
+async def test_contextual_search(query: str = "asset allocation"):
+    """
+    Test endpoint for contextual search without authentication
+    """
+    try:
+        from app.services.knowledge_base import KnowledgeBaseService
+        
+        kb_service = KnowledgeBaseService()
+        results = kb_service.search_contextual(
+            query=query,
+            user_id=1,
+            include_user_data=True,
+            include_knowledge_base=True,
+            top_k=3
+        )
+        
+        return {
+            "query": query,
+            "user_context_count": len(results["user_context"]),
+            "knowledge_base_count": len(results["professional_knowledge"]),
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Contextual search test failed: {str(e)}")
+        return {
+            "query": query,
+            "error": str(e),
+            "user_context_count": 0,
+            "knowledge_base_count": 0,
+            "results": {"user_context": [], "professional_knowledge": []}
+        }
+
+@router.get("/test-advisory-rag")
+async def test_advisory_rag():
+    """
+    Test endpoint for enhanced RAG advisory generation
+    """
+    try:
+        from app.services.llm_service import llm_service
+        from app.models.llm_models import AdvisoryGeneration
+        
+        # Mock Step 4 data for testing
+        mock_step4_data = {
+            "user": {"name": "John Doe", "age": 45},
+            "goals": [{"type": "retirement", "target": 3500000, "current": 1800000}],
+            "portfolio": {"total": 2800000, "allocation": {"stocks": 0.7, "bonds": 0.3}},
+            "income": 17744,
+            "expenses": 7481
+        }
+        
+        # Create advisory generation request
+        advisory_request = AdvisoryGeneration(
+            step4_data=mock_step4_data,
+            generation_type="summary",
+            provider_preferences=["gemini"],
+            enable_comparison=False
+        )
+        
+        # Test knowledge context retrieval
+        kb_context = await llm_service._get_knowledge_context(mock_step4_data)
+        
+        return {
+            "status": "success",
+            "kb_context_found": len(kb_context.get("knowledge_base_results", [])),
+            "search_queries": kb_context.get("search_queries", []),
+            "knowledge_documents": [
+                {
+                    "kb_id": doc["metadata"].get("kb_id", "unknown"),
+                    "title": doc["title"],
+                    "relevance_score": doc["score"]
+                }
+                for doc in kb_context.get("knowledge_base_results", [])
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"RAG test failed: {str(e)}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "kb_context_found": 0
+        }
+
 @router.get("/migrate")
 async def migrate_documents():
     """

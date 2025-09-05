@@ -386,10 +386,13 @@ class MultiLLMService:
     
     async def generate_advisory_content(self, 
                                        generation_request: AdvisoryGeneration) -> AdvisoryContent:
-        """Generate advisory content with Step 4/5 architecture"""
-        # Prepare LLM request
-        system_prompt = self._build_advisory_system_prompt(generation_request)
-        user_prompt = self._build_advisory_user_prompt(generation_request)
+        """Generate advisory content with Step 4/5 architecture + Knowledge Base RAG"""
+        # Get relevant knowledge base context
+        kb_context = await self._get_knowledge_context(generation_request.step4_data)
+        
+        # Prepare LLM request with KB context
+        system_prompt = self._build_advisory_system_prompt(generation_request, kb_context)
+        user_prompt = self._build_advisory_user_prompt(generation_request, kb_context)
         
         # Select provider
         provider = (generation_request.provider_preferences[0] 
@@ -430,36 +433,107 @@ class MultiLLMService:
         
         return advisory_content
     
-    def _build_advisory_system_prompt(self, request: AdvisoryGeneration) -> str:
-        """Build system prompt for advisory generation"""
-        base_prompt = """You are a senior fiduciary financial advisor providing comprehensive wealth management guidance. 
-        Your role is to transform technical financial calculations into professional advisory recommendations.
+    async def _get_knowledge_context(self, step4_data: Any) -> Dict[str, Any]:
+        """Get relevant knowledge base context for advisory generation"""
+        try:
+            from ..services.knowledge_base import KnowledgeBaseService
+            
+            kb_service = KnowledgeBaseService()
+            
+            # Extract key topics from step4 data for search
+            search_queries = []
+            
+            # Add user context search terms based on step4 data
+            if isinstance(step4_data, dict):
+                # Look for financial context clues
+                if 'goals' in step4_data:
+                    search_queries.append("retirement planning asset allocation")
+                if 'debts' in step4_data or 'debt' in str(step4_data).lower():
+                    search_queries.append("debt payoff strategy")
+                if 'tax' in str(step4_data).lower():
+                    search_queries.append("tax optimization")
+                if 'portfolio' in str(step4_data).lower() or 'investment' in str(step4_data).lower():
+                    search_queries.append("portfolio rebalancing")
+            
+            # Default searches for comprehensive advice
+            if not search_queries:
+                search_queries = ["asset allocation", "retirement planning", "tax optimization"]
+            
+            # Get knowledge base context
+            all_kb_results = []
+            for query in search_queries[:3]:  # Limit to 3 searches
+                results = kb_service.search_contextual(
+                    query=query,
+                    include_user_data=False,
+                    include_knowledge_base=True,
+                    top_k=2
+                )
+                all_kb_results.extend(results["professional_knowledge"])
+            
+            # Remove duplicates and format for prompt
+            seen_ids = set()
+            unique_kb_docs = []
+            for doc in all_kb_results:
+                if doc["doc_id"] not in seen_ids:
+                    unique_kb_docs.append(doc)
+                    seen_ids.add(doc["doc_id"])
+            
+            return {
+                "knowledge_base_results": unique_kb_docs[:4],  # Limit to top 4 most relevant
+                "search_queries": search_queries
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get knowledge context: {e}")
+            return {"knowledge_base_results": [], "search_queries": []}
+    
+    def _build_advisory_system_prompt(self, request: AdvisoryGeneration, kb_context: Dict[str, Any] = None) -> str:
+        """Build system prompt for advisory generation with knowledge base context"""
+        
+        # Build knowledge base context section
+        kb_section = ""
+        if kb_context and kb_context.get("knowledge_base_results"):
+            kb_section = "\n\nPROFESSIONAL KNOWLEDGE BASE CONTEXT:\n"
+            for i, doc in enumerate(kb_context["knowledge_base_results"]):
+                kb_id = doc["metadata"].get("kb_id", f"KB-{doc['doc_id'][:3]}")
+                kb_section += f"\n[{kb_id}] {doc['title']}\n{doc['content'][:800]}...\n"
+            
+            kb_section += "\nUse this knowledge base content to provide professional guidance. Cite specific KB documents using their KB-ID in brackets."
+        
+        base_prompt = f"""You are a senior fiduciary financial advisor providing comprehensive wealth management guidance. 
+        Your role is to transform technical financial calculations into professional advisory recommendations using established best practices.
         
         CRITICAL REQUIREMENTS:
         1. NEVER modify, estimate, or guess any numbers from the provided data
         2. Use ONLY the exact numbers provided in the Step 4 data
         3. Generate COMPLETE sections - do not truncate any content
         4. Include specific dollar amounts, percentages, and timelines in every recommendation
-        5. Cite sources as [plan engine] for calculations and [KB-XXX] for research references
+        5. Cite sources as [plan engine] for calculations and [KB-XXX] for professional knowledge references
         6. Maintain professional, confident tone appropriate for high-net-worth clients
+        7. Use the knowledge base context to provide expert guidance and cite relevant documents
         
         MANDATORY STRUCTURE - Generate ALL sections completely:
-        ## Executive Summary (2-3 detailed paragraphs with specific numbers)
-        ## Immediate Actions (Next 30 Days) (5-7 specific actions with dollar impacts)
+        ## Executive Summary (2-3 detailed paragraphs with specific numbers and KB citations)
+        ## Immediate Actions (Next 30 Days) (5-7 specific actions with dollar impacts and KB backing)
         ## 12-Month Strategy (4 quarterly milestones with measurable targets)
-        ## Risk Management (stress scenarios and contingency plans)
-        ## Tax Considerations (specific tax optimization strategies)
+        ## Risk Management (stress scenarios and contingency plans with KB references)
+        ## Tax Considerations (specific tax optimization strategies with KB citations)
         
-        IMPORTANT: Generate ALL sections completely. Do not truncate. Include specific dollar amounts and timelines."""
+        IMPORTANT: Generate ALL sections completely. Do not truncate. Include specific dollar amounts, timelines, and relevant KB citations.{kb_section}"""
         
         return base_prompt
     
-    def _build_advisory_user_prompt(self, request: AdvisoryGeneration) -> str:
-        """Build user prompt for advisory generation"""
+    def _build_advisory_user_prompt(self, request: AdvisoryGeneration, kb_context: Dict[str, Any] = None) -> str:
+        """Build user prompt for advisory generation with knowledge base context"""
         data_summary = json.dumps(request.step4_data, indent=2)
         
+        # Add knowledge base search context
+        kb_context_text = ""
+        if kb_context and kb_context.get("search_queries"):
+            kb_context_text = f"\n\nRELEVANT KNOWLEDGE AREAS: {', '.join(kb_context['search_queries'])}"
+        
         prompt = f"""Based on the following deterministic financial analysis, generate a comprehensive 
-        professional advisory report:
+        professional advisory report using the knowledge base context provided in the system prompt:{kb_context_text}
 
         STEP 4 CALCULATIONS:
         {data_summary}

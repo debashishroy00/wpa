@@ -7,6 +7,7 @@ import { TrendingUp, AlertTriangle, CheckCircle, Target, DollarSign } from 'luci
 import Card from '../../ui/Card';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
+import { HelpIcon } from '../../ui/SmartTooltip';
 
 interface Goal {
   goal_id: string;
@@ -85,6 +86,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
           <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
             <Target className="w-5 h-5 text-blue-400" />
             Goals Overview
+            <HelpIcon 
+              tooltip="Goal feasibility analysis based on current trajectory and professional best practices"
+              kbSource="PLAYBOOKS-922: Retirement Planning"
+              className="ml-2"
+            />
           </h3>
           
           <div className="overflow-x-auto">
@@ -149,6 +155,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ analysis }) => {
           <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-green-400" />
             Combined Requirements
+            <HelpIcon 
+              tooltip="Monthly funding requirements calculated using professional cash flow analysis methods"
+              kbSource="RESEARCH-808: Cash Flow Planning"
+              className="ml-2"
+            />
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

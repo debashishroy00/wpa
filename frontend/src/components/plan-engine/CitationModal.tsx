@@ -61,6 +61,113 @@ const CitationModal: React.FC<CitationModalProps> = ({ citationId, onClose }) =>
 
   const getMockDocument = (kbId: string): KnowledgeBaseDocument => {
     const mockDocuments: Record<string, KnowledgeBaseDocument> = {
+      // Real KB Document IDs from vector store
+      'PLAYBOOKS-922': {
+        kb_id: 'PLAYBOOKS-922',
+        title: 'Retirement Planning Playbook',
+        category: 'playbooks',
+        content: `# Retirement Planning Playbook
+
+## Overview
+This playbook provides comprehensive guidance for retirement planning strategies, including 401(k) optimization, Roth conversions, and asset allocation approaches.
+
+## Key Strategies
+
+### 401(k) Optimization
+- Maximize employer match (free money)
+- Consider Roth vs Traditional contributions based on tax bracket
+- Utilize catch-up contributions for 50+ individuals
+- Target 10-15% savings rate minimum
+
+### Asset Allocation by Age
+- **20s-30s**: 80-90% stocks, 10-20% bonds
+- **40s**: 70-80% stocks, 20-30% bonds
+- **50s**: 60-70% stocks, 30-40% bonds
+- **60s+**: 50-60% stocks, 40-50% bonds
+
+### Retirement Income Planning
+- 4% withdrawal rule as baseline
+- Social Security optimization strategies
+- Tax-efficient withdrawal sequencing
+
+---
+**Sources**: IRS Publication 590, FINRA Retirement Planning Guide`,
+        tags: ['retirement', '401k', 'asset-allocation'],
+        last_updated: '2025-09-05',
+        file_path: 'playbooks/retirement_planning.md',
+        related_documents: [
+          { kb_id: 'RESEARCH-808', title: 'Portfolio Optimization Research', score: 0.85 }
+        ]
+      },
+      'RESEARCH-808': {
+        kb_id: 'RESEARCH-808',
+        title: 'Portfolio Optimization Research',
+        category: 'research',
+        content: `# Portfolio Optimization Research
+
+## Modern Portfolio Theory Applications
+
+### Risk-Return Optimization
+Recent research shows that traditional 60/40 portfolios may need adjustment for current market conditions:
+- Low interest rate environment reduces bond expected returns
+- Increased correlation between stocks and bonds during stress periods
+- Alternative assets can provide diversification benefits
+
+### Factor-Based Investing
+Academic research supports factor tilts for long-term investors:
+- **Value Factor**: Historically outperforms growth over long periods
+- **Size Factor**: Small-cap premium remains robust
+- **Quality Factor**: High ROE, low debt companies outperform
+- **Momentum Factor**: Trending assets continue to perform
+
+### Behavioral Finance Insights
+- Loss aversion leads to suboptimal portfolio decisions
+- Recency bias causes overreaction to recent market events
+- Diversification across time (dollar-cost averaging) reduces timing risk
+
+---
+**Sources**: Journal of Finance, Modern Portfolio Theory Research`,
+        tags: ['portfolio-theory', 'optimization', 'research'],
+        last_updated: '2025-09-05',
+        file_path: 'research/portfolio_optimization.md',
+        related_documents: [
+          { kb_id: 'PLAYBOOKS-922', title: 'Retirement Planning Playbook', score: 0.78 }
+        ]
+      },
+      'REGULATIONS-59f': {
+        kb_id: 'REGULATIONS-59f',
+        title: 'Fiduciary Duty Guidelines',
+        category: 'regulations',
+        content: `# Fiduciary Duty Guidelines
+
+## Definition
+A fiduciary duty is the legal obligation to act in the best interests of the client, placing client interests above the advisor's own interests.
+
+## Key Requirements
+
+### Best Interest Standard
+- Recommendations must be in the client's best interest
+- Consider client's investment profile, financial situation, and investment objectives
+- Avoid conflicts of interest or disclose them clearly
+
+### Disclosure Requirements
+- Material conflicts of interest must be disclosed
+- Compensation structure transparency
+- Third-party payments and arrangements
+
+### Documentation Standards
+- Maintain records of recommendation rationale
+- Document client objectives and constraints
+- Regular review and update requirements
+
+---
+**Sources**: SEC Regulation Best Interest, DOL Fiduciary Rule`,
+        tags: ['fiduciary', 'compliance', 'regulations'],
+        last_updated: '2025-09-05',
+        file_path: 'regulations/fiduciary_duty.md',
+        related_documents: []
+      },
+      // Keep original mock documents for compatibility
       'AL-001': {
         kb_id: 'AL-001',
         title: 'Asset Location Strategy',
