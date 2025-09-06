@@ -32,6 +32,23 @@ const CitationTooltip: React.FC<CitationTooltipProps> = ({
 
     // Map KB-IDs to their descriptions
     const kbMap: Record<string, { title: string; description: string; category: string }> = {
+      // Real KB Document IDs
+      'PLAYBOOKS-922': {
+        title: 'Retirement Planning Playbook',
+        description: 'Comprehensive retirement strategies including 401(k) optimization and asset allocation',
+        category: 'Retirement Planning'
+      },
+      'RESEARCH-808': {
+        title: 'Portfolio Optimization Research',
+        description: 'Modern portfolio theory applications and factor-based investing strategies',
+        category: 'Investment Research'
+      },
+      'REGULATIONS-59f': {
+        title: 'Fiduciary Duty Guidelines',
+        description: 'Professional compliance and best interest standards for financial advisors',
+        category: 'Regulatory Compliance'
+      },
+      // Legacy KB IDs for compatibility
       'AL-001': {
         title: 'Asset Location Strategy',
         description: 'Tax-efficient account placement guidelines',

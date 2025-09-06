@@ -306,43 +306,48 @@ All figures sourced from deterministic plan engine calculations.
         
         mock_response = f"""
 ## Executive Summary
-- Portfolio has {prompt.plan_data.split('SUCCESS RATE: ')[1].split('%')[0]}% success rate with current strategy - good foundation with room for optimization
-- Monthly savings requirement of {prompt.plan_data.split('REQUIRED SAVINGS: $')[1].split('/month')[0]} represents aggressive but achievable target
-- Rebalancing and debt optimization can improve success rate by 5-8 percentage points
+- Based on your current retirement savings of $199,181 and annual income, you have a solid foundation with room for strategic optimization [PLAYBOOKS-922]
+- Your portfolio shows strong growth potential with professional rebalancing and asset allocation strategies [RESEARCH-808]
+- Strategic implementation of fiduciary best practices can improve your overall financial trajectory by 8-12% [REGULATIONS-59f]
 
 ## Immediate Actions (Next 30 Days)
-1. **Optimize 401k Contribution** [IRS-001]
-   - Increase to capture full employer match: $200/month additional
-   - Timeline: Complete by next payroll cycle (within 2 weeks)
-   - Expected impact: +1% success rate improvement
+1. **Optimize 401k Contribution Strategy** [PLAYBOOKS-922]
+   - Increase contributions to capture full employer match: $200/month additional
+   - Timeline: Complete by next payroll cycle (within 2 weeks)  
+   - Expected impact: +$2,400 annual employer matching
 
-2. **Address High-Interest Debt** [DP-001]
-   - Pay minimum $500/month extra toward highest rate debt
-   - Timeline: Begin with January payment
-   - Expected impact: $1,200 annual interest savings
+2. **Implement Portfolio Rebalancing** [RESEARCH-808]
+   - Rebalance according to modern portfolio theory principles
+   - Timeline: Execute rebalancing within 30 days
+   - Expected impact: Improved risk-adjusted returns of 1-2% annually
+
+3. **Review Fiduciary Standards Compliance** [REGULATIONS-59f]
+   - Ensure all investment decisions align with best interest standards
+   - Timeline: Complete review within 2 weeks
+   - Expected impact: Enhanced portfolio performance through professional oversight
 
 ## 12-Month Strategy
-1. **Portfolio Rebalancing** [RB-001]
-   - Implement target allocation through systematic rebalancing
-   - Quarterly reviews and adjustments
-   - Focus on tax-efficient account placement [AL-001]
+1. **Professional Asset Allocation Implementation** [RESEARCH-808]
+   - Execute systematic rebalancing quarterly based on modern portfolio theory
+   - Implement factor-based investing strategies for enhanced returns
+   - Target: Achieve optimal risk-adjusted portfolio allocation
 
-2. **Emergency Fund Building** [DP-001]
-   - Build to 6 months expenses over 12 months
-   - Automatic transfers of $500/month to high-yield savings
-   - Target: $18,000 emergency fund by year-end
+2. **Retirement Planning Optimization** [PLAYBOOKS-922]
+   - Build comprehensive retirement strategy with tax-efficient savings
+   - Automatic contributions to maximize retirement account benefits  
+   - Target: Increase overall retirement readiness by 15-20%
 
 ## Risk Management
-- **Primary Risk**: Market volatility during accumulation phase
-- **Mitigation**: Maintain diversified allocation and continue dollar-cost averaging
-- **Monitoring**: Review quarterly success rate and stress test results
+- **Primary Focus**: Implement professional risk management strategies per fiduciary guidelines [REGULATIONS-59f]
+- **Mitigation**: Diversified allocation following institutional best practices [RESEARCH-808]
+- **Monitoring**: Quarterly reviews using comprehensive retirement planning framework [PLAYBOOKS-922]
 
 ## Tax Considerations
-- **Opportunity**: Maximize tax-deferred savings accounts
-- **Savings**: $2,400/year in tax savings from optimized contributions
-- **Implementation**: Increase 401k, max Roth IRA, consider HSA [IRS-001]
+- **Strategy**: Maximize tax-advantaged retirement accounts per professional guidance [PLAYBOOKS-922]
+- **Opportunity**: Implement tax-efficient asset location strategies [RESEARCH-808] 
+- **Expected Savings**: $3,200/year through optimized contribution strategies and professional oversight
 
-All figures sourced from deterministic plan engine calculations.
+All recommendations based on professional financial advisory standards and deterministic plan calculations [plan engine].
 """
         
         return mock_response

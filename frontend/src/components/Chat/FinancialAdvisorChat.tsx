@@ -84,6 +84,7 @@ const FinancialAdvisorChat: React.FC = () => {
     const [syncMetrics, setSyncMetrics] = useState<any>(null);
     const [useIntelligentChat, setUseIntelligentChat] = useState(true);
     const [intelligenceMetrics, setIntelligenceMetrics] = useState<any>(null);
+    
 
     // Get user ID from auth context
     const userId = user?.id;
@@ -106,6 +107,7 @@ const FinancialAdvisorChat: React.FC = () => {
 
         return unsubscribe;
     }, [userId]);
+
 
     const getAuthHeaders = () => {
         const authTokens = localStorage.getItem('auth_tokens');
@@ -487,28 +489,18 @@ const FinancialAdvisorChat: React.FC = () => {
                             Personalized financial guidance powered by your real data
                         </p>
                         <div className="text-sm text-gray-500 flex items-center gap-4">
+                            
+                            {/* Simplified LLM Info */}
                             <div className="flex items-center gap-2">
                                 <span>{LLMSettingsService.getProviderIcon(llmSettings.provider)}</span>
-                                <span>Provider: {llmSettings.provider.toUpperCase()}</span>
+                                <span>AI: {llmSettings.provider.toUpperCase()}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Zap className="w-4 h-4" />
-                                <span>Model: {llmSettings.selectedModel}</span>
-                            </div>
+                            
+                            {/* Cost Display (kept for transparency) */}
                             <div className="flex items-center gap-2">
                                 <DollarSign className="w-4 h-4" />
                                 <span>Cost: ${llmSettings.estimatedCostPerMessage.toFixed(3)}/msg</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <BarChart3 className="w-4 h-4" />
-                                <span>Response: {llmSettings.insightLevel === 'direct' ? 'Direct' : 
-                                              llmSettings.insightLevel === 'balanced' ? 'Balanced' : 'Comprehensive'}</span>
-                            </div>
-                            {LLMSettingsService.isCheapestOption(llmSettings.provider, llmSettings.modelTier) && (
-                                <Badge variant="success" size="sm" className="bg-green-600 text-white">
-                                    CHEAPEST!
-                                </Badge>
-                            )}
                             
                             {/* Intelligence Metrics Display */}
                             {useIntelligentChat && intelligenceMetrics && (
@@ -581,7 +573,8 @@ const FinancialAdvisorChat: React.FC = () => {
                                 onClick={() => setShowProviderSettings(!showProviderSettings)}
                                 variant="outline"
                                 size="sm"
-                                leftIcon={<Settings className="w-4 h-4" />}
+                                leftIcon={<Zap className="w-4 h-4" />}
+                                className={`text-xs ${showProviderSettings ? 'ring-2 ring-orange-400' : ''}`}
                             >
                                 ⚙️ LLM Settings
                             </Button>
@@ -642,10 +635,18 @@ const FinancialAdvisorChat: React.FC = () => {
                     </Card>
                 )}
 
-                {/* LLM Provider Settings */}
+                {/* Legacy LLM Provider Settings (for advanced users) */}
                 {showProviderSettings && (
                     <div className="mb-6">
-                        <LLMProviderSettings />
+                        <Card className="bg-gray-800/50 border-gray-700">
+                            <Card.Header className="border-b border-gray-700 pb-3">
+                                <h3 className="text-lg font-medium text-white">Advanced Technical Settings</h3>
+                                <p className="text-sm text-gray-400">For developers and advanced users only</p>
+                            </Card.Header>
+                            <Card.Body className="p-4">
+                                <LLMProviderSettings />
+                            </Card.Body>
+                        </Card>
                     </div>
                 )}
 
@@ -656,6 +657,7 @@ const FinancialAdvisorChat: React.FC = () => {
                     </div>
                 )}
 
+                
                 {/* Main Chat Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     
@@ -727,6 +729,7 @@ const FinancialAdvisorChat: React.FC = () => {
                 </Card>
 
             </div>
+            
         </div>
     );
 };

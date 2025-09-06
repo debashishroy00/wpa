@@ -185,7 +185,7 @@ const AdvisoryView: React.FC<AdvisoryViewProps> = ({
   };
 
   const renderCitation = (text: any) => {
-    // Parse text for citations like [KB-001] or [plan engine]
+    // Parse text for citations like [RESEARCH-808], [PLAYBOOKS-922], [REGULATIONS-59f] or [plan engine]
     const rawText = extractText(text);
     const cleanText = processLLMContent(rawText);
     
@@ -194,12 +194,14 @@ const AdvisoryView: React.FC<AdvisoryViewProps> = ({
       return rawText;
     }
     
-    const citationRegex = /\[([\w\s-]+)\]/g;
+    // Updated regex to match KB citations (WORD-ALPHANUMERIC) and plan engine citations
+    const citationRegex = /\[([A-Z]+-[A-Za-z0-9]+|[\w\s-]+)\]/g;
     
     return cleanText.split(citationRegex).map((part, index) => {
       if (index % 2 === 1) {
         // This is a citation
-        const isKnowledgeBase = part.includes('-');
+        // Check if it's a real KB document (UPPERCASE-ALPHANUMERIC format like RESEARCH-808, PLAYBOOKS-922)
+        const isKnowledgeBase = /^[A-Z]+-[A-Za-z0-9]+$/.test(part);
         const isViewed = viewedCitations.has(part);
         
         return (
