@@ -45,6 +45,8 @@ const EnhancedTaxManagement: React.FC = () => {
   const [showTaxOptimization, setShowTaxOptimization] = useState(false);
   const [showAdvancedStrategies, setShowAdvancedStrategies] = useState(false);
   const [showMultiYearAnalysis, setShowMultiYearAnalysis] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   const [taxFormData, setTaxFormData] = useState({
     adjusted_gross_income: '',
@@ -119,6 +121,35 @@ const EnhancedTaxManagement: React.FC = () => {
       console.error('Error loading tax data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveTax = async () => {
+    setIsSaving(true);
+    setSaveSuccess(false);
+    
+    try {
+      const response = await apiCall('/api/v1/profile/tax-info', {
+        method: 'POST',
+        body: JSON.stringify({
+          tax_year: new Date().getFullYear(),
+          filing_status: taxFormData.filing_status,
+          adjusted_gross_income: parseFloat(taxFormData.adjusted_gross_income) || null,
+          state_tax_bracket: parseFloat(taxFormData.state_tax_rate) || null,
+          itemized_deductions: parseFloat(taxFormData.itemized_deduction_total) || null,
+        })
+      });
+
+      if (response) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+        await loadTaxData(); // Reload data
+      }
+    } catch (err: any) {
+      console.error('Failed to save tax data:', err);
+      setError('Failed to save tax data');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -501,6 +532,21 @@ const EnhancedTaxManagement: React.FC = () => {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-4">
+        <Button 
+          onClick={handleSaveTax}
+          disabled={isSaving}
+          className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-400"
+        >
+          {isSaving ? 'Saving...' : 'Save Tax Information'}
+        </Button>
+        
+        {saveSuccess && (
+          <div className="flex items-center space-x-2 bg-green-600 text-white px-3 py-2 rounded">
+            <CheckCircle className="h-4 w-4" />
+            <span>Saved!</span>
+          </div>
+        )}
+        
         <Button 
           onClick={loadTaxData}
           className="bg-gray-600 hover:bg-gray-700 text-white"

@@ -37,25 +37,49 @@ class TrustEngine:
         # Find assumptions
         result["assumptions"] = self._find_assumptions(ai_response)
         
-        # Add disclaimers based on content analysis
+        # Tighten disclaimer triggers - only add when truly necessary
         disclaimer_needed = False
         
-        # Check for recommendation language
-        recommendation_indicators = [
-            "recommend", "suggest", "consider", "should", "could", "might want to",
-            "action item", "next step", "opportunity", "strategy", "plan"
+        # Check for strong recommendation language
+        recommendation_keywords = [
+            "recommend", "should", "suggest", "advise", "consider",
+            "would be", "might want", "could benefit"
         ]
         
-        has_recommendations = any(indicator in ai_response.lower() for indicator in recommendation_indicators)
+        # Check for projection language
+        projection_keywords = [
+            "will be", "projected", "forecast", "expect", "estimate",
+            "approximately", "roughly", "around"
+        ]
+        
+        has_recommendations = any(kw in ai_response.lower() for kw in recommendation_keywords)
+        has_projections = any(kw in ai_response.lower() for kw in projection_keywords)
+        
+        # Count how many numbers in response match context facts
+        matched_numbers = 0
+        response_numbers = self._extract_numbers(ai_response)
+        
+        for fact_key, fact_value in claims.items():
+            if fact_value and str(fact_value) in ai_response:
+                matched_numbers += 1
+            else:
+                # Check for formatted versions (with commas)
+                if isinstance(fact_value, str) and fact_value.isdigit():
+                    formatted = f"{int(fact_value):,.0f}"
+                    if formatted in ai_response:
+                        matched_numbers += 1
+        
+        # ONLY add disclaimer if:
+        # 1. Has recommendations/projections AND
+        # 2. Low ratio of matched facts OR high ungrounded count
+        total_numbers = len(response_numbers)
+        confidence_ratio = matched_numbers / total_numbers if total_numbers > 0 else 1
         
         # Determine confidence and add disclaimers
         if ungrounded_count > 8:  # High number of calculations/projections
             result["confidence"] = "MEDIUM"
             disclaimer_needed = True
-        elif ungrounded_count > 4:
-            result["confidence"] = "HIGH"
-            disclaimer_needed = True
-        elif has_recommendations:
+        elif (has_recommendations or has_projections) and confidence_ratio < 0.5:
             disclaimer_needed = True
         elif result["assumptions"]:
             result["confidence"] = "MEDIUM"

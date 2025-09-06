@@ -4,6 +4,7 @@ Handles conversation history, session summaries, context management, and financi
 """
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from datetime import datetime, timezone
 import json
 import re
@@ -157,25 +158,46 @@ Remember: Be direct, be helpful, be concise. Answer their question clearly first
         self.db.add(user_msg)
         self.db.add(assistant_msg)
         
-        # Update session conversation history (lightweight for quick context)
+        # Update session conversation history with robust debugging
         message_pair = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "user": user_message,
-            "assistant": assistant_response,
+            "user": user_message[:500],  # Truncate to prevent JSONB bloat
+            "assistant": assistant_response[:500],  # Truncate to prevent JSONB bloat
             "intent": intent_str,  # Use string value for JSON serialization
             "tokens": tokens_used
         }
         
-        # Manage history size - keep only recent messages
+        # ATOMIC JSONB UPDATE: Refresh session first to get latest conversation_history
+        self.db.refresh(session)
         history = session.conversation_history or []
+        
+        # CRITICAL DEBUG - Force logging
+        print(f"MEMORY STORAGE DEBUG - Before (after refresh): session.conversation_history length: {len(history)}")
+        print(f"MEMORY STORAGE DEBUG - Adding message pair: {message_pair['user'][:50]}...")
+        
+        # Check for duplicate to prevent double storage
+        if history:
+            last_msg = history[-1]
+            if (last_msg.get('user') == message_pair['user'] and 
+                last_msg.get('assistant') == message_pair['assistant']):
+                print(f"MEMORY STORAGE DEBUG - DUPLICATE DETECTED, skipping storage")
+                return
+        
         history.append(message_pair)
         
         if len(history) > self.max_history_messages:
             # Remove oldest message pairs, keeping newest
             history = history[-self.max_history_messages:]
         
-        # Update session
+        # Update session with explicit assignment to trigger SQLAlchemy dirty tracking
         session.conversation_history = history
+        
+        # CRITICAL: Explicitly flag the JSONB column as modified for SQLAlchemy
+        flag_modified(session, 'conversation_history')
+        
+        print(f"MEMORY STORAGE DEBUG - After: session.conversation_history length: {len(history)}")
+        print(f"MEMORY STORAGE DEBUG - Session marked as dirty: {session in self.db.dirty}")
+        print(f"MEMORY STORAGE DEBUG - JSONB column flagged as modified")
         session.message_count += 2  # user + assistant
         session.total_tokens_used += tokens_used
         session.last_message_at = datetime.now(timezone.utc)
@@ -185,7 +207,20 @@ Remember: Be direct, be helpful, be concise. Answer their question clearly first
         if session.message_count % 6 == 0:  # Every 3 exchanges
             session.session_summary = self._generate_session_summary(history)
             
-        self.db.commit()
+        # Force immediate commit and flush to ensure data is available for next request
+        self.db.flush()  # Flush changes to DB without ending transaction
+        self.db.commit() # Commit transaction to make data available to other sessions
+        
+        # DEBUG: Verify the commit worked by re-querying
+        verification_session = self.db.query(ChatSession).filter(ChatSession.id == session.id).first()
+        if verification_session:
+            actual_length = len(verification_session.conversation_history or [])
+            print(f"MEMORY COMMIT VERIFICATION - Database shows {actual_length} messages after commit")
+            if actual_length != len(history):
+                print(f"MEMORY COMMIT ERROR - Expected {len(history)} but database has {actual_length}")
+        else:
+            print(f"MEMORY COMMIT ERROR - Could not verify session {session.id}")
+        print(f"MEMORY COMMIT DEBUG - Session {session.session_id} committed with {len(session.conversation_history)} messages")
         
         logger.info("Added message pair to session", 
                    session_id=session.session_id,
@@ -203,12 +238,36 @@ Remember: Be direct, be helpful, be concise. Answer their question clearly first
             - message_count: Total messages in session
             - last_intent: Most recent intent detected
         """
-        # Refresh session from database to get latest conversation_history
-        self.db.refresh(session)
-        history = session.conversation_history or []
+        # Ensure we see the latest committed data from other transactions
+        self.db.commit()  # Commit any pending changes in this session
+        self.db.refresh(session)  # Refresh from database to get latest conversation_history
+        
+        # Alternative: Re-query from database to bypass any caching issues
+        fresh_session = self.db.query(ChatSession).filter(
+            ChatSession.id == session.id
+        ).first()
+        
+        history = fresh_session.conversation_history if fresh_session else []
+        
+        # DEBUG: Compare session vs fresh_session
+        print(f"MEMORY RETRIEVAL COMPARE - Original session history: {len(session.conversation_history or [])}")
+        print(f"MEMORY RETRIEVAL COMPARE - Fresh session history: {len(history)}")
+        
+        # CRITICAL DEBUG - Force logging
+        print(f"MEMORY RETRIEVAL DEBUG - Session ID: {session.session_id}")
+        print(f"MEMORY RETRIEVAL DEBUG - Raw history length: {len(history)}")
+        print(f"MEMORY RETRIEVAL DEBUG - Max context messages: {self.max_context_messages}")
+        
+        if history:
+            print(f"MEMORY RETRIEVAL DEBUG - Last message: {history[-1].get('user', 'NO USER')[:50]}...")
+            print(f"MEMORY RETRIEVAL DEBUG - History sample: {[h.get('user', '')[:20] for h in history[-3:]]}")
         
         # Get recent messages for immediate context
         recent_messages = history[-self.max_context_messages:] if history else []
+        
+        print(f"MEMORY RETRIEVAL DEBUG - Recent messages for context: {len(recent_messages)}")
+        if recent_messages:
+            print(f"MEMORY RETRIEVAL DEBUG - Recent message sample: {recent_messages[0].get('user', 'NO USER')[:50]}...")
         
         return {
             "recent_messages": recent_messages,
@@ -262,7 +321,12 @@ Remember: Be direct, be helpful, be concise. Answer their question clearly first
         This creates a concise context block that provides conversational continuity
         without overwhelming the prompt.
         """
+        # CRITICAL DEBUG
+        print(f"FORMAT DEBUG - Input context keys: {list(context.keys()) if context else 'None'}")
+        print(f"FORMAT DEBUG - Recent messages: {len(context.get('recent_messages', [])) if context else 0}")
+        
         if not context or not context.get("recent_messages"):
+            print("FORMAT DEBUG - Returning empty string - no context or recent_messages")
             return ""
         
         context_parts = []

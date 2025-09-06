@@ -111,7 +111,20 @@ class FinancialSummaryService:
             # Expense categories: all tracked monthly expenses
             # Note: Calculations are user-specific from financial_entries table
             monthly_surplus = float(monthly_income - monthly_expenses)
-            savings_rate = (monthly_surplus / float(monthly_income)) * 100 if monthly_income > 0 else 0
+            
+            # Calculate savings rate with sanity check
+            if monthly_income > 0:
+                savings_rate = (monthly_surplus / float(monthly_income)) * 100
+                
+                # SANITY CHECK: Cap at 100% for display
+                if savings_rate > 100:
+                    logger.warning(f"Anomalous savings rate calculated: {savings_rate}% for user {user_id}")
+                    # Cap for display
+                    savings_rate = 99.9
+                    # Could add warning flag to summary if needed
+                    # summary["savings_rate_warning"] = "Check income entries - rate exceeded 100%"
+            else:
+                savings_rate = 0
             
             # Log calculated values for verification
             logger.debug(f"User {user_id}: Net Worth=${net_worth:,.0f}, Monthly Surplus=${monthly_surplus:,.0f}, Savings Rate={savings_rate:.1f}%")

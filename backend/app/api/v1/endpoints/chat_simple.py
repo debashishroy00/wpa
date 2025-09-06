@@ -13,20 +13,15 @@ import json
 from app.db.session import get_db
 from app.api.v1.endpoints.auth import get_current_active_user
 from app.models.user import User
-from app.services.identity_math import IdentityMath
 from app.services.trust_engine import TrustEngine
-from app.services.core_prompts import core_prompts
 from app.services.llm_service import llm_service
 from app.models.llm_models import LLMRequest
-from app.services.chat_memory_service import ChatMemoryService
-from app.services.agentic_rag import AgenticRAG
+from app.services.vector_chat_memory_service import vector_chat_memory_service
 from app.api.v1.endpoints.debug import store_llm_payload
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Initialize Agentic RAG once
-agentic_rag = AgenticRAG()
 
 # Initialize LLM service with clients on first import
 try:
@@ -71,6 +66,40 @@ class ChatResponse(BaseModel):
     is_clarify: bool = False
     clarify: Optional[Dict[str, Any]] = None
 
+
+def _format_context_for_prompt(conversation_context: Dict[str, Any]) -> str:
+    """
+    Format conversation context for LLM prompt
+    """
+    try:
+        context_parts = []
+        
+        # Add session summary
+        if conversation_context.get("session_summary"):
+            context_parts.append(f"Conversation Summary: {conversation_context['session_summary']}")
+        
+        # Add recent conversation
+        recent_conversation = conversation_context.get("recent_conversation", [])
+        if recent_conversation:
+            context_parts.append("Recent Conversation:")
+            for turn in recent_conversation[-3:]:  # Last 3 turns
+                user_msg = turn.get("user_message", "")[:100]  # Truncate for prompt
+                ai_msg = turn.get("ai_response", "")[:100]
+                context_parts.append(f"User: {user_msg}")
+                context_parts.append(f"Assistant: {ai_msg}")
+        
+        # Add key topics
+        key_topics = conversation_context.get("key_topics", [])
+        if key_topics:
+            context_parts.append(f"Discussion Topics: {', '.join(key_topics)}")
+        
+        return "\n".join(context_parts) if context_parts else ""
+        
+    except Exception as e:
+        logger.error(f"Failed to format conversation context: {e}")
+        return ""
+
+
 @router.post("/message", response_model=ChatResponse)
 async def chat_message(
     request: ChatRequest,
@@ -81,150 +110,200 @@ async def chat_message(
     logger.info(f"🚀 chat_simple hit: '{request.message}'")
     logger.info(f"🎛️ mode: {request.insight_level}")
     try:
-        # Initialize memory service
-        memory_service = ChatMemoryService(db)
+        # Initialize vector-based memory service (no database dependencies)
+        persistent_session_id = f"simple_default_{current_user.id}"
+        if request.session_id and request.session_id != persistent_session_id:
+            logger.warning(f"Frontend provided session_id {request.session_id}, forcing persistent session {persistent_session_id} for memory continuity")
         
-        # Get or create chat session
-        session = memory_service.get_or_create_session(
+        # Get or create session using vector store
+        session = vector_chat_memory_service.get_or_create_session(
             user_id=current_user.id,
-            session_id=request.session_id or f"simple_{current_user.id}_{int(__import__('time').time())}"
+            session_id=persistent_session_id
         )
+        logger.info(f"🔗 Using vector-based session: {persistent_session_id}")
         
-        # Get conversation context
-        conversation_context = memory_service.get_conversation_context(session)
-        logger.info(f"💬 Conversation context: {conversation_context.get('message_count', 0)} messages")
+        # Get conversation context from vector store
+        conversation_context = vector_chat_memory_service.get_conversation_context(session)
+        logger.info("Vector chat memory context loaded", 
+                   user_id=current_user.id,
+                   session_id=persistent_session_id,
+                   message_count=conversation_context.get("message_count", 0),
+                   last_intent=conversation_context.get("last_intent"),
+                   has_summary=bool(conversation_context.get("session_summary")))
         
         # Detect question type (rough intent)
         insight_type = _detect_insight_type(request.message)
         logger.info(f"🔍 Message: '{request.message}' -> Detected type: '{insight_type}'")
 
-        # Precision Gate temporarily disabled per product decision.
-        
-        # Use AgenticRAG for ALL queries - every question deserves intelligent analysis
-        # No more restrictive triggers - real estate, mortgages, etc all need full intelligence
-        try:
-            logger.info(f"🤖 Using Agentic RAG for ALL queries: {request.message}")
-            logger.info(f"🎛️ Mode: {request.insight_level}")
-            
-            rag_response = await agentic_rag.handle_query(
-                user_id=current_user.id,
-                message=request.message,
-                db=db,
-                mode=request.insight_level,
-                session_id=session.session_id
-            )
-            
-            # Save conversation to memory
-            memory_service.add_message_pair(
-                session=session,
-                user_message=request.message,
-                assistant_response=rag_response["response"],
-                intent_detected=f"rag_{insight_type}",
-                context_used={
-                    "agentic_rag_used": True,
-                    "rag_confidence": rag_response["confidence"],
-                    "rag_citations": len(rag_response["citations"])
-                },
-                tokens_used=0,
-                model_used=request.model_tier,
-                provider=request.provider
-            )
-            
-            return ChatResponse(
-                response=rag_response["response"],
-                confidence=rag_response["confidence"],
-                warnings=rag_response["warnings"],
-                session_id=session.session_id,
-                calculation_id=rag_response.get("calculation_id"),
-                calc_type=rag_response.get("calculation_type")
-            )
-            
-        except Exception as e:
-            logger.error(f"❌ Agentic RAG failed: {e}, providing simple response")
-            # Fallback for true failures only
+        # ALWAYS get complete financial context FIRST for financial questions
+        complete_context = None
+        context_facts = {}
+        conversation_text = None
         
         if insight_type != "general_chat":
-            # Financial question - use facts + LLM
-            logger.info(f"🔬 Processing financial question with IdentityMath...")
-            math = IdentityMath()
-            facts = math.compute_claims(current_user.id, db)
-            logger.info(f"📊 Got facts: {len(facts)} fields")
-            
-            if "error" in facts:
-                logger.error(f"❌ IdentityMath error: {facts['error']}")
-                return ChatResponse(
-                    response="Please update your financial profile first.",
-                    confidence="LOW",
-                    warnings=["missing_data"],
-                    session_id=request.session_id or "new"
-                )
-            
-            # Search vector store for relevant context
+            logger.info(f"📊 Getting complete financial context FIRST...")
             try:
-                from app.services.simple_vector_store import get_vector_store
-                vector_store = get_vector_store()
+                from app.services.complete_financial_context_service import CompleteFinancialContextService
                 
-                # Search with financial keywords for broader results
-                search_query = f"{request.message} financial goals income expenses assets retirement"
-                search_results = vector_store.search(query=search_query, limit=5)
+                # Step 1: Get complete financial context (WITHOUT memory first)
+                context_service = CompleteFinancialContextService()
+                foundation_context = context_service.build_complete_context(
+                    user_id=current_user.id,
+                    db=db,
+                    user_query=request.message,
+                    insight_level=request.insight_level
+                )
                 
-                vector_context_items = []
-                logger.info(f"🔍 Vector search found {len(search_results)} results")
+                # Add user question to context (from working implementation)
+                foundation_context = f"{foundation_context}\n\nUSER QUESTION: \"{request.message}\"\n\nIMPORTANT: Use the exact financial metrics provided above in your response."
                 
-                for doc_id, score, doc in search_results:
-                    # Check if document belongs to current user
-                    if hasattr(doc, 'metadata') and doc.metadata.get('user_id') == current_user.id:
-                        content = doc.content
-                        if content:
-                            # Truncate very long content
-                            if len(content) > 500:
-                                content = content[:500] + "..."
-                            vector_context_items.append(f"- {content}")
-                            logger.info(f"📄 Added doc {doc_id} (score: {score:.2f})")
+                # Step 2: Add conversation memory to foundation context
+                conversation_text = _format_context_for_prompt(conversation_context)
                 
-                if vector_context_items:
-                    vector_context = "\n".join(vector_context_items)
-                    logger.info(f"📚 Vector context: {len(vector_context)} chars from {len(vector_context_items)} relevant docs")
-                else:
-                    vector_context = "No relevant historical context found for your user account."
-                    logger.warning("📚 No user-specific documents found in vector search")
-                    
-            except Exception as e:
-                logger.error(f"Vector search failed: {e}")
-                import traceback
-                logger.error(f"Vector search traceback: {traceback.format_exc()}")
-                vector_context = "Vector search unavailable."
-            
-            # Build prompt with facts + vector context
-            prompt = core_prompts.format_prompt(
-                prompt_type=insight_type,
-                claims=facts,
-                age=facts["_context"].get("age"),
-                state=facts["_context"].get("state"),
-                filing_status=facts["_context"].get("filing_status")
-            )
-            
-            # Add conversation memory to foundation context
-            conversation_text = memory_service.format_context_for_prompt(conversation_context)
-            if conversation_text:
-                enhanced_prompt = f"""🧠 CONVERSATION MEMORY:
+                # CRITICAL DEBUGGING - Force logging even at WARNING level
+                print(f"MEMORY DEBUG - conversation_context keys: {list(conversation_context.keys())}")
+                print(f"MEMORY DEBUG - recent_messages count: {len(conversation_context.get('recent_messages', []))}")
+                print(f"MEMORY DEBUG - session message_count: {conversation_context.get('message_count', 0)}")
+                print(f"MEMORY DEBUG - conversation_text length: {len(conversation_text) if conversation_text else 0}")
+                
+                if conversation_context.get('recent_messages'):
+                    print(f"MEMORY DEBUG - first recent message: {conversation_context['recent_messages'][0] if conversation_context['recent_messages'] else 'EMPTY'}")
+                
+                logger.error("FORCE MEMORY DEBUG - conversation_context", extra=conversation_context)
+                logger.error(f"FORCE MEMORY DEBUG - formatted text length: {len(conversation_text) if conversation_text else 0}")
+                
+                if conversation_text:
+                    complete_context = f"""🧠 CONVERSATION MEMORY:
 {conversation_text}
 
-{prompt}
-
-RELEVANT CONTEXT FROM YOUR FINANCIAL HISTORY:
-{vector_context}
-
-INSTRUCTIONS: Use the above context to provide personalized, specific advice based on the user's actual financial history and conversation context, not generic recommendations.
-"""
+{foundation_context}"""
+                    print(f"MEMORY SUCCESS - Enhanced context with {len(conversation_text)} chars of memory")
+                else:
+                    complete_context = foundation_context
+                    print(f"MEMORY FAILURE - No conversation memory available, using foundation only")
+                
+                # Extract key facts from complete context for validation
+                import re
+                if complete_context:
+                    # Core metrics
+                    nw_match = re.search(r'Net Worth:\s*\$?([\d,]+)', complete_context)
+                    if nw_match:
+                        context_facts["net_worth"] = nw_match.group(1).replace(',', '')
+                    
+                    assets_match = re.search(r'Total Assets:\s*\$?([\d,]+)', complete_context)
+                    if assets_match:
+                        context_facts["total_assets"] = assets_match.group(1).replace(',', '')
+                    
+                    liab_match = re.search(r'Total Liabilities:\s*\$?([\d,]+)', complete_context)
+                    if liab_match:
+                        context_facts["total_liabilities"] = liab_match.group(1).replace(',', '')
+                    
+                    # Cash flow
+                    income_match = re.search(r'Monthly Income:\s*\$?([\d,]+)', complete_context)
+                    if income_match:
+                        context_facts["monthly_income"] = income_match.group(1).replace(',', '')
+                    
+                    expense_match = re.search(r'Monthly Expenses:\s*\$?([\d,]+)', complete_context)
+                    if expense_match:
+                        context_facts["monthly_expenses"] = expense_match.group(1).replace(',', '')
+                    
+                    surplus_match = re.search(r'Monthly Surplus:\s*\$?([\d,]+)', complete_context)
+                    if surplus_match:
+                        context_facts["monthly_surplus"] = surplus_match.group(1).replace(',', '')
+                    
+                    savings_match = re.search(r'Savings Rate:\s*([\d.]+)%', complete_context)
+                    if savings_match:
+                        context_facts["savings_rate"] = savings_match.group(1)
+                    
+                    # Asset allocation
+                    re_match = re.search(r'Real Estate:\s*([\d.]+)%', complete_context)
+                    if re_match:
+                        context_facts["real_estate_allocation"] = re_match.group(1)
+                    
+                    re_amt_match = re.search(r'Real Estate.*?\$?([\d,]+)', complete_context)
+                    if re_amt_match:
+                        context_facts["real_estate_amount"] = re_amt_match.group(1).replace(',', '')
+                    
+                    inv_match = re.search(r'Investments:\s*([\d.]+)%', complete_context)
+                    if inv_match:
+                        context_facts["investment_allocation"] = inv_match.group(1)
+                    
+                    inv_amt_match = re.search(r'Investments.*?\$?([\d,]+)', complete_context)
+                    if inv_amt_match:
+                        context_facts["investment_amount"] = inv_amt_match.group(1).replace(',', '')
+                    
+                    ret_match = re.search(r'Retirement.*?(\d+[\d,]*)', complete_context)
+                    if ret_match:
+                        context_facts["retirement_amount"] = ret_match.group(1).replace(',', '')
+                    
+                    cash_match = re.search(r'Cash.*?\$?([\d,]+)', complete_context)
+                    if cash_match:
+                        context_facts["cash_amount"] = cash_match.group(1).replace(',', '')
+                    
+                    # Goals
+                    retirement_match = re.search(r'Retirement Goal:\s*\$?([\d,]+)', complete_context)
+                    if retirement_match:
+                        context_facts["retirement_goal"] = retirement_match.group(1).replace(',', '')
+                    
+                    progress_match = re.search(r'progress.*?([\d.]+)%', complete_context)
+                    if progress_match:
+                        context_facts["retirement_progress"] = progress_match.group(1)
+                    
+                    years_match = re.search(r'([\d.]+)\s*years.*?goal', complete_context)
+                    if years_match:
+                        context_facts["years_to_goal"] = years_match.group(1)
+                
+                # Filter out None values
+                context_facts = {k: v for k, v in context_facts.items() if v is not None}
+                
+                logger.info(f"✅ Complete context loaded: {len(complete_context)} chars, Real Estate: {context_facts.get('real_estate_allocation', 'N/A')}%, Expenses: ${context_facts.get('monthly_expenses', 'N/A')}")
+                    
+            except Exception as e:
+                logger.error(f"❌ Complete context failed: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+        
+        # Try AgenticRAG but pass the complete context to it
+        use_agentic_rag = False  # Temporarily disable AgenticRAG until we can pass context to it
+        
+        if use_agentic_rag:
+            try:
+                logger.info(f"🤖 Using Agentic RAG with complete context...")
+                # TODO: Modify AgenticRAG to accept and use complete_context
+                pass
+            except Exception as e:
+                logger.error(f"❌ Agentic RAG failed: {e}, using direct LLM")
+                # Continue to use direct LLM with complete context
+        
+        if insight_type != "general_chat":
+            # Financial question - use pre-loaded COMPLETE context
+            logger.info(f"🔬 Using pre-loaded complete financial context...")
+            
+            if complete_context:
+                vector_context = str(complete_context)
+                vector_context_items = [complete_context]
+                logger.info(f"📊 Using complete context: {len(vector_context)} chars")
             else:
-                enhanced_prompt = f"""
-{prompt}
+                vector_context = "Complete financial context unavailable."
+                vector_context_items = []
+                logger.error("❌ No complete context available")
+            
+            # Build prompt using COMPLETE context (conversation memory already included)
+            enhanced_prompt = f"""You are a financial advisor with access to COMPLETE FINANCIAL CONTEXT
+for {current_user.first_name}'s financial situation.
 
-RELEVANT CONTEXT FROM YOUR FINANCIAL HISTORY:
+Use the complete financial data provided to give accurate, specific answers.
+Reference specific numbers from the context in every response.
+
+COMPLETE FINANCIAL CONTEXT (USE THIS AS PRIMARY DATA SOURCE):
 {vector_context}
 
-INSTRUCTIONS: Use the above context to provide personalized, specific advice based on the user's actual financial history and preferences, not generic recommendations.
+CRITICAL INSTRUCTIONS:
+1. Use ONLY the specific data from the COMPLETE FINANCIAL CONTEXT above  
+2. Reference exact dollar amounts and percentages from the context
+3. Do NOT give generic advice - use the user's actual financial numbers
+4. If real estate allocation is mentioned, use the percentage from the complete context
+5. Build on previous conversation context when relevant (conversation history is included in the context above)
 """
             
             # Get LLM response
@@ -241,21 +320,61 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             except Exception:
                 pass
 
+            # Map insight levels to LLM modes
+            llm_mode_map = {
+                "focused": "direct",
+                "balanced": "balanced", 
+                "comprehensive": "comprehensive"
+            }
+            llm_mode = llm_mode_map.get(request.insight_level, "balanced")
+            
+            # Override system prompt for stress testing questions
+            stress_test_keywords = ['crash', 'drop', 'decline', 'lose', 'market down', 'recession', 'bear market']
+            is_stress_test = any(keyword in request.message.lower() for keyword in stress_test_keywords)
+            
+            if is_stress_test:
+                system_prompt = """You are a financial calculator that MUST perform calculations with the data provided.
+                
+CRITICAL OVERRIDE: For market crash/stress test questions, you HAVE ALL DATA NEEDED.
+- Current investments: Use the investment amounts in the context
+- Current real estate: Use the real estate amounts in the context  
+- NEVER say "need more information" - calculate with the provided numbers
+- ALWAYS show step-by-step arithmetic calculations
+- Be decisive with specific recovery timelines"""
+            else:
+                system_prompt = "Financial advisor using the COMPLETE FINANCIAL CONTEXT and conversation memory."
+            
             llm_request = LLMRequest(
                 provider=chosen_provider,
                 model_tier=request.model_tier,
-                system_prompt="Financial advisor using provided facts and user's financial history",
+                system_prompt=system_prompt,
                 user_prompt=f"{enhanced_prompt}\n\nUser: {request.message}",
-                mode=request.insight_level
+                mode=llm_mode
                 # Temperature will be set by LLM service based on mode
             )
             response = await llm_service.generate(llm_request)
             
-            # Store LLM payload for debugging
+            # CRITICAL FIX: Store memory IMMEDIATELY after LLM response to fix timing issue
+            print(f"TIMING FIX - Storing memory IMMEDIATELY after LLM response")
+            vector_chat_memory_service.add_message_pair(
+                user_id=current_user.id,
+                user_message=request.message,
+                ai_response=response.content,
+                intent=insight_type
+            )
+            
+            # Validate response specificity using pre-extracted context facts
+            validation_score = _validate_response_specificity(
+                response.content, context_facts, vector_context
+            )
+            logger.info(f"🔍 Response validation score: {validation_score['score']}/10")
+            
+            # Store enhanced LLM payload for debugging with validation data
             store_llm_payload(current_user.id, {
                 "query": request.message,
                 "provider": request.provider,
                 "model_tier": request.model_tier,
+                "insight_level": request.insight_level,
                 "system_prompt": "Financial advisor using provided facts and user's financial history",
                 "user_message": f"{enhanced_prompt}\n\nUser: {request.message}",
                 "context_used": json.dumps({
@@ -263,36 +382,36 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
                     "conversation_context_included": bool(conversation_context.get("recent_messages")),
                     "vector_context_included": bool(vector_context_items),
                     "vector_context_items": len(vector_context_items) if vector_context_items else 0,
-                    "facts_keys": list(facts.keys()) if facts else []
+                    "facts_keys": list(context_facts.keys()) if context_facts else [],
+                    "validation_score": validation_score['score'],
+                    "validation_passed": validation_score['validation_passed'],
+                    "complete_context_used": True,
+                    "insight_level": request.insight_level
                 }),
-                "llm_response": response.content if hasattr(response, 'content') else str(response)
+                "llm_response": response.content if hasattr(response, 'content') else str(response),
+                "validation_details": validation_score
             })
             
-            # Validate
+            # Validate using complete context facts
             engine = TrustEngine()
-            validated = engine.validate(response.content, facts)
+            validated = engine.validate(response.content, context_facts or {})
             
-            # Save conversation to memory
-            memory_service.add_message_pair(
-                session=session,
-                user_message=request.message,
-                assistant_response=validated["response"],
-                intent_detected=insight_type,
-                context_used={
-                    "financial_data_included": True,
-                    "conversation_context_included": bool(conversation_context.get("recent_messages")),
-                    "vector_context_included": bool(vector_context_items)
-                },
-                tokens_used=0,  # Simple endpoint doesn't track tokens
-                model_used=request.model_tier,
-                provider=request.provider
-            )
+            # Store chat interaction in vector store for future memory
+            _store_chat_interaction(current_user.id, request.message, validated["response"], context_facts or {})
+            
+            # Memory is now stored immediately after LLM response (line 264-280) - no duplicate needed
+            
+            logger.info("Conversation saved to memory",
+                       session_id=session.get("session_id"),
+                       new_message_count=session.get("message_count"),
+                       intent_detected=insight_type,
+                       memory_context_included=bool(conversation_context.get("recent_messages")))
             
             return ChatResponse(
                 response=validated["response"],
                 confidence=validated["confidence"],
-                warnings=facts.get("_warnings", []),
-                session_id=session.session_id
+                warnings=validation_score.get("issues", []),
+                session_id=session.get("session_id")
             )
         else:
             # General chat
@@ -309,12 +428,33 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
             except Exception:
                 pass
 
+            # Map insight levels to LLM modes for general chat
+            llm_mode_map = {
+                "focused": "direct",
+                "balanced": "balanced", 
+                "comprehensive": "comprehensive"
+            }
+            llm_mode = llm_mode_map.get(request.insight_level, "balanced")
+            
+            # Include conversation memory in general chat too
+            if conversation_text:
+                enhanced_prompt = f"""Previous conversation context:
+{conversation_text}
+
+Current question: {request.message}
+
+Please respond naturally building on the conversation context above."""
+                print(f"GENERAL CHAT MEMORY - Enhanced prompt with {len(conversation_text)} chars of context")
+            else:
+                enhanced_prompt = request.message
+                print(f"GENERAL CHAT MEMORY - No context available, using raw message")
+            
             llm_request = LLMRequest(
                 provider=chosen_provider,
                 model_tier=request.model_tier,
-                system_prompt="Helpful assistant",
-                user_prompt=request.message,
-                mode=request.insight_level
+                system_prompt="You are a helpful assistant. Build on previous conversation context when provided.",
+                user_prompt=enhanced_prompt,
+                mode=llm_mode
                 # Temperature will be set by LLM service based on mode
             )
             response = await llm_service.generate(llm_request)
@@ -335,31 +475,25 @@ INSTRUCTIONS: Use the above context to provide personalized, specific advice bas
                 "llm_response": response.content if hasattr(response, 'content') else str(response)
             })
             
-            # Save conversation to memory
-            memory_service.add_message_pair(
-                session=session,
+            # Save conversation to memory (general chat)
+            vector_chat_memory_service.add_message_pair(
+                user_id=current_user.id,
                 user_message=request.message,
-                assistant_response=response.content,
-                intent_detected="general_chat",
-                context_used={
-                    "financial_data_included": False,
-                    "conversation_context_included": bool(conversation_context.get("recent_messages")),
-                    "vector_context_included": False
-                },
-                tokens_used=0,
-                model_used=request.model_tier,
-                provider=request.provider
+                ai_response=response.content,
+                intent="general_chat"
             )
             
             return ChatResponse(
                 response=response.content,
                 confidence="HIGH",
                 warnings=[],
-                session_id=session.session_id
+                session_id=session.get("session_id")
             )
             
     except Exception as e:
+        import traceback
         logger.error(f"Chat error: {e}")
+        logger.error(f"Chat error traceback: {traceback.format_exc()}")
         return ChatResponse(
             response="I couldn't process that. Please try again.",
             confidence="LOW",
@@ -392,17 +526,21 @@ def _detect_insight_type(message: str) -> str:
         'retire': 1.0, 'retirement': 1.0, 'goal': 0.9, 'goals': 0.9,
         'fire': 1.0, 'target': 0.8, 'independence': 0.9, 'independent': 0.9,
         'ready': 0.7, 'on track': 0.9, 'progress': 0.8, 'timeline': 0.8,
-        'enough': 0.7, 'sufficient': 0.7, 'plan': 0.6, 'planning': 0.6
+        'enough': 0.7, 'sufficient': 0.7, 'plan': 0.6, 'planning': 0.6,
+        'social security': 1.0, 'ss benefits': 0.95, 'benefits': 0.8
     }
     
     # General financial health indicators get routed to comprehensive analysis
     general_finance_words = {
         'financial health': 1.0, 'financial picture': 0.9, 'financial situation': 0.9,
+        'finances': 0.95, 'financial': 0.8, 'complete finances': 1.0,
+        'complete financial': 0.95, 'my finances': 0.9, 'show me my finances': 1.0,
         'net worth': 0.95, 'worth': 0.8, 'assets': 0.8, 'wealth': 0.8,
         'income': 0.7, 'expenses': 0.7, 'budget': 0.7, 'savings': 0.7,
         'debt': 0.8, 'liabilities': 0.8, 'emergency fund': 0.8,
         'how am i doing': 1.0, 'where do i stand': 0.9, 'status': 0.6,
-        'overview': 0.7, 'summary': 0.7, 'assessment': 0.8, 'review': 0.7,
+        'overview': 0.7, 'summary': 0.7, 'complete': 0.6, 'full': 0.6,
+        'assessment': 0.8, 'review': 0.7, 'show me': 0.5,
         'advice': 0.6, 'recommend': 0.6, 'suggestions': 0.6, 'help': 0.5
     }
     
@@ -430,3 +568,159 @@ def _calculate_phrase_score(message: str, keyword_dict: dict) -> float:
         if phrase in message:
             total_score += weight
     return total_score
+
+def _validate_response_specificity(response: str, facts: dict, context: str) -> dict:
+    """Validate that response contains specific financial data, not generic advice"""
+    validation_score = {
+        "score": 0,
+        "max_score": 10,
+        "specific_numbers_found": 0,
+        "generic_phrases_detected": 0,
+        "facts_referenced": 0,
+        "validation_passed": False,
+        "issues": []
+    }
+    
+    # Check for specific dollar amounts (high value)
+    import re
+    dollar_matches = re.findall(r'\$[\d,]+', response)
+    validation_score["specific_numbers_found"] = len(dollar_matches)
+    validation_score["score"] += min(len(dollar_matches) * 2, 6)  # Max 6 points for numbers
+    
+    # Check for percentage values
+    percentage_matches = re.findall(r'\d+\.?\d*%', response)
+    validation_score["score"] += min(len(percentage_matches), 2)  # Max 2 points for percentages
+    
+    # Penalize generic financial advice phrases
+    generic_phrases = [
+        'it depends', 'generally speaking', 'typically', 'usually',
+        'you should consider', 'it might be wise', 'you may want to',
+        'financial advisors often recommend', 'a common rule of thumb'
+    ]
+    
+    for phrase in generic_phrases:
+        if phrase.lower() in response.lower():
+            validation_score["generic_phrases_detected"] += 1
+            validation_score["score"] -= 1  # Penalty for generic advice
+            validation_score["issues"].append(f"Generic phrase detected: '{phrase}'")
+    
+    # Check if key facts are referenced
+    if facts:
+        fact_keys = ['net_worth', 'monthly_income', 'monthly_expenses', 'retirement_goal', 'savings_rate']
+        for key in fact_keys:
+            if key in facts and str(facts[key]) in response:
+                validation_score["facts_referenced"] += 1
+    
+    # Special reward for real estate allocation usage (critical fix from audit)
+    real_estate_bonus = 0
+    if facts and 'real_estate_allocation' in facts:
+        real_estate_value = str(facts['real_estate_allocation'])
+        if real_estate_value in response or f"{real_estate_value}%" in response:
+            real_estate_bonus = 2  # Extra bonus for using real estate allocation
+            validation_score["facts_referenced"] += 1
+            validation_score["issues"].append(f"✅ Real estate allocation used: {real_estate_value}%")
+    
+    validation_score["score"] += validation_score["facts_referenced"] + real_estate_bonus  # Bonus for using facts
+    
+    # Determine if validation passed (adjusted thresholds)
+    validation_score["validation_passed"] = (
+        validation_score["score"] >= 4 and 
+        validation_score["specific_numbers_found"] >= 1 and
+        validation_score["generic_phrases_detected"] <= 2
+    )
+    
+    if not validation_score["validation_passed"]:
+        if validation_score["specific_numbers_found"] < 2:
+            validation_score["issues"].append("Insufficient specific numbers (need at least 2)")
+        if validation_score["generic_phrases_detected"] > 2:
+            validation_score["issues"].append("Too many generic phrases")
+        if validation_score["score"] < 5:
+            validation_score["issues"].append(f"Overall score too low: {validation_score['score']}/10")
+    
+    return validation_score
+
+def _store_chat_interaction(user_id: int, user_message: str, assistant_response: str, financial_facts: dict):
+    """Store chat interaction in vector store for future memory and intelligence"""
+    try:
+        from app.services.simple_vector_store import get_vector_store
+        import json
+        from datetime import datetime
+        
+        vector_store = get_vector_store()
+        
+        # Store individual interaction
+        interaction_id = f"user_{user_id}_chat_{int(datetime.now().timestamp())}"
+        interaction_content = f"""User Question: {user_message}
+        
+Assistant Response: {assistant_response}
+        
+Financial Context: Net Worth: ${financial_facts.get('net_worth', 0):,.0f}, Monthly Income: ${financial_facts.get('monthly_income', 0):,.0f}"""
+        
+        vector_store.add_document(
+            doc_id=interaction_id,
+            content=interaction_content,
+            metadata={
+                "user_id": user_id,
+                "timestamp": datetime.now().isoformat(),
+                "type": "chat_interaction",
+                "user_message": user_message[:200],
+                "assistant_response": assistant_response[:200]
+            }
+        )
+        
+        # Update or create user intelligence document
+        intelligence_id = f"user_{user_id}_chat_intelligence"
+        existing_intelligence = vector_store.get_document(intelligence_id)
+        
+        # Extract key information for intelligence
+        intelligence_data = {
+            "financial_decisions": [],
+            "stated_preferences": [],
+            "action_items": [],
+            "last_updated": datetime.now().isoformat()
+        }
+        
+        # Load existing intelligence if available
+        if existing_intelligence and hasattr(existing_intelligence, 'content'):
+            try:
+                existing_data = json.loads(existing_intelligence.content)
+                intelligence_data.update(existing_data)
+            except json.JSONDecodeError:
+                pass
+        
+        # Analyze current interaction for intelligence
+        if any(word in user_message.lower() for word in ['buy', 'sell', 'invest', 'allocate']):
+            decision = f"Considering: {user_message[:100]}"
+            if decision not in intelligence_data["financial_decisions"]:
+                intelligence_data["financial_decisions"].append(decision)
+        
+        if any(word in user_message.lower() for word in ['prefer', 'like', 'want', 'need']):
+            preference = f"Preference: {user_message[:100]}"
+            if preference not in intelligence_data["stated_preferences"]:
+                intelligence_data["stated_preferences"].append(preference)
+        
+        if any(word in assistant_response.lower() for word in ['should', 'recommend', 'consider', 'next step']):
+            action = f"Recommended: {assistant_response[:100]}"
+            if action not in intelligence_data["action_items"]:
+                intelligence_data["action_items"].append(action)
+        
+        # Keep only recent items (last 10)
+        for key in ['financial_decisions', 'stated_preferences', 'action_items']:
+            intelligence_data[key] = intelligence_data[key][-10:]
+        
+        # Store updated intelligence
+        vector_store.add_document(
+            doc_id=intelligence_id,
+            content=json.dumps(intelligence_data),
+            metadata={
+                "user_id": user_id,
+                "type": "chat_intelligence",
+                "last_updated": intelligence_data["last_updated"]
+            }
+        )
+        
+        logger.info(f"💾 Chat interaction stored for user {user_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to store chat interaction: {str(e)}")
+        # Don't fail the chat if storage fails

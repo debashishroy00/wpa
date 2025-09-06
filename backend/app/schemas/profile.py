@@ -119,6 +119,10 @@ class UserBenefitBase(BaseModel):
     spouse_benefit_eligible: Optional[bool] = False
     spouse_benefit_amount: Optional[Decimal] = None
     
+    # Additional Social Security fields
+    social_security_estimated_benefit: Optional[Decimal] = None
+    social_security_claiming_age: Optional[int] = None
+    
     # Pension specific
     pension_type: Optional[str] = Field(None, max_length=50)  # defined_benefit, defined_contribution
     vesting_schedule: Optional[str] = Field(None, max_length=100)
@@ -132,9 +136,18 @@ class UserBenefitBase(BaseModel):
     health_insurance_premium: Optional[Decimal] = None
     employer_contribution: Optional[Decimal] = None
     
+    # Additional 401k fields  
+    employer_401k_match_formula: Optional[str] = None
+    employer_401k_vesting_schedule: Optional[str] = None
+    max_401k_contribution: Optional[Decimal] = None
+    
     # Government benefits
     benefit_start_date: Optional[date] = None
     benefit_end_date: Optional[date] = None
+    
+    # Additional pension/benefit fields
+    pension_details: Optional[str] = None
+    other_benefits: Optional[str] = None
     
     # Additional details
     notes: Optional[str] = None
@@ -153,6 +166,8 @@ class UserBenefitUpdate(BaseModel):
     delayed_retirement_increase: Optional[Decimal] = Field(None, ge=0, le=100)
     spouse_benefit_eligible: Optional[bool] = None
     spouse_benefit_amount: Optional[Decimal] = None
+    social_security_estimated_benefit: Optional[Decimal] = None
+    social_security_claiming_age: Optional[int] = None
     pension_type: Optional[str] = Field(None, max_length=50)
     vesting_schedule: Optional[str] = Field(None, max_length=100)
     vested_percentage: Optional[Decimal] = Field(None, ge=0, le=100)
@@ -162,8 +177,13 @@ class UserBenefitUpdate(BaseModel):
     employer_match_limit: Optional[Decimal] = None
     health_insurance_premium: Optional[Decimal] = None
     employer_contribution: Optional[Decimal] = None
+    employer_401k_match_formula: Optional[str] = None
+    employer_401k_vesting_schedule: Optional[str] = None
+    max_401k_contribution: Optional[Decimal] = None
     benefit_start_date: Optional[date] = None
     benefit_end_date: Optional[date] = None
+    pension_details: Optional[str] = None
+    other_benefits: Optional[str] = None
     notes: Optional[str] = None
 
 

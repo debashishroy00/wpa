@@ -216,7 +216,24 @@ const FinancialAdvisorChat: React.FC = () => {
             return;
         }
 
-        const sessionId = `chat_${userId}_${Date.now()}`;
+        // Get or create persistent session ID
+        const getOrCreateSessionId = () => {
+            const storageKey = `wpa_session_${userId}`;
+            let sessionId = localStorage.getItem(storageKey);
+            
+            if (!sessionId) {
+                // Generate persistent session ID that doesn't change
+                sessionId = `chat_${userId}_persistent`;
+                localStorage.setItem(storageKey, sessionId);
+                console.log('✨ Created new persistent session ID:', sessionId);
+            } else {
+                console.log('♻️ Using existing persistent session ID:', sessionId);
+            }
+            
+            return sessionId;
+        };
+
+        const sessionId = getOrCreateSessionId();
         const session: ChatSession = {
             sessionId,
             userId,

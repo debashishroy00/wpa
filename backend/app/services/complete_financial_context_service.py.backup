@@ -8,7 +8,6 @@ from typing import Dict, List, Any
 from sqlalchemy.orm import Session
 import logging
 from decimal import Decimal
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,11 @@ class CompleteFinancialContextService:
     """Service that provides the COMPLETE financial picture"""
     
     def build_complete_context(self, user_id: int, db: Session, user_query: str = "", insight_level: str = "balanced") -> str:
-        """Build complete context with financial data AND conversation memory"""
+        """
+        Build the complete financial context that includes EVERYTHING
+        
+        This is the definitive financial picture - no more partial data!
+        """
         try:
             # Get complete financial data
             financial_data = self._get_complete_financial_data(user_id, db)
@@ -25,12 +28,8 @@ class CompleteFinancialContextService:
             if 'error' in financial_data:
                 return f"Error loading financial data: {financial_data['error']}"
             
-            # Build financial context only (memory handled at endpoint level)
-            return self._build_financial_context(
-                financial_data, 
-                user_query, 
-                insight_level
-            )
+            # REMOVED: Health score calculation (calculate on-demand instead)
+            # This reduces token costs by ~200 tokens per request and eliminates staleness
             
             # Build context based on insight level
             if insight_level == "focused":
@@ -205,311 +204,6 @@ Example:
             logger.error(f"Error building complete context for user {user_id}: {str(e)}")
             return f"Error building financial context: {str(e)}"
     
-    def _get_chat_memory(self, user_id: int, db: Session) -> Dict:
-        """Retrieve conversation history and session memory"""
-        try:
-            from ..models.chat import ChatMessage, ChatSession
-            from .simple_vector_store import get_vector_store
-            
-            # Get recent messages from ChatMessage table (newest first)
-            recent_messages = db.query(ChatMessage).filter(
-                ChatMessage.user_id == user_id
-            ).order_by(ChatMessage.created_at.desc()).limit(20).all()  # Get 20 to have 10 exchanges
-            
-            # Pair them into conversations (user + assistant) - handle DESC order properly
-            recent_chats = []
-            user_msg = None
-            assistant_msg = None
-            
-            for message in recent_messages:
-                if message.role == 'user' and user_msg is None:
-                    user_msg = message
-                elif message.role == 'assistant' and assistant_msg is None:
-                    assistant_msg = message
-                
-                # When we have both, create the conversation pair
-                if user_msg and assistant_msg:
-                    # Ensure they're from the same conversation (within reasonable time)
-                    time_diff = abs((user_msg.created_at - assistant_msg.created_at).total_seconds())
-                    if time_diff < 300:  # Within 5 minutes
-                        recent_chats.append({
-                            'user_message': user_msg.content,
-                            'assistant_response': assistant_msg.content,
-                            'created_at': max(user_msg.created_at, assistant_msg.created_at)
-                        })
-                    user_msg = None
-                    assistant_msg = None
-                    
-                    if len(recent_chats) >= 10:  # Limit to 10 conversation pairs
-                        break
-            
-            # Get chat intelligence from vector store
-            vector_store = get_vector_store()
-            chat_intelligence = vector_store.get_document(f"user_{user_id}_chat_intelligence")
-            
-            memory = {
-                'recent_conversations': [],
-                'key_decisions': [],
-                'user_preferences': [],
-                'pending_actions': []
-            }
-            
-            # Debug logging
-            logger.info(f"🧠 Memory retrieval for user {user_id}: found {len(recent_messages)} messages, {len(recent_chats)} conversation pairs")
-            
-            # Process conversations (already in reverse chronological order)
-            for chat in recent_chats:
-                memory['recent_conversations'].append({
-                    'user': chat.get('user_message', '')[:200],  # Limit length
-                    'assistant': chat.get('assistant_response', '')[:200],
-                    'timestamp': chat.get('created_at').isoformat() if chat.get('created_at') and hasattr(chat.get('created_at'), 'isoformat') else str(chat.get('created_at', ''))
-                })
-            
-            # Extract intelligence if available
-            if chat_intelligence and hasattr(chat_intelligence, 'content') and isinstance(chat_intelligence.content, str):
-                try:
-                    import json
-                    content = json.loads(chat_intelligence.content)
-                    memory['key_decisions'] = content.get('financial_decisions', [])[:5]
-                    memory['user_preferences'] = content.get('stated_preferences', [])[:5]
-                    memory['pending_actions'] = content.get('action_items', [])[:5]
-                except json.JSONDecodeError:
-                    pass
-            
-            return memory
-            
-        except Exception as e:
-            logger.warning(f"Could not retrieve chat memory: {str(e)}")
-            return {'recent_conversations': [], 'key_decisions': [], 'user_preferences': [], 'pending_actions': []}
-
-    def _build_financial_context(self, financial_data: Dict, user_query: str, insight_level: str) -> str:
-        """Build financial context that FORCES specific data usage"""
-        
-        # Calculate key metrics for enforcement
-        total_assets = financial_data.get('total_assets', 0)
-        if total_assets > 0:
-            real_estate_pct = (financial_data['real_estate_properties']['total'] / total_assets) * 100
-            investment_pct = (financial_data['investment_accounts']['total'] / total_assets) * 100
-            retirement_pct = (financial_data['retirement_accounts']['total'] / total_assets) * 100
-            cash_pct = (financial_data['cash_accounts']['total'] / total_assets) * 100
-        else:
-            real_estate_pct = investment_pct = retirement_pct = cash_pct = 0
-        
-        # Build the financial context with strict enforcement
-        context = f"""===========================================================
-MANDATORY DATA USAGE REQUIREMENTS
-===========================================================
-YOU MUST use these EXACT numbers in your response:
-
-WEALTH METRICS:
-- Net Worth: ${financial_data['net_worth']:,.0f}
-- Monthly Income: ${financial_data['monthly_income']:,.0f}
-- Monthly Expenses: ${financial_data['monthly_expenses']:,.0f}
-- Monthly Surplus: ${financial_data['monthly_surplus']:,.0f}
-- Savings Rate: {financial_data.get('savings_rate', 0):.1f}%
-
-ASSET ALLOCATION (MUST reference for portfolio questions):
-- Real Estate: {real_estate_pct:.1f}% (${financial_data['real_estate_properties']['total']:,.0f})
-- Investments: {investment_pct:.1f}% (${financial_data['investment_accounts']['total']:,.0f})
-- Retirement: {retirement_pct:.1f}% (${financial_data['retirement_accounts']['total']:,.0f})
-- Cash: {cash_pct:.1f}% (${financial_data['cash_accounts']['total']:,.0f})
-
-RETIREMENT STATUS:
-- Goal: ${financial_data['retirement_goal']:,.0f}
-- Progress: {financial_data['retirement_progress']:.1f}%
-- Years to Goal: {financial_data['years_to_goal']:.1f}
-- Social Security: ${financial_data.get('social_security_monthly', 0):,.0f}/month (${financial_data.get('social_security_annual', 0):,.0f}/year) starting at age {financial_data.get('social_security_age', 67)}
-
-STANDARD FINANCIAL PLANNING ASSUMPTIONS (USE THESE FOR ALL CALCULATIONS):
-- Investment Growth Rate: 7% annually (long-term stock market average)
-- Conservative Growth Rate: 5% annually (for conservative projections)
-- Inflation Rate: 3% annually (Federal Reserve target)
-- Safe Withdrawal Rate: 4% annually (4% rule for retirement)
-- Healthcare Cost Growth: 6% annually (above general inflation)
-- Real Estate Appreciation: 3-4% annually (matches inflation)
-- Cash/CD Rates: 4.5-5.0% APY (current high-yield savings)
-- Emergency Fund: 6-12 months of expenses recommended
-- Retirement Income Need: 70-80% of pre-retirement income
-- 80% Rule: Assume retirement expenses = 80% of current monthly expenses (${int(financial_data['monthly_expenses'] * 0.8):,}/month)
-
-RETIREMENT CALCULATION METHODOLOGY:
-1. Monthly retirement need: ${int(financial_data['monthly_expenses'] * 0.8):,}/month - ${financial_data.get('social_security_monthly', 0):,.0f}/month (SS) = ${int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0):,.0f}/month from savings
-2. Annual need from savings: ${(int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12:,.0f}
-3. Total savings needed (4% rule): ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04:,.0f}
-4. Current liquid assets: ${financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']:,.0f}
-5. Gap to fill: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04 - (financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']):,.0f}
-6. With ${financial_data['monthly_surplus']:,.0f}/month savings at 7% growth: CALCULATE YEARS TO RETIREMENT
-
-STEP-BY-STEP CALCULATION EXAMPLE FOR "WHEN CAN I RETIRE?":
-ALWAYS SHOW THE ACTUAL MATH - DO NOT JUST SAY "approximately X years":
-
-Step 1: Gap calculation
-- Need: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04:,.0f}
-- Have: ${financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']:,.0f}  
-- Gap: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04 - (financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']):,.0f}
-
-Step 2: If gap > 0, calculate years:
-- Formula: ln(1 + (Gap × 0.07)/(Monthly_savings × 12)) / ln(1.07)
-- Plugging numbers: ln(1 + (Gap × 0.07)/(${financial_data['monthly_surplus']:,.0f} × 12)) / ln(1.07)
-- Calculate: 1 + (Gap × 0.07)/(${financial_data['monthly_surplus'] * 12:,.0f}) = X
-- Then: ln(X) / ln(1.07) = Y years
-- Result: Current age {financial_data.get('age', 54)} + Y = Retirement age
-
-Step 3: If gap ≤ 0: "You can retire NOW!"
-
-ALWAYS SHOW THESE ACTUAL CALCULATIONS - NO SHORTCUTS OR "APPROXIMATELY"
-
-STRESS TESTING CALCULATIONS (Market Crash/Negative Scenarios):
-You have ALL the data needed - NEVER say "need more information":
-- Current Investments: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f}
-- Current Real Estate: ${financial_data['real_estate_properties']['total']:,.0f}
-- Current Cash: ${financial_data['cash_accounts']['total']:,.0f}
-
-MARKET CRASH CALCULATION EXAMPLE (30% stocks, 15% real estate):
-1. Investment loss: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × 30% = ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30:,.0f}
-2. Real estate loss: ${financial_data['real_estate_properties']['total']:,.0f} × 15% = ${financial_data['real_estate_properties']['total'] * 0.15:,.0f}  
-3. Total loss: ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f}
-4. New net worth: ${financial_data['net_worth']:,.0f} - ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f} = ${financial_data['net_worth'] - (financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 - financial_data['real_estate_properties']['total'] * 0.15:,.0f}
-5. Recovery: With ${financial_data['monthly_surplus']:,.0f}/month at 7%
-6. NEVER avoid this calculation - USE THESE EXACT NUMBERS
-
-===========================================================
-USER'S CURRENT QUESTION: {user_query}
-===========================================================
-
-RESPONSE REQUIREMENTS:
-1. Use at least 3 specific numbers from above
-2. Reference previous conversations if relevant
-3. For portfolio questions, MUST mention {real_estate_pct:.1f}% real estate allocation
-4. For retirement questions, MUST mention Social Security: ${financial_data.get('social_security_monthly', 0):,.0f}/month
-5. ALWAYS use the Standard Financial Planning Assumptions above - NEVER ask for rates
-6. For retirement calculations, use 7% growth, 3% inflation, 4% withdrawal rate, and 80% expense rule
-7. CALCULATE actual retirement dates/years - don't say "requires more analysis"
-8. SHOW ALL ARITHMETIC: Do the math step-by-step, don't say "approximately X years"
-9. BE DECISIVE: Give specific numbers and timelines, not vague recommendations
-10. STRESS TEST CALCULATIONS: For market crash/negative scenarios, USE THE DATA YOU HAVE - don't ask for more info
-11. Build on any decisions or preferences from chat history
-12. NO generic advice without specific numbers
-
-===========================================================
-"""
-        
-        # Add detailed financial data based on insight level
-        if insight_level == "focused":
-            context += self._get_focused_details(financial_data)
-        elif insight_level == "comprehensive":
-            context += self._get_comprehensive_details(financial_data)
-        else:  # balanced
-            context += self._get_balanced_details(financial_data)
-        
-        # Add validation footer
-        context += f"""
-
-===========================================================
-PRE-RESPONSE VALIDATION CHECKLIST
-===========================================================
-Before responding, verify:
-□ Used at least 3 specific dollar amounts or percentages
-□ Referenced conversation history if relevant
-□ For portfolio questions: mentioned {real_estate_pct:.1f}% real estate
-□ For retirement questions: mentioned Social Security ${financial_data.get('social_security_monthly', 0):,.0f}/month
-□ Used standard assumptions (7% growth, 3% inflation, 4% withdrawal, 80% expenses) - NO rate requests
-□ For retirement timing questions: PROVIDED SPECIFIC YEAR/DATE - not "requires analysis"
-□ CALCULATED results using the methodology above - showed the math step-by-step
-□ NO "approximately" or shortcuts - showed actual arithmetic calculations
-□ For stress testing: CALCULATED with existing data - no "need more information" excuses
-□ Maintained consistency with previous advice
-□ Direct answer to: {user_query}
-
-FAILURE TO USE SPECIFIC DATA = INVALID RESPONSE
-
-CRITICAL: For "market crash" or "stress test" questions, you MUST use these calculations:
-Investment Loss = ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × crash %
-Real Estate Loss = ${financial_data['real_estate_properties']['total']:,.0f} × decline %
-DO NOT ask for more information - you have all data needed!
-==========================================================="""
-        
-        return context
-
-    def _get_focused_details(self, financial_data: Dict) -> str:
-        """Minimal essential data for quick responses"""
-        return f"""
-ESSENTIAL DATA:
-- Client: {financial_data['name']}, Age {financial_data['age']}, {financial_data['state']}
-- Net Worth: ${financial_data['net_worth']:,.0f}
-- Cash Flow: +${financial_data['monthly_surplus']:,.0f}/month
-- Liquid Assets: ${financial_data['cash_accounts']['total']:,.0f}
-"""
-
-    def _get_balanced_details(self, financial_data: Dict) -> str:
-        """Standard financial details"""
-        expense_breakdown = financial_data.get('expense_breakdown', [])
-        top_expenses = []
-        for category in expense_breakdown[:5]:
-            name = category.get('category', 'Unknown')
-            amount = category.get('monthly_amount', 0)
-            top_expenses.append(f"  • {name}: ${amount:,.0f}")
-        
-        return f"""
-COMPLETE FINANCIAL PROFILE:
-- {financial_data['name']}, Age {financial_data['age']}, {financial_data['state']}
-- {financial_data['marital_status']}, {financial_data['filing_status']}
-- Tax Bracket: {financial_data.get('tax_bracket', 'Unknown')}%
-
-EXPENSE BREAKDOWN:
-{chr(10).join(top_expenses) if top_expenses else '  • No breakdown available'}
-
-LIABILITIES:
-- Mortgage: ${financial_data.get('mortgage_balance', 0):,.0f}
-- Other Debt: ${financial_data.get('total_liabilities', 0) - financial_data.get('mortgage_balance', 0):,.0f}
-"""
-
-    def _get_comprehensive_details(self, financial_data: Dict) -> str:
-        """Full detailed analysis"""
-        # Include everything from balanced plus additional details
-        balanced = self._get_balanced_details(financial_data)
-        
-        return balanced + f"""
-
-DETAILED ACCOUNTS:
-{self._format_account_list(financial_data.get('retirement_accounts', {}).get('accounts', []))}
-{self._format_account_list(financial_data.get('investment_accounts', {}).get('accounts', []))}
-
-INSURANCE & ESTATE:
-{self._format_insurance_policies(financial_data.get('insurance_policies', []))}
-{self._format_estate_planning(financial_data.get('estate_planning', []))}
-"""
-
-    def _format_account_list(self, accounts: List) -> str:
-        """Format account list for display"""
-        if not accounts:
-            return "  • No accounts found"
-        
-        result = ""
-        for account in accounts:
-            result += f"  • {account.get('name', 'Unknown')}: ${account.get('balance', 0):,.0f}\n"
-        return result
-
-    def _format_insurance_policies(self, policies: List) -> str:
-        """Format insurance policies for display"""
-        if not policies:
-            return "  • No insurance policies on file"
-        
-        result = ""
-        for policy in policies:
-            result += f"  • {policy.get('type', 'Unknown')}: {policy.get('coverage_amount', 'Unknown')} coverage\n"
-        return result
-
-    def _format_estate_planning(self, estate_items: List) -> str:
-        """Format estate planning items for display"""
-        if not estate_items:
-            return "  • No estate planning documents on file"
-        
-        result = ""
-        for item in estate_items:
-            result += f"  • {item.get('type', 'Unknown')}: {item.get('description', 'No description')}\n"
-        return result
-
     def _get_complete_financial_data(self, user_id: int, db: Session) -> Dict[str, Any]:
         """Get ALL financial data with complete breakdown"""
         try:

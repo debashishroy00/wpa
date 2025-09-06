@@ -137,7 +137,11 @@
       "Read(\\mnt\\c\\projects/**)",
       "Read(\\mnt\\c\\projects/**)",
       "Read(\\mnt\\c\\projects/**)",
-      "Read(\\mnt\\c\\projects/**)"
+      "Read(\\mnt\\c\\projects/**)",
+      "Read(//c/mnt/c/projects/**)",
+      "mcp__playwright__browser_select_option",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_press_key"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

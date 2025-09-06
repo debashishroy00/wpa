@@ -14,7 +14,9 @@ import {
   CheckCircle,
   Plus,
   Edit,
-  Trash2
+  Trash2,
+  Save,
+  Loader2
 } from 'lucide-react';
 
 interface BenefitData {
@@ -63,6 +65,12 @@ const EnhancedBenefitsManagement: React.FC = () => {
     lump_sum_available: false
   });
 
+  // Save state management
+  const [isSavingSocialSecurity, setIsSavingSocialSecurity] = useState(false);
+  const [isSaving401k, setIsSaving401k] = useState(false);
+  const [socialSecuritySaveSuccess, setSocialSecuritySaveSuccess] = useState(false);
+  const [k401SaveSuccess, set401kSaveSuccess] = useState(false);
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
   const getAuthToken = () => {
@@ -97,6 +105,29 @@ const EnhancedBenefitsManagement: React.FC = () => {
       
       const response = await apiCall('/api/v1/profile/complete-profile');
       setBenefitsData({ benefits: response.benefits || [] });
+      
+      // Load saved Social Security data
+      const socialSecurityBenefit = response.benefits?.find((b: any) => b.benefit_type === 'social_security');
+      if (socialSecurityBenefit) {
+        setSocialSecurityData(prev => ({
+          ...prev,
+          estimated_benefit: socialSecurityBenefit.estimated_monthly_benefit?.toString() || '',
+          claiming_age: socialSecurityBenefit.social_security_claiming_age?.toString() || '67',
+          full_retirement_age: socialSecurityBenefit.full_retirement_age?.toString() || '67'
+        }));
+      }
+      
+      // Load saved 401(k) data
+      const k401Benefit = response.benefits?.find((b: any) => b.benefit_type === '401k');
+      if (k401Benefit) {
+        set401kData(prev => ({
+          ...prev,
+          match_formula: k401Benefit.employer_401k_match_formula || '',
+          vesting_schedule: k401Benefit.employer_401k_vesting_schedule || '',
+          employer_contribution: k401Benefit.employer_contribution?.toString() || '',
+          max_contribution: k401Benefit.max_401k_contribution?.toString() || ''
+        }));
+      }
       
     } catch (err: any) {
       setError(err.message);
@@ -163,6 +194,64 @@ const EnhancedBenefitsManagement: React.FC = () => {
       recommendations: recommendations,
       annualMatch: maxMatch * 12
     };
+  };
+
+  // Save handlers
+  const handleSaveSocialSecurity = async () => {
+    setIsSavingSocialSecurity(true);
+    setSocialSecuritySaveSuccess(false);
+    
+    try {
+      const response = await apiCall('/api/v1/profile/social-security', {
+        method: 'POST',
+        body: JSON.stringify({
+          estimated_monthly_benefit: parseFloat(socialSecurityData.estimated_benefit) || 0,
+          planned_claiming_age: parseInt(socialSecurityData.claiming_age) || 67,
+          full_retirement_age: parseInt(socialSecurityData.full_retirement_age) || 67
+        })
+      });
+
+      if (response.status === 'success') {
+        setSocialSecuritySaveSuccess(true);
+        setTimeout(() => setSocialSecuritySaveSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to save Social Security data:', error);
+      setError('Failed to save Social Security data. Please try again.');
+    } finally {
+      setIsSavingSocialSecurity(false);
+    }
+  };
+
+  const handleSave401k = async () => {
+    setIsSaving401k(true);
+    set401kSaveSuccess(false);
+    
+    try {
+      const response = await apiCall('/api/v1/profile/401k', {
+        method: 'POST',
+        body: JSON.stringify({
+          employer_match_formula: k401Data.match_formula || '',
+          vesting_schedule: k401Data.vesting_schedule || '',
+          annual_salary: parseFloat(k401Data.employer_contribution) || 0,
+          annual_401k_limit: parseFloat(k401Data.max_contribution) || 23000
+        })
+      });
+
+      if (response.status === 'success') {
+        set401kSaveSuccess(true);
+        // Trigger vector store sync for complete context update
+        await apiCall('/api/v1/profile/sync-vector-store', {
+          method: 'POST'
+        });
+        setTimeout(() => set401kSaveSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to save 401(k) data:', error);
+      setError('Failed to save 401(k) data. Please try again.');
+    } finally {
+      setIsSaving401k(false);
+    }
   };
 
   useEffect(() => {
@@ -318,6 +407,41 @@ const EnhancedBenefitsManagement: React.FC = () => {
                   })()}
                 </div>
               )}
+
+              {/* Save Button for Social Security */}
+              <div className="flex justify-end mt-4 pt-4 border-t border-gray-700">
+                <Button
+                  onClick={handleSaveSocialSecurity}
+                  disabled={isSavingSocialSecurity}
+                  className={`
+                    px-4 py-2 font-medium transition-all flex items-center space-x-2
+                    ${isSavingSocialSecurity 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : socialSecuritySaveSuccess 
+                        ? 'bg-green-500 hover:bg-green-600' 
+                        : 'bg-blue-500 hover:bg-blue-600'
+                    }
+                    text-white
+                  `}
+                >
+                  {isSavingSocialSecurity ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : socialSecuritySaveSuccess ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Saved!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -376,7 +500,7 @@ const EnhancedBenefitsManagement: React.FC = () => {
                   <label className="text-white block mb-2">Annual 401k Limit (2024)</label>
                   <Input
                     type="number"
-                    placeholder="23000"
+                    placeholder="Enter annual 401k contribution limit"
                     className="bg-gray-800 border-gray-600 text-white"
                     value={k401Data.max_contribution}
                     onChange={(e) => set401kData({...k401Data, max_contribution: e.target.value})}
@@ -413,6 +537,41 @@ const EnhancedBenefitsManagement: React.FC = () => {
                   })()}
                 </div>
               )}
+
+              {/* Save Button for 401k */}
+              <div className="flex justify-end mt-4 pt-4 border-t border-gray-700">
+                <Button
+                  onClick={handleSave401k}
+                  disabled={isSaving401k}
+                  className={`
+                    px-4 py-2 font-medium transition-all flex items-center space-x-2
+                    ${isSaving401k 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : k401SaveSuccess 
+                        ? 'bg-green-500 hover:bg-green-600' 
+                        : 'bg-blue-500 hover:bg-blue-600'
+                    }
+                    text-white
+                  `}
+                >
+                  {isSaving401k ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : k401SaveSuccess ? (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Saved!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
         </div>

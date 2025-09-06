@@ -1,0 +1,31 @@
+{
+  "generated_at": "2025-09-06T17:36:10.224064Z",
+  "host": "9dfaf8f7cb9b",
+  "sections": {
+    "vector_store": {
+      "ok": false,
+      "stdout": "",
+      "stderr": "/usr/local/bin/python: can't open file '/app/audit_test/audit_vector_data.py': [Errno 2] No such file or directory\n"
+    },
+    "context_generation": {
+      "ok": false,
+      "stdout": "",
+      "stderr": "/usr/local/bin/python: can't open file '/app/audit_test/trace_context_generation.py': [Errno 2] No such file or directory\n"
+    },
+    "endpoint_integration": {
+      "ok": false,
+      "stdout": "",
+      "stderr": "/usr/local/bin/python: can't open file '/app/audit_test/audit_chat_endpoint.py': [Errno 2] No such file or directory\n"
+    },
+    "llm_calls": {
+      "ok": false,
+      "stdout": "",
+      "stderr": "/usr/local/bin/python: can't open file '/app/audit_test/intercept_llm_calls.py': [Errno 2] No such file or directory\n"
+    },
+    "data_accuracy": {
+      "ok": false,
+      "stdout": "",
+      "stderr": "/usr/local/bin/python: can't open file '/app/audit_test/verify_data_accuracy.py': [Errno 2] No such file or directory\n"
+    }
+  }
+}

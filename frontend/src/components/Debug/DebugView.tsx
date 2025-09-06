@@ -428,20 +428,6 @@ const DebugView: React.FC = () => {
                 <MessageSquare className="w-6 h-6 mr-2 text-purple-400" />
                 Last LLM Payload
               </h2>
-              {llmPayload?.analysis && (
-                <div className="flex gap-2">
-                  {llmPayload.analysis.has_goals ? (
-                    <Badge variant="outline" className="text-green-400 border-green-400">Goals ✓</Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-red-400 border-red-400">No Goals</Badge>
-                  )}
-                  {llmPayload.analysis.has_dti ? (
-                    <Badge variant="outline" className="text-green-400 border-green-400">DTI ✓</Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-red-400 border-red-400">No DTI</Badge>
-                  )}
-                </div>
-              )}
             </div>
 
             {llmPayload ? (
@@ -465,6 +451,10 @@ const DebugView: React.FC = () => {
                         <span className="font-mono">{llmPayload.provider}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-gray-400">Response Depth:</span>
+                        <span className="font-mono text-yellow-400">{llmPayload.insight_level || llmPayload.raw_payload?.insight_level || 'balanced'}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="text-gray-400">Timestamp:</span>
                         <span className="font-mono text-xs">{formatTimestamp(llmPayload.timestamp)}</span>
                       </div>
@@ -475,61 +465,60 @@ const DebugView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Analysis */}
-                  {llmPayload.analysis && (
-                    <div className="bg-gray-700 p-3 rounded">
-                      <h3 className="text-sm font-bold mb-2 text-yellow-400">Content Analysis</h3>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex items-center gap-2">
-                          {llmPayload.analysis.has_goals ? 
-                            <CheckCircle className="w-4 h-4 text-green-400" /> : 
-                            <AlertTriangle className="w-4 h-4 text-red-400" />
-                          }
-                          <span>Retirement Goals</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {llmPayload.analysis.has_dti ? 
-                            <CheckCircle className="w-4 h-4 text-green-400" /> : 
-                            <AlertTriangle className="w-4 h-4 text-red-400" />
-                          }
-                          <span>DTI Ratio {llmPayload.analysis.dti_value && `(${llmPayload.analysis.dti_value})`}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {llmPayload.analysis.has_interest_rates ? 
-                            <CheckCircle className="w-4 h-4 text-green-400" /> : 
-                            <AlertTriangle className="w-4 h-4 text-red-400" />
-                          }
-                          <span>Interest Rates</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Payload Details */}
+                  {/* Raw Payload Details */}
                   <div className="space-y-3">
-                    <details className="bg-gray-700 rounded">
+                    <details className="bg-gray-700 rounded" open>
                       <summary className="p-3 cursor-pointer hover:bg-gray-600 rounded flex items-center justify-between">
                         <span className="font-medium">System Prompt</span>
-                        <span className="text-xs text-gray-400">{llmPayload.analysis.system_prompt_size} chars</span>
+                        <span className="text-xs text-gray-400">{llmPayload.analysis?.system_prompt_size || 0} chars</span>
                       </summary>
                       <div className="px-3 pb-3">
-                        <pre className="text-xs bg-gray-800 p-2 rounded whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
-                          {llmPayload.system_prompt}
+                        <pre className="text-xs bg-gray-800 p-2 rounded whitespace-pre-wrap break-words max-h-96 overflow-y-auto">
+                          {llmPayload.system_prompt || 'No system prompt available'}
                         </pre>
                       </div>
                     </details>
 
-                    <details className="bg-gray-700 rounded">
+                    <details className="bg-gray-700 rounded" open>
                       <summary className="p-3 cursor-pointer hover:bg-gray-600 rounded flex items-center justify-between">
                         <span className="font-medium">User Message</span>
-                        <span className="text-xs text-gray-400">{llmPayload.analysis.user_message_size} chars</span>
+                        <span className="text-xs text-gray-400">{llmPayload.analysis?.user_message_size || 0} chars</span>
                       </summary>
                       <div className="px-3 pb-3">
-                        <pre className="text-xs bg-gray-800 p-2 rounded whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
-                          {llmPayload.user_message}
+                        <pre className="text-xs bg-gray-800 p-2 rounded whitespace-pre-wrap break-words max-h-96 overflow-y-auto">
+                          {llmPayload.user_message || 'No user message available'}
                         </pre>
                       </div>
                     </details>
+
+                    {llmPayload.context_used && (
+                      <details className="bg-gray-700 rounded">
+                        <summary className="p-3 cursor-pointer hover:bg-gray-600 rounded flex items-center justify-between">
+                          <span className="font-medium">Context Data</span>
+                          <span className="text-xs text-gray-400">JSON</span>
+                        </summary>
+                        <div className="px-3 pb-3">
+                          <pre className="text-xs bg-gray-800 p-2 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                            {typeof llmPayload.context_used === 'string' ? llmPayload.context_used : JSON.stringify(llmPayload.context_used, null, 2)}
+                          </pre>
+                        </div>
+                      </details>
+                    )}
+
+                    {(llmPayload.llm_response || llmPayload.raw_payload?.llm_response) && (
+                      <details className="bg-gray-700 rounded">
+                        <summary className="p-3 cursor-pointer hover:bg-gray-600 rounded flex items-center justify-between">
+                          <span className="font-medium">LLM Response</span>
+                          <span className="text-xs text-gray-400">{(llmPayload.llm_response || llmPayload.raw_payload?.llm_response || '').length} chars</span>
+                        </summary>
+                        <div className="px-3 pb-3">
+                          <pre className="text-xs bg-gray-800 p-2 rounded whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                            {llmPayload.llm_response || llmPayload.raw_payload?.llm_response || 'No response available'}
+                          </pre>
+                        </div>
+                      </details>
+                    )}
                   </div>
                 </div>
               )

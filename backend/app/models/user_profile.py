@@ -142,6 +142,19 @@ class UserBenefit(Base):
     benefit_start_date = Column(Date)
     benefit_end_date = Column(Date)
     
+    # Additional Social Security fields
+    social_security_estimated_benefit = Column(Numeric(8, 2))
+    social_security_claiming_age = Column(Integer)
+    
+    # Additional 401k fields  
+    employer_401k_match_formula = Column(String(200))
+    employer_401k_vesting_schedule = Column(String(200))
+    max_401k_contribution = Column(Numeric(12, 2))
+    
+    # Additional pension/benefit fields
+    pension_details = Column(Text)  # JSON field for complex pension data
+    other_benefits = Column(Text)   # JSON field for other benefit types
+    
     # Additional details
     notes = Column(Text)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

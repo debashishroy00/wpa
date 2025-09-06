@@ -160,7 +160,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 {message.context && (
                                     <div className="mt-3 pt-2 border-t border-gray-600 text-xs text-gray-400">
                                         <span className="opacity-60">
-                                            Context: Vector database + {message.context.split('\n').length} data points
+                                            Context: {(() => {
+                                                try {
+                                                    const contextData = typeof message.context === 'string' 
+                                                        ? JSON.parse(message.context) 
+                                                        : message.context;
+                                                    
+                                                    if (contextData.complete_context_used) {
+                                                        return 'Complete Financial Context';
+                                                    }
+                                                } catch (e) {
+                                                    // If parsing fails, check for string indicators
+                                                    if (message.context.includes('complete_context_used')) {
+                                                        return 'Complete Financial Context';
+                                                    }
+                                                }
+                                                
+                                                // Fallback to original format
+                                                const dataPoints = message.context.split('\n').length;
+                                                return `Vector database + ${dataPoints} data points`;
+                                            })()}
                                         </span>
                                     </div>
                                 )}

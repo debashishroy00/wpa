@@ -292,12 +292,12 @@ async def deep_health_check(db: Session = Depends(get_db)):
         # Application-specific checks
         try:
             # Check if we can import key services
-            from app.services.chat_memory_service import ChatMemoryService
+            from app.services.vector_chat_memory_service import vector_chat_memory_service
             from app.services.enhanced_intent_classifier import enhanced_intent_classifier
             
             checks["application_services"] = {
                 "status": "healthy",
-                "chat_memory_service": "available",
+                "vector_chat_memory_service": "available",
                 "intent_classifier": "available"
             }
             

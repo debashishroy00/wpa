@@ -4,6 +4,7 @@ Endpoints for managing user demographics, family, benefits, and tax information
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import List, Optional, Any
 from datetime import datetime, date
 
@@ -484,3 +485,142 @@ async def get_complete_profile(
         insurance_policies=insurance_policies,
         investment_preferences=investment_preferences
     )
+
+# ============== Specialized Profile Data Endpoints ==============
+
+from pydantic import BaseModel
+
+class SocialSecurityUpdate(BaseModel):
+    estimated_monthly_benefit: float
+    planned_claiming_age: int
+    full_retirement_age: int
+
+class FourOhOneKUpdate(BaseModel):
+    employer_match_formula: str
+    vesting_schedule: str
+    annual_salary: float
+    annual_401k_limit: float
+
+@router.post("/social-security")
+async def update_social_security(
+    data: SocialSecurityUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Update Social Security benefits information"""
+    
+    # Get or create user profile
+    profile = db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
+    if not profile:
+        profile = UserProfile(user_id=current_user.id)
+        db.add(profile)
+        db.flush()
+    
+    # Find or create Social Security benefit record
+    benefit = db.query(UserBenefit).filter(
+        UserBenefit.profile_id == profile.id,
+        UserBenefit.benefit_type == "social_security"
+    ).first()
+    
+    if not benefit:
+        benefit = UserBenefit(
+            profile_id=profile.id,
+            benefit_type="social_security",
+            benefit_name="Social Security"
+        )
+        db.add(benefit)
+    
+    # Update fields
+    benefit.estimated_monthly_benefit = data.estimated_monthly_benefit
+    benefit.full_retirement_age = data.full_retirement_age
+    benefit.social_security_claiming_age = data.planned_claiming_age
+    benefit.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(benefit)
+    
+    logger.info(f"Social Security data updated for user {current_user.id}")
+    
+    # Trigger vector store sync if available
+    try:
+        from app.services.vector_sync_service import sync_user_data
+        sync_user_data(current_user.id, db)
+    except ImportError:
+        logger.info("Vector sync service not available - skipping sync")
+    
+    return {"status": "success", "message": "Social Security data updated"}
+
+@router.post("/401k")  
+async def update_401k_settings(
+    data: FourOhOneKUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Update 401(k) settings - SIMPLIFIED"""
+    
+    # Direct SQL approach to ensure it works
+    profile = db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
+    if not profile:
+        profile = UserProfile(user_id=current_user.id)
+        db.add(profile)
+        db.commit()
+        db.refresh(profile)
+    
+    # Update or create 401k benefit using raw SQL to ensure it works
+    result = db.execute(text("""
+        UPDATE user_benefits 
+        SET 
+            employer_401k_match_formula = :formula,
+            employer_401k_vesting_schedule = :schedule,
+            employer_contribution = :salary,
+            max_401k_contribution = :limit,
+            updated_at = NOW()
+        WHERE profile_id = :profile_id AND benefit_type = '401k'
+        RETURNING id
+    """), {
+        'formula': data.employer_match_formula,
+        'schedule': data.vesting_schedule, 
+        'salary': data.annual_salary,
+        'limit': data.annual_401k_limit,
+        'profile_id': profile.id
+    })
+    
+    updated_rows = result.fetchall()
+    
+    if not updated_rows:
+        # Create new record
+        db.execute(text("""
+            INSERT INTO user_benefits 
+            (profile_id, benefit_type, benefit_name, employer_401k_match_formula, 
+             employer_401k_vesting_schedule, employer_contribution, max_401k_contribution, created_at, updated_at)
+            VALUES 
+            (:profile_id, '401k', '401(k) Plan', :formula, :schedule, :salary, :limit, NOW(), NOW())
+        """), {
+            'profile_id': profile.id,
+            'formula': data.employer_match_formula,
+            'schedule': data.vesting_schedule,
+            'salary': data.annual_salary, 
+            'limit': data.annual_401k_limit
+        })
+    
+    db.commit()
+    return {"status": "success", "message": "401(k) settings updated"}
+
+@router.post("/sync-vector-store")
+async def sync_vector_store(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Trigger vector store sync for complete financial context update"""
+    
+    try:
+        from app.services.vector_sync_service import sync_user_data
+        sync_user_data(current_user.id, db)
+        logger.info(f"Vector store synced for user {current_user.id}")
+        return {"status": "success", "message": "Vector store synced"}
+    except ImportError:
+        logger.info("Vector sync service not available")
+        return {"status": "success", "message": "Sync service not available, data saved to database"}
+    except Exception as e:
+        logger.error(f"Error syncing vector store: {e}")
+        return {"status": "error", "message": "Failed to sync vector store, but data was saved"}

@@ -88,16 +88,8 @@ class UserService:
         try:
             db_profile = UserProfile(
                 user_id=user_id,
-                risk_tolerance=5,
-                investment_experience="beginner",
-                currency="USD",
-                language="en",
-                data_sharing_consent=False,
-                marketing_consent=False,
-                analytics_consent=True,
-                email_notifications=True,
-                push_notifications=True,
-                sms_notifications=False
+                risk_tolerance="moderate",
+                risk_tolerance_score=5
             )
             
             self.db.add(db_profile)
