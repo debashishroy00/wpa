@@ -20,6 +20,15 @@ import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import { useUnifiedAuthStore } from '../../stores/unified-auth-store';
 
+// Smart API URL detection
+const getApiBaseUrl = () => {
+  const hostname = window.location.hostname;
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    return 'https://wealthpath-backend.onrender.com';
+  }
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+};
+
 interface VectorDocument {
   id: string;
   content: string;
@@ -82,7 +91,7 @@ const DebugView: React.FC = () => {
       
       console.log('🔍 Fetching vector contents for user:', userId);
       
-      const response = await fetch(`/api/v1/debug/vector-contents/${userId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/debug/vector-contents/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -114,7 +123,7 @@ const DebugView: React.FC = () => {
       
       console.log('🔍 Fetching LLM payload for user:', userId);
       
-      const response = await fetch(`/api/v1/debug/last-llm-payload/${userId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/debug/last-llm-payload/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -149,7 +158,7 @@ const DebugView: React.FC = () => {
       
       console.log('🔄 Triggering vector sync for user:', userId);
       
-      const response = await fetch(`/api/v1/debug/trigger-vector-sync/${userId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/debug/trigger-vector-sync/${userId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
