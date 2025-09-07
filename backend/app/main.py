@@ -94,8 +94,8 @@ if settings.ENABLE_CORS:
     
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=cors_origins if cors_origins else ["*"],  # Use parsed origins or fallback to all
-        allow_credentials=True if cors_origins else False,  # Enable credentials for specific origins
+        allow_origins=["*"],  # Temporary: Allow all origins for immediate deployment
+        allow_credentials=False,  # Must be False when using wildcard
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
     )

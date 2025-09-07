@@ -11,6 +11,14 @@ echo "📊 Optimized 396MB Docker image - Production ready!"
 echo "🔌 Port: $PORT"
 echo "📁 Vector Store: Simple JSON (no ML dependencies)"
 
+# Run database migrations
+echo "📊 Running database migrations..."
+if command -v alembic &> /dev/null; then
+    alembic upgrade head || echo "⚠️ Migration failed - continuing startup..."
+else
+    echo "⚠️ Alembic not found - skipping migrations"
+fi
+
 # Try gunicorn first (for Render/Railway), fallback to uvicorn
 if command -v gunicorn &> /dev/null; then
     echo "🎯 Starting with gunicorn + uvicorn workers (production mode)..."
