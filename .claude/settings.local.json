@@ -142,7 +142,14 @@
       "mcp__playwright__browser_select_option",
       "mcp__playwright__browser_fill_form",
       "mcp__playwright__browser_press_key",
-      "Bash(alembic current:*)"
+      "Bash(alembic current:*)",
+      "Read(//c/projects/**)",
+      "Bash(SUPABASE_DATABASE_URL=\"postgresql://postgres:WealthPath2025@db.pxattzoxobqwkrwwtzae.supabase.co:5432/postgres\" LOCAL_PG_HOST=\"host.docker.internal\" LOCAL_PG_DATABASE=\"wealthpath_db\" LOCAL_PG_USER=\"wealthpath_user\" LOCAL_PG_PASSWORD=\"wealthpath_dev_password\" LOCAL_PG_PORT=\"5432\" python migrate_to_supabase.py)",
+      "Bash(SUPABASE_DATABASE_URL=\"postgresql://postgres:WealthPath2025@db.pxattzoxobqwkrwwtzae.supabase.co:5432/postgres\" LOCAL_PG_HOST=\"localhost\" LOCAL_PG_DATABASE=\"wealthpath_db\" LOCAL_PG_USER=\"wealthpath_user\" LOCAL_PG_PASSWORD=\"wealthpath_dev_password\" LOCAL_PG_PORT=\"5432\" python migrate_to_supabase.py)",
+      "Bash(SUPABASE_DATABASE_URL=\"postgresql://postgres:WealthPath2025@db.pxattzoxobqwkrwwtzae.supabase.co:5432/postgres\" LOCAL_PG_HOST=\"127.0.0.1\" LOCAL_PG_DATABASE=\"wealthpath_db\" LOCAL_PG_USER=\"wealthpath_user\" LOCAL_PG_PASSWORD=\"wealthpath_dev_password\" LOCAL_PG_PORT=\"5432\" python migrate_to_supabase.py)",
+      "Bash(nslookup:*)",
+      "Bash(ping:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

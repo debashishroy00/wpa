@@ -26,6 +26,11 @@ build/
 *.sqlite
 *.sqlite3
 
+# Migration files (contain sensitive data)
+scripts/migrate_env.sh
+migration_*.log
+supabase_backup_*.sql
+
 # Docker
 docker-compose.override.yml
 

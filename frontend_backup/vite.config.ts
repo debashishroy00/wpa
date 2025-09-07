@@ -19,7 +19,7 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
-    port: 3004,
+    port: 3000,
     strictPort: false,
     watch: {
       usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
