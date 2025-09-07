@@ -57,9 +57,23 @@ async def create_investment_preferences(
             detail="Investment preferences already exist. Use PUT to update."
         )
     
+    # Convert data and handle boolean → numeric conversion for legacy compatibility
+    data = preferences_data.dict(exclude_unset=True)
+    
+    # Convert boolean fields to numeric (percentage) values
+    if 'alternative_investment_interest' in data:
+        val = data['alternative_investment_interest']
+        if isinstance(val, bool):
+            data['alternative_investment_interest'] = 50.0 if val else 0.0
+    
+    if 'individual_stock_tolerance' in data:
+        val = data['individual_stock_tolerance']  
+        if isinstance(val, bool):
+            data['individual_stock_tolerance'] = 50.0 if val else 0.0
+    
     preferences = UserInvestmentPreferences(
         user_id=current_user.id,
-        **preferences_data.dict(exclude_unset=True)
+        **data
     )
     
     db.add(preferences)
@@ -81,15 +95,40 @@ async def update_investment_preferences(
     ).first()
     
     if not preferences:
-        # Create if doesn't exist
+        # Create if doesn't exist - with data conversion
+        data = preferences_data.dict(exclude_unset=True)
+        
+        # Convert boolean fields to numeric (percentage) values
+        if 'alternative_investment_interest' in data:
+            val = data['alternative_investment_interest']
+            if isinstance(val, bool):
+                data['alternative_investment_interest'] = 50.0 if val else 0.0
+        
+        if 'individual_stock_tolerance' in data:
+            val = data['individual_stock_tolerance']  
+            if isinstance(val, bool):
+                data['individual_stock_tolerance'] = 50.0 if val else 0.0
+        
         preferences = UserInvestmentPreferences(
             user_id=current_user.id,
-            **preferences_data.dict(exclude_unset=True)
+            **data
         )
         db.add(preferences)
     else:
-        # Update existing
+        # Update existing - with data conversion
         update_data = preferences_data.dict(exclude_unset=True)
+        
+        # Convert boolean fields to numeric (percentage) values
+        if 'alternative_investment_interest' in update_data:
+            val = update_data['alternative_investment_interest']
+            if isinstance(val, bool):
+                update_data['alternative_investment_interest'] = 50.0 if val else 0.0
+        
+        if 'individual_stock_tolerance' in update_data:
+            val = update_data['individual_stock_tolerance']  
+            if isinstance(val, bool):
+                update_data['individual_stock_tolerance'] = 50.0 if val else 0.0
+        
         for field, value in update_data.items():
             setattr(preferences, field, value)
     
