@@ -43,6 +43,14 @@ function App() {
   const clearAuth = useUnifiedAuthStore((state) => state.clearAuth)
 
   useEffect(() => {
+    // Check URL path and set initial view accordingly
+    const path = window.location.pathname
+    if (path === '/login') {
+      setCurrentView('login')
+    } else if (path === '/signup' || path === '/register') {
+      setCurrentView('register')
+    }
+    
     const initialize = async () => {
       console.log('🚀 App initialization starting...')
       try {
