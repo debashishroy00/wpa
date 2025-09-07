@@ -49,9 +49,9 @@ class UserInvestmentPreferences(Base):
     
     # Asset Allocation Preferences (percentages)
     international_allocation_target = Column(Numeric(5, 2), nullable=True)  # % of portfolio
-    alternative_investment_interest = Column(Boolean, default=False)
+    alternative_investment_interest = Column(Numeric(5, 2), nullable=True, default=0)  # % interest level
     cryptocurrency_allocation = Column(Numeric(5, 2), nullable=True, default=0)  # % of portfolio
-    individual_stock_tolerance = Column(Boolean, default=False)
+    individual_stock_tolerance = Column(Numeric(5, 2), nullable=True, default=0)  # % tolerance level
     
     # Tax Strategy Preferences
     tax_loss_harvesting_enabled = Column(Boolean, default=False)
