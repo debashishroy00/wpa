@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     
     # CORS
-    CORS_ORIGINS: str = "*"
+    CORS_ORIGINS: str = "https://smartfinanceadvisor.net,http://localhost:3004,http://127.0.0.1:3004"
     ENABLE_CORS: bool = True
     
     # Rate Limiting
