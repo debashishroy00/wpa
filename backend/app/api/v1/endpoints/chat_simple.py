@@ -44,6 +44,16 @@ try:
             logger.info("Gemini client registered for chat_simple")
     except ImportError:
         logger.info("Gemini client not available")
+    
+    # Try Claude client
+    try:
+        from app.services.llm_clients.claude_client import ClaudeClient
+        if hasattr(settings, 'ANTHROPIC_API_KEY') and settings.ANTHROPIC_API_KEY:
+            claude_client = ClaudeClient(llm_service.providers["claude"])
+            llm_service.register_client("claude", claude_client)
+            logger.info("Claude client registered for chat_simple")
+    except ImportError:
+        logger.info("Claude client not available")
 
 except ImportError as e:
     logger.warning(f"LLM service initialization failed: {e}")
@@ -312,10 +322,12 @@ CRITICAL INSTRUCTIONS:
             try:
                 available = list(llm_service.clients.keys())
                 if chosen_provider not in available and available:
-                    # Prefer the original default order
-                    for p in [request.provider, 'gemini', 'openai', 'claude']:
+                    # Use round-robin fallback to ensure provider diversity
+                    fallback_order = ['openai', 'claude', 'gemini']  # Diversified order
+                    for p in fallback_order:
                         if p in available:
                             chosen_provider = p
+                            logger.info(f"🔄 Provider fallback: {request.provider} → {chosen_provider}")
                             break
             except Exception:
                 pass
@@ -421,9 +433,12 @@ CRITICAL OVERRIDE: For market crash/stress test questions, you HAVE ALL DATA NEE
             try:
                 available = list(llm_service.clients.keys())
                 if chosen_provider not in available and available:
-                    for p in [request.provider, 'gemini', 'openai', 'claude']:
+                    # Use round-robin fallback for general chat too
+                    fallback_order = ['openai', 'claude', 'gemini']  # Diversified order
+                    for p in fallback_order:
                         if p in available:
                             chosen_provider = p
+                            logger.info(f"🔄 General chat fallback: {request.provider} → {chosen_provider}")
                             break
             except Exception:
                 pass

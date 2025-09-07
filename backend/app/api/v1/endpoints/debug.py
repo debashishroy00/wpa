@@ -277,6 +277,34 @@ async def trigger_vector_sync(
             detail=f"Vector sync failed: {str(e)}"
         )
 
+@router.get("/llm-clients")
+async def get_llm_clients_debug(
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """Debug endpoint to check which LLM clients are registered"""
+    try:
+        from app.services.llm_service import llm_service
+        
+        return {
+            "status": "success",
+            "registered_clients": list(llm_service.clients.keys()),
+            "provider_configs": list(llm_service.providers.keys()),
+            "client_details": {
+                provider: {
+                    "class": type(client).__name__,
+                    "provider_id": getattr(client, 'provider_id', 'unknown')
+                }
+                for provider, client in llm_service.clients.items()
+            }
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
 @router.get("/financial-summary/{user_id}")
 async def get_financial_summary_debug(
     user_id: int,

@@ -444,11 +444,25 @@ ESSENTIAL DATA:
     def _get_balanced_details(self, financial_data: Dict) -> str:
         """Standard financial details"""
         expense_breakdown = financial_data.get('expense_breakdown', [])
-        top_expenses = []
-        for category in expense_breakdown[:5]:
+        all_expenses = []
+        itemized_total = 0
+        
+        # Show ALL expense categories, not just top 5
+        for category in expense_breakdown:
             name = category.get('category', 'Unknown')
             amount = category.get('monthly_amount', 0)
-            top_expenses.append(f"  • {name}: ${amount:,.0f}")
+            itemized_total += amount
+            # Show subcategory items for housing/other
+            if name == 'Housing & Other' and category.get('items'):
+                for item in category['items']:
+                    all_expenses.append(f"  • {item['description']}: ${item['monthly_amount']:,.0f}")
+            else:
+                all_expenses.append(f"  • {name}: ${amount:,.0f}")
+        
+        # Verify total matches
+        total_expenses = financial_data.get('monthly_expenses', 0)
+        if abs(itemized_total - total_expenses) > 1:  # Allow $1 rounding difference
+            all_expenses.append(f"  • [Note: Itemized ${itemized_total:,.0f} vs Total ${total_expenses:,.0f}]")
         
         return f"""
 COMPLETE FINANCIAL PROFILE:
@@ -456,8 +470,8 @@ COMPLETE FINANCIAL PROFILE:
 - {financial_data['marital_status']}, {financial_data['filing_status']}
 - Tax Bracket: {financial_data.get('tax_bracket', 'Unknown')}%
 
-EXPENSE BREAKDOWN:
-{chr(10).join(top_expenses) if top_expenses else '  • No breakdown available'}
+EXPENSE BREAKDOWN (Total: ${total_expenses:,.0f}/month):
+{chr(10).join(all_expenses) if all_expenses else '  • No breakdown available'}
 
 LIABILITIES:
 - Mortgage: ${financial_data.get('mortgage_balance', 0):,.0f}
@@ -904,6 +918,47 @@ INSURANCE & ESTATE:
                     'monthly_amount': total_monthly,
                     'items': items
                 })
+            
+            # Add housing/other expenses if there's a gap between itemized and total expenses
+            from ..services.financial_summary_service import financial_summary_service
+            summary = financial_summary_service.get_user_financial_summary(user_id, db)
+            
+            if summary and 'monthlyExpenses' in summary:
+                total_monthly_expenses = float(summary['monthlyExpenses'])
+                itemized_total = sum(cat['monthly_amount'] for cat in breakdown)
+                
+                # If there's a gap, add it as housing/other expenses
+                expense_gap = total_monthly_expenses - itemized_total
+                if expense_gap > 0:
+                    # Check for mortgage in liabilities
+                    mortgage_payment = 0
+                    if 'liabilitiesBreakdown' in summary:
+                        for liability in summary['liabilitiesBreakdown']:
+                            if 'mortgage' in str(liability.get('name', '')).lower():
+                                # Estimate monthly mortgage payment (rough calculation)
+                                balance = float(liability.get('balance', 0))
+                                # Assume 30-year at 5% for estimation
+                                if balance > 0:
+                                    mortgage_payment = balance * 0.005  # Simplified estimate
+                                    break
+                    
+                    # Add the gap as housing/other expenses
+                    breakdown.append({
+                        'category': 'Housing & Other',
+                        'monthly_amount': expense_gap,
+                        'items': [
+                            {
+                                'description': 'Mortgage/Rent' if mortgage_payment > 0 else 'Housing',
+                                'monthly_amount': min(expense_gap, mortgage_payment * 2) if mortgage_payment > 0 else expense_gap * 0.6,
+                                'frequency': 'monthly'
+                            },
+                            {
+                                'description': 'Insurance & Other',
+                                'monthly_amount': expense_gap - (min(expense_gap, mortgage_payment * 2) if mortgage_payment > 0 else expense_gap * 0.6),
+                                'frequency': 'monthly'
+                            }
+                        ]
+                    })
             
             return breakdown
             
