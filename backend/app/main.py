@@ -87,15 +87,22 @@ app.add_middleware(
 
 # CORS middleware
 if settings.ENABLE_CORS:
-    # Parse CORS origins from comma-separated string
-    cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+    # Production CORS configuration for smartfinanceadvisor.net
+    production_origins = [
+        "https://smartfinanceadvisor.net",
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://localhost:3002",
+        "http://localhost:3003",
+        "http://localhost:3004"
+    ]
     
-    logger.info("CORS enabled with origins", origins=cors_origins)
+    logger.info("CORS enabled with origins", origins=production_origins)
     
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Temporary: Allow all origins for immediate deployment
-        allow_credentials=False,  # Must be False when using wildcard
+        allow_origins=production_origins,
+        allow_credentials=True,  # Enable credentials for authentication
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
     )

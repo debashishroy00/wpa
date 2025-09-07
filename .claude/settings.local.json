@@ -141,7 +141,8 @@
       "Read(//c/mnt/c/projects/**)",
       "mcp__playwright__browser_select_option",
       "mcp__playwright__browser_fill_form",
-      "mcp__playwright__browser_press_key"
+      "mcp__playwright__browser_press_key",
+      "Bash(alembic current:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
