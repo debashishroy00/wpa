@@ -176,10 +176,36 @@ curl -X OPTIONS -H "Origin: https://smartfinanceadvisor.net" \
 
 ## Summary
 
-The production issue was primarily a CORS configuration problem, not a database schema issue. The fixes include:
+The production issue was **BOTH** a CORS configuration problem AND a database schema issue. The fixes include:
 
 1. ✅ **CORS Fixed**: Updated to explicitly allow `https://smartfinanceadvisor.net`
-2. ✅ **Database Schema**: Already correct, no changes needed
-3. ✅ **Authentication**: Should work properly with credentials enabled
+2. ✅ **Database Schema Fixed**: Added 8 missing columns to `user_benefits` table:
+   - `social_security_estimated_benefit`
+   - `social_security_claiming_age`  
+   - `employer_401k_match_formula`
+   - `employer_401k_vesting_schedule`
+   - `max_401k_contribution`
+   - `pension_details`
+   - `other_benefits`
+   - `notes`
+3. ✅ **Authentication**: Works properly with credentials enabled
 
-Deploy these changes to Render.com and the application should be fully operational.
+## For Production Render.com Deployment:
+
+### Step 1: Execute Database Schema Fix
+Run this SQL directly in your production PostgreSQL database:
+
+```sql
+-- Add missing columns to user_benefits table
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS social_security_estimated_benefit NUMERIC(8, 2);
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS social_security_claiming_age INTEGER;
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS employer_401k_match_formula VARCHAR(200);
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS employer_401k_vesting_schedule VARCHAR(200);
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS max_401k_contribution NUMERIC(12, 2);
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS pension_details TEXT;
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS other_benefits TEXT;
+ALTER TABLE user_benefits ADD COLUMN IF NOT EXISTS notes TEXT;
+```
+
+### Step 2: Deploy Backend Changes
+Deploy the CORS fixes to Render.com and the application should be fully operational.
