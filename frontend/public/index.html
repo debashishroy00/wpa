@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WealthPath AI - Your AI-powered financial advisor for personalized wealth management. Join our early access program and take control of your financial future.">
+    <meta name="keywords" content="AI financial advisor, wealth management, investment planning, retirement planning, financial analysis, early access">
+    <meta name="author" content="WealthPath AI">
+    <meta property="og:title" content="WealthPath AI - Your Personal AI Financial Advisor | Early Access">
+    <meta property="og:description" content="Be among the first to experience AI-powered wealth management. Get personalized financial guidance with bank-level security.">
+    <meta property="og:url" content="https://smartfinanceadvisor.net">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://smartfinanceadvisor.net/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="WealthPath AI - Your Personal AI Financial Advisor">
+    <meta name="twitter:description" content="Join our early access program for AI-powered financial planning">
+    
+    <title>WealthPath AI - Your Personal AI Financial Advisor | Early Access Launch</title>
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1d4ed8;
+            --secondary-color: #059669;
+            --accent-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --accent: #3b82f6;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-alt: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);
+            --shadow: 0 4px 20px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        .btn-nav {
+            background: var(--primary-color);
+            color: white !important;
+            padding: 0.6rem 1.8rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-nav:hover {
+            background: transparent;
+            color: var(--primary-color) !important;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-nav::after {
+            display: none;
+        }
+
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        #theme-toggle:hover {
+            background: rgba(29, 78, 216, 0.1);
+            color: var(--primary-color);
+        }
+
+        body.dark-mode #theme-toggle {
+            color: var(--dark-mode-text);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient);
+            padding: 150px 0 100px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.1)" points="0,1000 1000,0 1000,1000"/></svg>');
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .hero .subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 4rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+
+        .trust-item i {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-color);
+            padding: 1.2rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            border-color: var(--primary-color);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Loading Animation */
+        .loading {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .loading:nth-child(2) { animation-delay: 0.2s; }
+        .loading:nth-child(3) { animation-delay: 0.4s; }
+        .loading:nth-child(4) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Section Styling */
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: rgba(29, 78, 216, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Value Props Section */
+        .value-props {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 100px 0;
+            background: white;
+            text-align: center;
+        }
+
+        .pricing-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-lg);
+            border: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        body.dark-mode .pricing-card {
+            background: #374151;
+            color: white;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: white;
+            padding: 0.5rem 2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .pricing-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .price-subtitle {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2.5rem;
+        }
+
+        .pricing-features li {
+            padding: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: var(--text-dark);
+        }
+
+        .pricing-features li i {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        /* Demo Section */
+        .demo {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow-lg);
+            margin-top: 3rem;
+        }
+
+        .demo-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-tabs button {
+            background: transparent;
+            border: 2px solid rgba(29, 78, 216, 0.2);
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-tabs button:hover {
+            background: rgba(29, 78, 216, 0.1);
+            color: var(--primary-color);
+        }
+
+        .demo-tabs button.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
+        }
+
+        .demo-content {
+            text-align: center;
+            padding: 2rem;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Email Capture Section */
+        .email-capture {
+            background: var(--gradient);
+            padding: 40px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .email-capture h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .email-capture p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            max-width: 500px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .email-form input {
+            flex: 1;
+            min-width: 300px;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .email-form button {
+            background: white;
+            color: var(--primary-color);
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .email-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Final CTA */
+        .final-cta {
+            background: var(--gradient-alt);
+            padding: 60px 0;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,0 1000,1000 0,1000"/></svg>');
+        }
+
+        .final-cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .final-cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+        }
+
+        .final-cta p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-cta-large {
+            background: white;
+            color: var(--primary-color);
+            padding: 1.5rem 4rem;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.3rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.4s ease;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .btn-cta-large:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .guarantee {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .guarantee span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 3rem 0 1rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+        }
+
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            display: none;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .cookie-banner.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        .cookie-text {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .cookie-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .cookie-buttons button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cookie-accept {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .cookie-accept:hover {
+            background: #1e40af;
+        }
+
+        .cookie-decline {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .cookie-decline:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --light-bg: #1f2937;
+            --text-dark: #f9fafb;
+            --text-light: #d1d5db;
+            background: var(--dark-bg);
+        }
+
+        body.dark-mode nav {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+
+        body.dark-mode .feature-card,
+        body.dark-mode .demo-container {
+            background: #374151;
+            color: white;
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        body.dark-mode .value-props {
+            background: var(--dark-bg);
+        }
+
+        body.dark-mode .demo {
+            background: var(--dark-bg);
+        }
+
+        body.dark-mode .cookie-banner {
+            background: #374151;
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        body.dark-mode .cookie-text {
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .section-header h2,
+            .value-props h2,
+            .demo h2,
+            .final-cta h2 {
+                font-size: 2.5rem;
+            }
+
+            .trust-indicators {
+                gap: 1rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .demo-tabs {
+                flex-direction: column;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .hero {
+                padding: 120px 0 80px;
+            }
+
+            .final-cta h2 {
+                font-size: 2rem;
+            }
+
+            .btn-cta-large {
+                padding: 1.2rem 2.5rem;
+                font-size: 1.1rem;
+            }
+
+            .email-form {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .email-form input {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav role="navigation">
+        <div class="nav-container">
+            <a href="/" class="logo" aria-label="WealthPath AI Home">
+                <i class="fas fa-chart-line"></i>
+                WealthPath AI
+            </a>
+            <div class="nav-links" role="menubar">
+                <a href="#features" role="menuitem">Features</a>
+                <a href="#how-it-works" role="menuitem">How It Works</a>
+                <a href="#pricing" role="menuitem">Pricing</a>
+                <a href="/app" role="menuitem">Login</a>
+                <a href="/app" class="btn-nav" role="menuitem">Get Started</a>
+                <button id="theme-toggle" aria-label="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="container">
+            <div class="hero-content">
+                <h1 id="hero-title" class="loading">Your AI-Powered Financial Advisor</h1>
+                <p class="subtitle loading">Transform your financial future with personalized AI insights, comprehensive planning, and real-time portfolio management. Join our exclusive early access program.</p>
+                
+                <div class="cta-buttons loading">
+                    <a href="/app" class="btn-primary">
+                        <i class="fas fa-rocket"></i>
+                        Start Your Free Analysis
+                    </a>
+                    <a href="#how-it-works" class="btn-secondary">
+                        <i class="fas fa-play"></i>
+                        See How It Works
+                    </a>
+                </div>
+                
+                <div class="trust-indicators loading">
+                    <div class="trust-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Bank-Level Security</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-users"></i>
+                        <span>Trusted by 10,000+ Users</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-star"></i>
+                        <span>4.9/5 Rating</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Props Section -->
+    <section class="value-props" id="features" aria-labelledby="features-title">
+        <div class="container">
+            <div class="section-header fade-in-up">
+                <div class="section-badge">Why Choose WealthPath AI</div>
+                <h2 id="features-title">Everything You Need for Financial Success</h2>
+                <p class="subtitle">Our AI-powered platform provides comprehensive financial analysis and personalized recommendations to help you achieve your wealth goals.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card fade-in-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Comprehensive Analysis</h3>
+                    <p>Get a complete 360° view of your financial health including assets, liabilities, cash flow, and retirement readiness with institutional-grade accuracy.</p>
+                </div>
+
+                <div class="feature-card fade-in-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI-Powered Insights</h3>
+                    <p>Advanced machine learning algorithms analyze your unique situation and market conditions to provide personalized recommendations that evolve with your needs.</p>
+                </div>
+
+                <div class="feature-card fade-in-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Smart Goal Tracking</h3>
+                    <p>Set and monitor financial milestones with intelligent progress tracking, automated alerts, and dynamic strategy adjustments to keep you on track.</p>
+                </div>
+
+                <div class="feature-card fade-in-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Actionable Recommendations</h3>
+                    <p>Receive specific, prioritized advice on tax optimization, portfolio rebalancing, debt management, and wealth-building strategies tailored to your situation.</p>
+                </div>
+
+                <div class="feature-card fade-in-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Enterprise Security</h3>
+                    <p>Your financial data is protected with bank-level encryption, multi-factor authentication, and zero-knowledge architecture. We never share your information.</p>
+                </div>
+
+                <div class="feature-card fade-in-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Market Intelligence</h3>
+                    <p>Stay ahead with real-time market insights, economic analysis, and personalized investment opportunities based on your risk profile and goals.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing" aria-labelledby="pricing-title">
+        <div class="container">
+            <div class="section-header fade-in-up">
+                <div class="section-badge">Early Access Pricing</div>
+                <h2 id="pricing-title">Start Your Financial Journey Today</h2>
+                <p class="subtitle">Join our early access program and lock in exclusive pricing for life.</p>
+            </div>
+            
+            <div class="pricing-card fade-in-up">
+                <div class="pricing-badge">Limited Time</div>
+                <h3>Early Access</h3>
+                <div class="price">FREE</div>
+                <p class="price-subtitle">During beta period • No credit card required</p>
+                
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i>Complete financial health analysis</li>
+                    <li><i class="fas fa-check"></i>AI-powered investment recommendations</li>
+                    <li><i class="fas fa-check"></i>Retirement planning projections</li>
+                    <li><i class="fas fa-check"></i>Tax optimization strategies</li>
+                    <li><i class="fas fa-check"></i>24/7 AI financial advisor chat</li>
+                    <li><i class="fas fa-check"></i>Portfolio rebalancing alerts</li>
+                    <li><i class="fas fa-check"></i>Goal tracking & milestone alerts</li>
+                    <li><i class="fas fa-check"></i>Bank-level security & encryption</li>
+                </ul>
+                
+                <a href="/app" class="btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-rocket"></i>
+                    Claim Your Free Access
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo" id="how-it-works" aria-labelledby="demo-title">
+        <div class="container">
+            <div class="section-header fade-in-up">
+                <div class="section-badge">See It In Action</div>
+                <h2 id="demo-title">Your Financial Future, Visualized</h2>
+                <p class="subtitle">Experience the power of AI-driven financial planning with our interactive dashboard.</p>
+            </div>
+            
+            <div class="demo-container fade-in-up">
+                <div class="demo-tabs" role="tablist">
+                    <button role="tab" aria-selected="true" class="active" onclick="showDemo('networth')">Net Worth Tracking</button>
+                    <button role="tab" aria-selected="false" onclick="showDemo('retirement')">Retirement Planning</button>
+                    <button role="tab" aria-selected="false" onclick="showDemo('investment')">Investment Analysis</button>
+                    <button role="tab" aria-selected="false" onclick="showDemo('cashflow')">Cash Flow Management</button>
+                </div>
+                
+                <div class="demo-content" id="demo-content" role="tabpanel">
+                    <div style="text-align: center; max-width: 600px;">
+                        <h3 style="color: var(--text-dark); margin-bottom: 1.5rem; font-size: 1.8rem;">Track Your Net Worth in Real-Time</h3>
+                        <p style="color: var(--text-light); margin-bottom: 3rem; font-size: 1.1rem; line-height: 1.6;">Connect all your accounts and watch your wealth grow with comprehensive asset tracking, intelligent insights, and automated portfolio monitoring.</p>
+                        <div style="background: var(--light-bg); padding: 3rem; border-radius: 15px; border: 1px solid rgba(0,0,0,0.1);">
+                            <p style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.5rem; font-weight: 700;">Your Net Worth</p>
+                            <p style="color: var(--success); font-size: 1.1rem; font-weight: 500;">
+                                <i class="fas fa-arrow-up"></i> Updated in real-time
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Email Capture Section -->
+    <section class="email-capture" aria-labelledby="newsletter-title">
+        <div class="container">
+            <div class="fade-in-up visible">
+                <h3 id="newsletter-title">Stay Ahead of Your Financial Future</h3>
+                <p>Get exclusive market insights, financial tips, and early access updates delivered to your inbox.</p>
+                <form class="email-form" onsubmit="handleEmailSubmit(event)">
+                    <input type="email" placeholder="Enter your email address" required aria-label="Email address">
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta" aria-labelledby="cta-title">
+        <div class="container">
+            <div class="final-cta-content fade-in-up">
+                <h2 id="cta-title">Ready to Transform Your Financial Future?</h2>
+                <p>Join thousands of early adopters who are already building wealth with AI-powered financial planning. Limited spots available.</p>
+                <a href="/app" class="btn-cta-large">
+                    <i class="fas fa-rocket"></i>
+                    Get Early Access Now
+                </a>
+                <div class="guarantee">
+                    <span><i class="fas fa-clock"></i> Limited spots available</span>
+                    <span><i class="fas fa-credit-card"></i> No credit card required</span>
+                    <span><i class="fas fa-shield-alt"></i> 100% secure signup</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cookie Banner -->
+    <div class="cookie-banner" id="cookie-banner">
+        <div class="cookie-text">
+            <strong>We value your privacy.</strong> We use cookies to enhance your experience, analyze site traffic, and provide personalized content. By continuing to use this site, you agree to our use of cookies.
+        </div>
+        <div class="cookie-buttons">
+            <button class="cookie-accept" onclick="acceptCookies()">Accept All</button>
+            <button class="cookie-decline" onclick="declineCookies()">Decline</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p style="margin-bottom: 1.5rem; font-size: 1.1rem; color: rgba(255,255,255,0.9);">
+                    WealthPath AI - Empowering your financial future with artificial intelligence.
+                </p>
+                <div class="footer-links">
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/security">Security</a>
+                    <a href="mailto:support@smartfinanceadvisor.net">Contact</a>
+                    <a href="/help">Help Center</a>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 WealthPath AI. All rights reserved. | Building the future of financial planning.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <script>
+        // App URL configuration - Updated to relative paths for proper routing
+        const APP_URL = '/app';
+        
+        // Update all links on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update all signup/CTA links to point to the app
+            document.querySelectorAll('.btn-primary, .btn-cta-large, .pricing-card .btn-primary').forEach(btn => {
+                if (btn.href && !btn.href.includes('mailto:') && !btn.href.includes('#')) {
+                    btn.href = APP_URL;
+                }
+            });
+
+            // Update navigation Get Started link
+            document.querySelectorAll('.btn-nav').forEach(btn => {
+                if (btn.textContent.trim() === 'Get Started') {
+                    btn.href = APP_URL;
+                }
+            });
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Cookie Banner
+        function showCookieBanner() {
+            const banner = document.getElementById('cookie-banner');
+            const accepted = localStorage.getItem('cookies-accepted');
+            
+            if (!accepted) {
+                setTimeout(() => {
+                    banner.classList.add('show');
+                }, 2000);
+            }
+        }
+
+        function acceptCookies() {
+            localStorage.setItem('cookies-accepted', 'true');
+            document.getElementById('cookie-banner').style.display = 'none';
+        }
+
+        function declineCookies() {
+            document.getElementById('cookie-banner').style.display = 'none';
+        }
+
+        // Email Form Handler
+        function handleEmailSubmit(event) {
+            event.preventDefault();
+            const email = event.target.querySelector('input[type="email"]').value;
+            
+            // Here you would typically send the email to your backend
+            console.log('Email submitted:', email);
+            
+            // Show success message
+            event.target.innerHTML = `
+                <div style="padding: 1rem; color: white;">
+                    <i class="fas fa-check-circle" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
+                    Thank you for subscribing! Check your email for confirmation.
+                </div>
+            `;
+        }
+
+        // Scroll Animations
+        function initScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.fade-in-up').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Enhanced GSAP Animations
+        if (typeof gsap !== 'undefined') {
+            // Hero animations with stagger
+            gsap.timeline({delay: 0.2})
+                .from('.hero .loading', {
+                    opacity: 0,
+                    y: 40,
+                    duration: 0.8,
+                    stagger: 0.2,
+                    ease: 'power2.out'
+                });
+
+            // Parallax effect for hero
+            gsap.to('.hero::before', {
+                yPercent: -50,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.hero',
+                    start: 'top bottom',
+                    end: 'bottom top',
+                    scrub: true
+                }
+            });
+
+            // Feature cards hover animations
+            gsap.set('.feature-icon', {transformOrigin: 'center center'});
+        }
+
+        // Performance optimization - lazy load images if any
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // Add some interactive micro-animations
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                gsap.to(card.querySelector('.feature-icon'), {
+                    rotation: 5,
+                    scale: 1.1,
+                    duration: 0.3,
+                    ease: 'power2.out'
+                });
+            });
+
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card.querySelector('.feature-icon'), {
+                    rotation: 0,
+                    scale: 1,
+                    duration: 0.3,
+                    ease: 'power2.out'
+                });
+            });
+        });
+
+        // Engagement tracking
+        const engagementData = {
+            timeOnPage: 0,
+            sectionsViewed: new Set(),
+            ctaClicks: 0
+        };
+
+        // Time on page tracking
+        setInterval(() => {
+            engagementData.timeOnPage += 1;
+        }, 1000);
+
+        // Section view tracking
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    engagementData.sectionsViewed.add(entry.target.id);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('section[id]').forEach(section => {
+            sectionObserver.observe(section);
+        });
+
+        // CTA click tracking
+        document.querySelectorAll('.btn-primary, .btn-cta-large').forEach(btn => {
+            btn.addEventListener('click', () => {
+                engagementData.ctaClicks++;
+                console.log('CTA clicked:', btn.textContent.trim());
+            });
+        });
+
+        // Send engagement data on page unload
+        window.addEventListener('beforeunload', () => {
+            console.log('Engagement data:', {
+                ...engagementData,
+                sectionsViewed: Array.from(engagementData.sectionsViewed)
+            });
+        });
+
+        // Demo Tabs Functionality
+        const demoData = {
+            networth: {
+                title: 'Track Your Net Worth in Real-Time',
+                description: 'Connect all your accounts and watch your wealth grow with comprehensive asset tracking, intelligent insights, and automated portfolio monitoring.',
+                metric: '$847,234',
+                change: '<i class="fas fa-arrow-up"></i> +$12,439 this month',
+                icon: 'chart-line'
+            },
+            retirement: {
+                title: 'Retirement Planning Made Simple',
+                description: 'AI-powered retirement projections show exactly how much you need to save and invest to retire comfortably on your timeline.',
+                metric: '85% Ready',
+                change: '<i class="fas fa-calendar"></i> On track for 2042',
+                icon: 'piggy-bank'
+            },
+            investment: {
+                title: 'Smart Investment Analysis',
+                description: 'Get personalized investment recommendations based on your risk tolerance, timeline, and market conditions with continuous monitoring.',
+                metric: '+12.4% YTD',
+                change: '<i class="fas fa-trophy"></i> Beating S&P 500',
+                icon: 'chart-pie'
+            },
+            cashflow: {
+                title: 'Cash Flow Optimization',
+                description: 'Understand your spending patterns, identify savings opportunities, and get alerts when you\'re off track from your financial goals.',
+                metric: '+$2,847',
+                change: '<i class="fas fa-thumbs-up"></i> Monthly surplus',
+                icon: 'dollar-sign'
+            }
+        };
+
+        function showDemo(type) {
+            // Update button states
+            document.querySelectorAll('.demo-tabs button').forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            });
+            
+            event.target.classList.add('active');
+            event.target.setAttribute('aria-selected', 'true');
+
+            // Update content
+            const demo = demoData[type];
+            const content = document.getElementById('demo-content');
+            
+            content.innerHTML = `
+                <div style="text-align: center; max-width: 600px;">
+                    <div style="margin-bottom: 2rem;">
+                        <i class="fas fa-${demo.icon}" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                    </div>
+                    <h3 style="color: var(--text-dark); margin-bottom: 1.5rem; font-size: 1.8rem;">${demo.title}</h3>
+                    <p style="color: var(--text-light); margin-bottom: 3rem; font-size: 1.1rem; line-height: 1.6;">${demo.description}</p>
+                    <div style="background: var(--light-bg); padding: 3rem; border-radius: 15px; border: 1px solid rgba(0,0,0,0.1);">
+                        <p style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 0.5rem; font-weight: 700;">${demo.metric}</p>
+                        <p style="color: var(--success); font-size: 1.1rem; font-weight: 500;">${demo.change}</p>
+                    </div>
+                </div>
+            `;
+
+            // Animate the content change
+            if (typeof gsap !== 'undefined') {
+                gsap.from(content.children[0], {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                });
+            }
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initScrollAnimations();
+            showCookieBanner();
+        });
+    </script>
+</body>
+</html>
