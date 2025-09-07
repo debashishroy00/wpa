@@ -24,9 +24,9 @@ interface InvestmentPreferences {
   investment_philosophy?: string;
   esg_preference_level?: number;
   international_allocation_target?: number;
-  alternative_investment_interest?: boolean;
+  alternative_investment_interest?: number;
   cryptocurrency_allocation?: number;
-  individual_stock_tolerance?: boolean;
+  individual_stock_tolerance?: number;
   tax_loss_harvesting_enabled?: boolean;
   dollar_cost_averaging_preference?: boolean;
   sector_preferences?: any;
@@ -46,9 +46,9 @@ const InvestmentPreferencesManagement: React.FC = () => {
     investment_philosophy: 'passive',
     esg_preference_level: 3,
     international_allocation_target: 20,
-    alternative_investment_interest: false,
+    alternative_investment_interest: 0,
     cryptocurrency_allocation: 0,
-    individual_stock_tolerance: false,
+    individual_stock_tolerance: 0,
     tax_loss_harvesting_enabled: false,
     dollar_cost_averaging_preference: true
   });
