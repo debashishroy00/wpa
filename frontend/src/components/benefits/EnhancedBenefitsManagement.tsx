@@ -71,7 +71,15 @@ const EnhancedBenefitsManagement: React.FC = () => {
   const [socialSecuritySaveSuccess, setSocialSecuritySaveSuccess] = useState(false);
   const [k401SaveSuccess, set401kSaveSuccess] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  // Use smart API URL detection
+  const getApiBaseUrl = () => {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return 'https://wealthpath-backend.onrender.com';
+    }
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  };
+  const API_BASE = getApiBaseUrl();
 
   const getAuthToken = () => {
     return localStorage.getItem('access_token');
