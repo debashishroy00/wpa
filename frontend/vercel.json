@@ -5,7 +5,7 @@
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/((?!api/|app\\.html).*)",
+      "source": "/((?!api/|landing\\.html).*)",
       "destination": "/index.html"
     }
   ],
