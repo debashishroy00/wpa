@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { getApiBaseUrl } from '../../utils/getApiBaseUrl';
 
 interface PasswordChangeFormProps {
   onPasswordChanged?: () => void;
@@ -75,12 +76,19 @@ const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({ onPasswordChang
     setError(null);
 
     try {
-      const token = localStorage.getItem('access_token');
+      // Get token from auth_tokens JSON object
+      const authTokens = localStorage.getItem('auth_tokens');
+      if (!authTokens) {
+        throw new Error('No authentication tokens found');
+      }
+      
+      const tokens = JSON.parse(authTokens);
+      const token = tokens.access_token;
       if (!token) {
-        throw new Error('No authentication token found');
+        throw new Error('No access token found');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://wealthpath-backend.onrender.com'}/api/v1/auth/change-password`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

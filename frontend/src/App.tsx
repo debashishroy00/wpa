@@ -20,6 +20,7 @@ import FinancialAdvisorChat from './components/Chat/FinancialAdvisorChat'
 import DebugView from './components/Debug/DebugView'
 import { isCurrentUserAdmin } from './utils/adminAuth'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import PasswordResetScreen from './components/auth/PasswordResetScreen'
 
 // Currency formatting utility
 const formatCurrency = (amount: number) => {
@@ -35,7 +36,7 @@ function App() {
   const [apiHealth, setApiHealth] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'wealthpath' | 'projections'>('home')
+  const [currentView, setCurrentView] = useState<'home' | 'login' | 'register' | 'wealthpath' | 'projections' | 'reset-password'>('home')
   
   // Use auth store instead of local state
   const user = useUnifiedAuthStore((state) => state.user)
@@ -51,6 +52,8 @@ function App() {
       setCurrentView('login')
     } else if (path === '/signup' || path === '/register' || hash === 'signup' || hash === 'register') {
       setCurrentView('register')
+    } else if (path === '/reset-password' || hash === 'reset-password' || hash.startsWith('reset-password')) {
+      setCurrentView('reset-password')
     }
     
     const initialize = async () => {
@@ -148,7 +151,7 @@ function App() {
     initialize()
   }, [])
 
-  const showHome = () => window.location.href = '/'
+  const showHome = () => setCurrentView('home')
   const showLogin = () => setCurrentView('login')
   const showRegister = () => setCurrentView('register')
   const showWealthPath = () => setCurrentView('wealthpath')
@@ -187,6 +190,10 @@ function App() {
 
   if (currentView === 'register') {
     return <RegisterScreen onRegister={handleLogin} onBack={showHome} onLogin={showLogin} />
+  }
+
+  if (currentView === 'reset-password') {
+    return <PasswordResetScreen onBack={showLogin} onSuccess={showLogin} />
   }
 
   if (currentView === 'projections') {

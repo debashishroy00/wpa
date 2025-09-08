@@ -15,6 +15,7 @@ from app.models.user import User
 from app.schemas.auth import Token, TokenData, UserLogin, UserRegister, PasswordChange
 from app.schemas.user import UserResponse
 from app.services.user_service import UserService
+from app.services.email_service import email_service
 
 logger = structlog.get_logger()
 
@@ -224,7 +225,7 @@ def read_users_me(current_user: User = Depends(get_current_active_user)) -> Any:
 
 
 @router.post("/password-reset-request")
-def request_password_reset(
+async def request_password_reset(
     email: str,
     db: Session = Depends(get_db)
 ) -> Any:
@@ -238,9 +239,17 @@ def request_password_reset(
         # Generate reset token
         reset_token = security.generate_password_reset_token(email)
         
-        # In production, send email with reset link
-        # For now, we'll just log it (development only)
-        logger.info("Password reset requested", email=email, token=reset_token)
+        # Send password reset email
+        email_sent = await email_service.send_password_reset_email(
+            email=email,
+            reset_token=reset_token,
+            user_name=user.first_name
+        )
+        
+        if email_sent:
+            logger.info("Password reset email sent successfully", email=email)
+        else:
+            logger.error("Failed to send password reset email", email=email)
         
         # Always return success to prevent email enumeration
         return {"message": "Password reset email sent if account exists"}

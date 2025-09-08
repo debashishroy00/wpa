@@ -98,6 +98,11 @@ class Settings(BaseSettings):
     # Feature Flags
     ENABLE_DOCS: bool = True
     
+    # Keep-alive Configuration
+    KEEP_ALIVE_ENABLED: bool = True
+    KEEP_ALIVE_INTERVAL_MINUTES: int = 10
+    KEEP_ALIVE_URL: str = ""  # Set in production environment
+    
     # Hybrid Embedding System Configuration
     USE_HYBRID_EMBEDDINGS: bool = False
     EMBEDDING_ENABLE_CACHING: bool = True

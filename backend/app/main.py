@@ -62,10 +62,37 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"LLM service initialization skipped: {e}")
     
+    # Start keep-alive service for Render
+    if settings.ENVIRONMENT == "production" and settings.KEEP_ALIVE_ENABLED:
+        try:
+            from app.services.keep_alive import keep_alive_service
+            import asyncio
+            
+            # Get the production URL from environment or construct it
+            health_url = settings.KEEP_ALIVE_URL or "https://smartfinanceadvisor.net/api/v1/health"
+            keep_alive_service.set_health_url(health_url, settings.KEEP_ALIVE_INTERVAL_MINUTES)
+            
+            # Start keep-alive in background task
+            asyncio.create_task(keep_alive_service.start_keep_alive())
+            logger.info("Keep-alive service started for production", 
+                       url=health_url, 
+                       interval_minutes=settings.KEEP_ALIVE_INTERVAL_MINUTES)
+        except Exception as e:
+            logger.warning(f"Keep-alive service failed to start: {e}")
+    
     yield
     
     # Shutdown
     logger.info("Shutting down WealthPath AI backend")
+    
+    # Stop keep-alive service
+    if settings.ENVIRONMENT == "production":
+        try:
+            from app.services.keep_alive import keep_alive_service
+            await keep_alive_service.stop_keep_alive()
+            logger.info("Keep-alive service stopped")
+        except Exception as e:
+            logger.warning(f"Keep-alive service cleanup failed: {e}")
 
 
 # Create FastAPI application
