@@ -43,11 +43,13 @@ function App() {
   const clearAuth = useUnifiedAuthStore((state) => state.clearAuth)
 
   useEffect(() => {
-    // Check URL path and set initial view accordingly
+    // Check URL path and hash and set initial view accordingly
     const path = window.location.pathname
-    if (path === '/login') {
+    const hash = window.location.hash.substring(1) // Remove the # character
+    
+    if (path === '/login' || hash === 'login') {
       setCurrentView('login')
-    } else if (path === '/signup' || path === '/register') {
+    } else if (path === '/signup' || path === '/register' || hash === 'signup' || hash === 'register') {
       setCurrentView('register')
     }
     

@@ -149,7 +149,8 @@
       "Bash(SUPABASE_DATABASE_URL=\"postgresql://postgres:WealthPath2025@db.pxattzoxobqwkrwwtzae.supabase.co:5432/postgres\" LOCAL_PG_HOST=\"127.0.0.1\" LOCAL_PG_DATABASE=\"wealthpath_db\" LOCAL_PG_USER=\"wealthpath_user\" LOCAL_PG_PASSWORD=\"wealthpath_dev_password\" LOCAL_PG_PORT=\"5432\" python migrate_to_supabase.py)",
       "Bash(nslookup:*)",
       "Bash(ping:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "WebFetch(domain:smartfinanceadvisor.net)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
