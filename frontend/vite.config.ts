@@ -51,12 +51,28 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-toast', '@radix-ui/react-tooltip'],
           'data-vendor': ['@tanstack/react-query', 'zustand', 'axios'],
           'chart-vendor': ['recharts'],
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'utils': ['clsx', 'tailwind-merge', 'date-fns', 'fast-equals']
         },
+        // Add file naming with hash for better caching
+        chunkFileNames: 'assets/[name].[hash].js',
+        entryFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
       },
     },
+    // Target modern browsers for better optimization
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+    // Enable minification for smaller bundles
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true
+      }
+    }
   },
   optimizeDeps: {
     include: [

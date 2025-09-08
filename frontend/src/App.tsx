@@ -6,21 +6,23 @@ import { apiClient } from './utils/api-simple' // Use simplified API client
 import { useUnifiedAuthStore } from './stores/unified-auth-store'
 import { getApiBaseUrl } from './utils/getApiBaseUrl'
 
-// Components
-import FinancialManagementPage from './components/financial/FinancialManagementPage'
-import ProfileManagementPage from './components/profile/ProfileManagementPage'
-import ProjectionsPage from './components/projections/ProjectionsPage'
-import { EnableAssumptionsEditing } from './components/QuickFix'
-import GoalManager from './components/goals/GoalManager'
-import IntelligenceDashboard from './components/intelligence/IntelligenceDashboard'
-import { FinancialAdvisoryDashboard } from './components/advisory'
-import SimplePortfolioAnalysis from './components/portfolio/SimplePortfolioAnalysis'
-import TestFinancialService from './components/TestFinancialService'
-import FinancialAdvisorChat from './components/Chat/FinancialAdvisorChat'
-import DebugView from './components/Debug/DebugView'
+// Lazy-loaded Components for better performance
+const FinancialManagementPage = React.lazy(() => import('./components/financial/FinancialManagementPage'))
+const ProfileManagementPage = React.lazy(() => import('./components/profile/ProfileManagementPage'))
+const ProjectionsPage = React.lazy(() => import('./components/projections/ProjectionsPage'))
+const EnableAssumptionsEditing = React.lazy(() => import('./components/QuickFix').then(module => ({ default: module.EnableAssumptionsEditing })))
+const GoalManager = React.lazy(() => import('./components/goals/GoalManager'))
+const IntelligenceDashboard = React.lazy(() => import('./components/intelligence/IntelligenceDashboard'))
+const FinancialAdvisoryDashboard = React.lazy(() => import('./components/advisory').then(module => ({ default: module.FinancialAdvisoryDashboard })))
+const SimplePortfolioAnalysis = React.lazy(() => import('./components/portfolio/SimplePortfolioAnalysis'))
+const TestFinancialService = React.lazy(() => import('./components/TestFinancialService'))
+const FinancialAdvisorChat = React.lazy(() => import('./components/Chat/FinancialAdvisorChat'))
+const DebugView = React.lazy(() => import('./components/Debug/DebugView'))
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'))
+const PasswordResetScreen = React.lazy(() => import('./components/auth/PasswordResetScreen'))
+
+// Utilities
 import { isCurrentUserAdmin } from './utils/adminAuth'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import PasswordResetScreen from './components/auth/PasswordResetScreen'
 
 // Currency formatting utility
 const formatCurrency = (amount: number) => {
@@ -193,11 +195,19 @@ function App() {
   }
 
   if (currentView === 'reset-password') {
-    return <PasswordResetScreen onBack={showLogin} onSuccess={showLogin} />
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-gray-900"><div className="text-white">Loading...</div></div>}>
+        <PasswordResetScreen onBack={showLogin} onSuccess={showLogin} />
+      </React.Suspense>
+    )
   }
 
   if (currentView === 'projections') {
-    return <ProjectionsPage />
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-gray-900"><div className="text-white">Loading...</div></div>}>
+        <ProjectionsPage />
+      </React.Suspense>
+    )
   }
 
 
@@ -642,7 +652,9 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
           </div>
           
           {/* Admin Dashboard Content */}
-          <AdminDashboard user={user} />
+          <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="text-white">Loading Admin Dashboard...</div></div>}>
+            <AdminDashboard user={user} />
+          </React.Suspense>
         </div>
       )}
     </div>
