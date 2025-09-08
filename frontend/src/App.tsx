@@ -51,11 +51,11 @@ function App() {
     const hash = window.location.hash.substring(1) // Remove the # character
     
     if (path === '/login' || hash === 'login') {
-      setCurrentView('login')
+      startTransition(() => setCurrentView('login'))
     } else if (path === '/signup' || path === '/register' || hash === 'signup' || hash === 'register') {
-      setCurrentView('register')
+      startTransition(() => setCurrentView('register'))
     } else if (path === '/reset-password' || hash === 'reset-password' || hash.startsWith('reset-password')) {
-      setCurrentView('reset-password')
+      startTransition(() => setCurrentView('reset-password'))
     }
     
     const initialize = async () => {
@@ -153,11 +153,11 @@ function App() {
     initialize()
   }, [])
 
-  const showHome = () => setCurrentView('home')
-  const showLogin = () => setCurrentView('login')
-  const showRegister = () => setCurrentView('register')
-  const showWealthPath = () => setCurrentView('wealthpath')
-  const showProjections = () => setCurrentView('projections')
+  const showHome = () => startTransition(() => setCurrentView('home'))
+  const showLogin = () => startTransition(() => setCurrentView('login'))
+  const showRegister = () => startTransition(() => setCurrentView('register'))
+  const showWealthPath = () => startTransition(() => setCurrentView('wealthpath'))
+  const showProjections = () => startTransition(() => setCurrentView('projections'))
   
   const handleLogin = (loginData: any) => {
     // If loginData contains tokens, use auth store login
@@ -178,12 +178,12 @@ function App() {
       }
     }
     
-    setCurrentView('wealthpath')
+    startTransition(() => setCurrentView('wealthpath'))
   }
   
   const handleLogout = () => {
     clearAuth()
-    setCurrentView('home')
+    startTransition(() => setCurrentView('home'))
   }
 
   if (currentView === 'login') {
