@@ -6,7 +6,7 @@
   "description": "WealthPath AI - Intelligent Financial Planning Platform Frontend",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/post-build.js",
+    "build": "vite build",
     "build-with-types": "tsc && vite build && node scripts/post-build.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -61,6 +61,7 @@
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.7",
     "tailwindcss": "^3.3.6",
+    "terser": "^5.44.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
