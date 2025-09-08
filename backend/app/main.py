@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI):
             import asyncio
             
             # Get the production URL from environment or construct it
-            health_url = settings.KEEP_ALIVE_URL or "https://smartfinanceadvisor.net/api/v1/health"
+            health_url = settings.KEEP_ALIVE_URL or "https://smartfinanceadvisor.net/health"
             keep_alive_service.set_health_url(health_url, settings.KEEP_ALIVE_INTERVAL_MINUTES)
             
             # Start keep-alive in background task

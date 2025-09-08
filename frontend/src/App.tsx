@@ -185,11 +185,11 @@ function App() {
   }
 
   if (currentView === 'login') {
-    return <LoginScreen onLogin={handleLogin} onBack={showHome} onRegister={showRegister} />
+    return <LoginScreen onLogin={handleLogin} onRegister={showRegister} />
   }
 
   if (currentView === 'register') {
-    return <RegisterScreen onRegister={handleLogin} onBack={showHome} onLogin={showLogin} />
+    return <RegisterScreen onRegister={handleLogin} onLogin={showLogin} />
   }
 
   if (currentView === 'reset-password') {
@@ -202,7 +202,7 @@ function App() {
 
 
   if (currentView === 'wealthpath') {
-    return <WealthPathApp onBack={showHome} user={user} onLogout={handleLogout} />
+    return <WealthPathApp user={user} onLogout={handleLogout} />
   }
 
   return (
@@ -358,12 +358,11 @@ function StatusItem({ title, description, status }: StatusItemProps) {
 
 // WealthPath AI 2.0 Component
 interface WealthPathAppProps {
-  onBack: () => void
   user: any
   onLogout: () => void
 }
 
-const WealthPathApp: React.FC<WealthPathAppProps> = ({ onBack, user, onLogout }) => {
+const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
   const [currentStep, setCurrentStep] = useState(1) // Start directly with Step 1 (Profile)
   const [apiHealth, setApiHealth] = useState<any>(null)
   const [manualEntries, setManualEntries] = useState<any[]>([]) // Shared state across steps
@@ -435,8 +434,8 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ onBack, user, onLogout })
                 </button>
               )}
               
-              <button 
-                onClick={onBack}
+              <a 
+                href="/"
                 style={{
                   background: 'rgba(102, 126, 234, 0.1)',
                   color: '#667eea',
@@ -445,11 +444,13 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ onBack, user, onLogout })
                   padding: '8px 16px',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  textDecoration: 'none',
+                  display: 'inline-block'
                 }}
               >
                 ← Back to Home
-              </button>
+              </a>
             </div>
           </div>
           <p style={{ fontSize: '1.3em', color: '#94a3b8' }}>
@@ -3925,11 +3926,10 @@ const DebugStep: React.FC = () => (
 // Login Screen Component
 interface LoginScreenProps {
   onLogin: (user: any) => void
-  onBack: () => void
   onRegister: () => void
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBack, onRegister }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -4062,9 +4062,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBack, onRegister }
               Forgot Password?
             </button>
           </p>
-          <button onClick={onBack} className="mt-4 text-gray-500 hover:text-gray-700">
+          {/* Force navigation to landing page */}
+          <a href="/" className="mt-4 text-gray-500 hover:text-gray-700 inline-block">
             ← Back to Home
-          </button>
+          </a>
         </div>
       </div>
     </div>
@@ -4074,11 +4075,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBack, onRegister }
 // Register Screen Component  
 interface RegisterScreenProps {
   onRegister: (user: any) => void
-  onBack: () => void
   onLogin: () => void
 }
 
-const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onBack, onLogin }) => {
+const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -4272,9 +4272,10 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onBack, onL
               Sign in
             </button>
           </p>
-          <button onClick={onBack} className="mt-4 text-gray-500 hover:text-gray-700">
+          {/* Force navigation to landing page */}
+          <a href="/" className="mt-4 text-gray-500 hover:text-gray-700 inline-block">
             ← Back to Home
-          </button>
+          </a>
         </div>
       </div>
     </div>

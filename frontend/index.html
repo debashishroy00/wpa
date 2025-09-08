@@ -1,15 +1,757 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="WealthPath AI - Intelligent Financial Planning Platform" />
-    <meta name="theme-color" content="#667eea" />
-    <title>WealthPath AI</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WealthPath AI - Your AI-powered financial advisor for personalized wealth management.">
+    <title>WealthPath AI - Your Personal AI Financial Advisor</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1d4ed8;
+            --secondary-color: #059669;
+            --accent-color: #f59e0b;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-alt: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);
+            --shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .btn-nav {
+            background: var(--primary-color);
+            color: white !important;
+            padding: 0.6rem 1.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Hero Section - COMPACT */
+        .hero {
+            background: var(--gradient);
+            padding: 80px 0 40px;
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-color);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: white;
+        }
+
+        .trust-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+        }
+
+        .trust-item i {
+            color: var(--accent-color);
+        }
+
+        /* Features Section - COMPACT */
+        .value-props {
+            padding: 40px 0;
+            background: var(--light-bg);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: rgba(29, 78, 216, 0.1);
+            color: var(--primary-color);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Pricing Section - COMPACT */
+        .pricing {
+            padding: 40px 0;
+            background: white;
+            text-align: center;
+        }
+
+        .pricing-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: var(--shadow);
+            border: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            color: white;
+            padding: 0.4rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.3rem;
+        }
+
+        .price-subtitle {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .pricing-features li i {
+            color: var(--secondary-color);
+        }
+
+        /* Demo Section - COMPACT */
+        .demo {
+            padding: 40px 0;
+            background: var(--light-bg);
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-top: 2rem;
+        }
+
+        .demo-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-tabs button {
+            background: transparent;
+            border: 2px solid rgba(29, 78, 216, 0.2);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .demo-tabs button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .demo-content {
+            padding: 1.5rem;
+            min-height: 200px;
+        }
+
+        /* Email Capture Section - VERY COMPACT */
+        .email-capture {
+            background: var(--gradient);
+            padding: 30px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .email-capture h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .email-capture p {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            opacity: 0.95;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            max-width: 500px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .email-form input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.8rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .email-form button {
+            background: white;
+            color: var(--primary-color);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .email-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Final CTA - COMPACT */
+        .final-cta {
+            background: var(--gradient-alt);
+            padding: 40px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .final-cta h2 {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+            font-weight: 800;
+        }
+
+        .final-cta p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-cta-large {
+            background: white;
+            color: var(--primary-color);
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-cta-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .guarantee {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .guarantee span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        /* Footer - COMPACT */
+        footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem 0 1rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .section-header h2 { font-size: 1.5rem; }
+            .nav-links { display: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .cta-buttons { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                WealthPath AI
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="/app.html#login">Login</a>
+                <a href="/app.html#register" class="btn-nav">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Your AI-Powered Financial Advisor</h1>
+            <p class="subtitle">Transform your financial future with personalized AI insights and comprehensive planning.</p>
+            
+            <div class="cta-buttons">
+                <a href="/signup" class="btn-primary">
+                    <i class="fas fa-rocket"></i>
+                    Start Your Free Analysis
+                </a>
+                <a href="#demo" class="btn-secondary">
+                    <i class="fas fa-play"></i>
+                    See How It Works
+                </a>
+            </div>
+            
+            <div class="trust-indicators">
+                <div class="trust-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Bank-Level Security</span>
+                </div>
+                <div class="trust-item">
+                    <i class="fas fa-users"></i>
+                    <span>10,000+ Users</span>
+                </div>
+                <div class="trust-item">
+                    <i class="fas fa-star"></i>
+                    <span>4.9/5 Rating</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="value-props" id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Why Choose WealthPath AI</div>
+                <h2>Everything You Need for Financial Success</h2>
+                <p class="subtitle">Comprehensive financial analysis and personalized recommendations.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Complete Analysis</h3>
+                    <p>360° view of your financial health with institutional-grade accuracy.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI-Powered Insights</h3>
+                    <p>Machine learning algorithms provide personalized recommendations.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3>Goal Tracking</h3>
+                    <p>Set and monitor financial milestones with intelligent progress tracking.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Smart Recommendations</h3>
+                    <p>Specific advice on tax optimization and wealth-building strategies.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Enterprise Security</h3>
+                    <p>Bank-level encryption and zero-knowledge architecture.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Market Intelligence</h3>
+                    <p>Real-time market insights based on your risk profile.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Early Access Pricing</div>
+                <h2>Start Your Financial Journey Today</h2>
+                <p class="subtitle">Join our early access program.</p>
+            </div>
+            
+            <div class="pricing-card">
+                <div class="pricing-badge">Limited Time</div>
+                <h3>Early Access</h3>
+                <div class="price">FREE</div>
+                <p class="price-subtitle">During beta • No credit card required</p>
+                
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> Complete financial analysis</li>
+                    <li><i class="fas fa-check"></i> AI investment recommendations</li>
+                    <li><i class="fas fa-check"></i> Retirement planning</li>
+                    <li><i class="fas fa-check"></i> Tax optimization</li>
+                    <li><i class="fas fa-check"></i> 24/7 AI advisor chat</li>
+                    <li><i class="fas fa-check"></i> Portfolio rebalancing</li>
+                    <li><i class="fas fa-check"></i> Goal tracking</li>
+                    <li><i class="fas fa-check"></i> Bank-level security</li>
+                </ul>
+                
+                <a href="/signup" class="btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-rocket"></i>
+                    Claim Your Free Access
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="demo" id="demo">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">See It In Action</div>
+                <h2>Your Financial Dashboard</h2>
+                <p class="subtitle">Experience AI-driven financial planning.</p>
+            </div>
+            
+            <div class="demo-container">
+                <div class="demo-tabs">
+                    <button class="active">Net Worth</button>
+                    <button>Retirement</button>
+                    <button>Investments</button>
+                    <button>Cash Flow</button>
+                </div>
+                
+                <div class="demo-content">
+                    <h3>Track Your Net Worth in Real-Time</h3>
+                    <p>Connect all your accounts and watch your wealth grow with comprehensive tracking.</p>
+                    <div style="margin-top: 1rem; padding: 1.5rem; background: var(--light-bg); border-radius: 10px;">
+                        <p style="font-size: 2rem; color: var(--primary-color); margin: 0;">$847,234</p>
+                        <p style="color: #059669; margin: 0;">↑ +$12,439 this month</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Email Capture Section -->
+    <section class="email-capture">
+        <div class="container">
+            <h3>Stay Ahead of Your Financial Future</h3>
+            <p>Get exclusive insights and early access updates.</p>
+            <form class="email-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i>
+                    Subscribe
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>Ready to Transform Your Financial Future?</h2>
+            <p>Join thousands building wealth with AI-powered planning.</p>
+            <a href="/signup" class="btn-cta-large">
+                <i class="fas fa-rocket"></i>
+                Get Early Access Now
+            </a>
+            <div class="guarantee">
+                <span><i class="fas fa-clock"></i> Limited spots</span>
+                <span><i class="fas fa-credit-card"></i> No credit card</span>
+                <span><i class="fas fa-shield-alt"></i> 100% secure</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+                <a href="/security">Security</a>
+                <a href="mailto:support@smartfinanceadvisor.net">Contact</a>
+                <a href="/help">Help Center</a>
+            </div>
+            <p style="opacity: 0.6; font-size: 0.85rem;">© 2025 WealthPath AI. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
 </html>
