@@ -3928,6 +3928,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBack, onRegister }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const handleForgotPassword = async (email: string) => {
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/v1/auth/password-reset-request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      if (response.ok) {
+        alert('Password reset email sent! Check your inbox for instructions.')
+      } else {
+        throw new Error('Failed to send reset email')
+      }
+    } catch (error) {
+      alert('Failed to send password reset email. Please try again.')
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -4015,11 +4035,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onBack, onRegister }
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-2">
           <p className="text-gray-600">
             Don't have an account?{' '}
             <button onClick={onRegister} className="text-blue-600 hover:text-blue-800 font-semibold">
               Create one
+            </button>
+          </p>
+          <p className="text-gray-600">
+            <button 
+              onClick={() => {
+                const email = prompt('Enter your email address to reset your password:');
+                if (email) {
+                  handleForgotPassword(email);
+                }
+              }}
+              className="text-blue-600 hover:text-blue-800 font-semibold"
+            >
+              Forgot Password?
             </button>
           </p>
           <button onClick={onBack} className="mt-4 text-gray-500 hover:text-gray-700">
