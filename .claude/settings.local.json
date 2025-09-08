@@ -153,7 +153,8 @@
       "WebFetch(domain:smartfinanceadvisor.net)",
       "mcp__playwright__browser_take_screenshot",
       "Bash(pg_isready:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(venvScripts:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
