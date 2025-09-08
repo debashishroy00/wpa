@@ -154,7 +154,11 @@
       "mcp__playwright__browser_take_screenshot",
       "Bash(pg_isready:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(venvScripts:*)"
+      "Bash(venvScripts:*)",
+      "Bash(npm run preview:*)",
+      "WebFetch(domain:wpa-git-main-debashishroy.vercel.app)",
+      "WebFetch(domain:wpa-debashishroy00.vercel.app)",
+      "Bash(npx vercel:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
