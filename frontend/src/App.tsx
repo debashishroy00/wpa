@@ -148,7 +148,7 @@ function App() {
     initialize()
   }, [])
 
-  const showHome = () => setCurrentView('home')
+  const showHome = () => window.location.href = '/'
   const showLogin = () => setCurrentView('login')
   const showRegister = () => setCurrentView('register')
   const showWealthPath = () => setCurrentView('wealthpath')
