@@ -150,7 +150,8 @@
       "Bash(nslookup:*)",
       "Bash(ping:*)",
       "Bash(taskkill:*)",
-      "WebFetch(domain:smartfinanceadvisor.net)"
+      "WebFetch(domain:smartfinanceadvisor.net)",
+      "mcp__playwright__browser_take_screenshot"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

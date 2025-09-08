@@ -3,7 +3,7 @@
  * Fixed implementation following Asset tab pattern with working CRUD operations
  */
 import React, { useState } from 'react';
-import { User, Users, Heart, FileText, Plus, Edit, Trash2, RefreshCw, ChevronDown, ChevronRight, Building, Shield, TrendingUp } from 'lucide-react';
+import { User, Users, Heart, FileText, Plus, Edit, Trash2, RefreshCw, ChevronDown, ChevronRight, Building, Shield, TrendingUp, Settings } from 'lucide-react';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import ProfileEntryModal from './ProfileEntryModal';
@@ -17,6 +17,7 @@ import InvestmentPreferencesManagement from '../investment-preferences/Investmen
 // Import enhanced versions
 import EnhancedBenefitsManagement from '../benefits/EnhancedBenefitsManagement';
 import EnhancedTaxManagement from '../tax/EnhancedTaxManagement';
+import PasswordChangeForm from './PasswordChangeForm';
 
 interface ProfileData {
   profile: any;
@@ -29,7 +30,7 @@ interface ProfileData {
 }
 
 const ProfileManagementPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'personal' | 'family' | 'benefits' | 'tax' | 'estate' | 'insurance' | 'investment'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'family' | 'benefits' | 'tax' | 'estate' | 'insurance' | 'investment' | 'account'>('personal');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({
@@ -95,6 +96,7 @@ const ProfileManagementPage: React.FC = () => {
     { id: 'estate', label: 'Estate Planning', icon: Building },
     { id: 'insurance', label: 'Insurance', icon: Shield },
     { id: 'investment', label: 'Investment Preferences', icon: TrendingUp },
+    { id: 'account', label: 'Account Settings', icon: Settings },
   ];
 
   if (isLoading) {
@@ -502,6 +504,18 @@ const ProfileManagementPage: React.FC = () => {
           {activeTab === 'investment' && (
             <div className="bg-gray-800 border border-gray-700 rounded-lg">
               <InvestmentPreferencesManagement />
+            </div>
+          )}
+
+          {/* Account Settings Tab */}
+          {activeTab === 'account' && (
+            <div className="space-y-6">
+              <PasswordChangeForm 
+                onPasswordChanged={() => {
+                  // You can add any additional actions here after password change
+                  console.log('Password changed successfully');
+                }}
+              />
             </div>
           )}
         </div>

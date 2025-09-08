@@ -12,7 +12,7 @@ from app.core import security
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import Token, TokenData, UserLogin, UserRegister
+from app.schemas.auth import Token, TokenData, UserLogin, UserRegister, PasswordChange
 from app.schemas.user import UserResponse
 from app.services.user_service import UserService
 
@@ -293,3 +293,55 @@ def reset_password(
     
     logger.info("Password reset successfully", user_id=user.id, email=email)
     return {"message": "Password reset successfully"}
+
+
+@router.post("/change-password")
+def change_password(
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Change password for authenticated user
+    """
+    user_service = UserService(db)
+    
+    # Verify current password
+    if not security.verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Validate new password strength
+    password_validation = security.validate_password_strength(password_data.new_password)
+    if not password_validation["is_valid"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "message": "New password does not meet security requirements",
+                "requirements": password_validation["requirements"]
+            }
+        )
+    
+    # Check if new password is different from current
+    if security.verify_password(password_data.new_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+    
+    # Update password
+    try:
+        hashed_password = security.get_password_hash(password_data.new_password)
+        user_service.update_user_password(current_user.id, hashed_password)
+        
+        logger.info("Password changed successfully", user_id=current_user.id, email=current_user.email)
+        return {"message": "Password changed successfully"}
+    
+    except Exception as e:
+        logger.error("Password change failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password change failed"
+        )
