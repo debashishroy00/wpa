@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, startTransition } from 'react'
 import { Helmet } from 'react-helmet-async'
 
 // Utilities
@@ -386,7 +386,9 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
   }, [])
 
   const showStep = (step: number) => {
-    setCurrentStep(step)
+    startTransition(() => {
+      setCurrentStep(step)
+    })
   }
 
   return (
