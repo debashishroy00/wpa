@@ -96,7 +96,9 @@ function App() {
               userEmail: userData.email
             })
             setAuth(tokens, userData)
-            console.log('✅ Auth store populated successfully')
+            // CRITICAL FIX: Set proper view for auto-authenticated users
+            startTransition(() => setCurrentView('wealthpath'))
+            console.log('✅ Auth store populated successfully and redirected to app')
           } else {
             console.log('❌ Cannot populate auth store - missing tokens or user data')
           }
