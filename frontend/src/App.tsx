@@ -188,11 +188,17 @@ function App() {
   }
 
   if (currentView === 'login') {
-    return <LoginScreen onLogin={handleLogin} onRegister={showRegister} />
+    return <LoginScreen onLogin={handleLogin} onRegister={showRegister} onHome={() => {
+      clearAuth()
+      setCurrentView('home')
+    }} />
   }
 
   if (currentView === 'register') {
-    return <RegisterScreen onRegister={handleLogin} onLogin={showLogin} />
+    return <RegisterScreen onRegister={handleLogin} onLogin={showLogin} onHome={() => {
+      clearAuth()
+      setCurrentView('home')
+    }} />
   }
 
   if (currentView === 'reset-password') {
@@ -458,7 +464,7 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
               
               <button 
                 onClick={() => {
-                  setUser(null)
+                  clearAuth()
                   setCurrentView('home')
                 }}
                 style={{
@@ -3954,9 +3960,10 @@ const DebugStep: React.FC = () => (
 interface LoginScreenProps {
   onLogin: (user: any) => void
   onRegister: () => void
+  onHome: () => void
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, onHome }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -4091,10 +4098,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister }) => {
           </p>
           {/* Force navigation to landing page */}
           <button 
-            onClick={() => {
-              setUser(null)
-              setCurrentView('home')
-            }}
+            onClick={onHome}
             className="mt-4 text-gray-500 hover:text-gray-700 inline-block bg-transparent border-none cursor-pointer"
           >
             ← Back to Home
@@ -4109,9 +4113,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister }) => {
 interface RegisterScreenProps {
   onRegister: (user: any) => void
   onLogin: () => void
+  onHome: () => void
 }
 
-const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onLogin }) => {
+const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onLogin, onHome }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -4307,10 +4312,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onLogin }) 
           </p>
           {/* Force navigation to landing page */}
           <button 
-            onClick={() => {
-              setUser(null)
-              setCurrentView('home')
-            }}
+            onClick={onHome}
             className="mt-4 text-gray-500 hover:text-gray-700 inline-block bg-transparent border-none cursor-pointer"
           >
             ← Back to Home
