@@ -249,22 +249,8 @@ const FinancialAdvisorChat: React.FC = () => {
         // Load persisted messages
         loadPersistedMessages(sessionId);
         
-        // Add welcome message
-        const welcomeMessage: Message = {
-            id: `msg_${Date.now()}`,
-            userId,
-            role: 'assistant',
-            content: `Hello! I'm your AI Financial Advisor. I have access to your complete financial profile including your $2.56M net worth, investment preferences, goals, and real-time data. How can I help you today?`,
-            timestamp: new Date(),
-            tokenCount: 45,
-            cost: 0,
-            model: llmSettings.selectedModel,
-            provider: llmSettings.provider,
-            modelTier: llmSettings.modelTier,
-            sessionId
-        };
-        
-        setMessages([welcomeMessage]);
+        // Start with empty messages - no welcome message
+        setMessages([]);
     };
 
     const loadPersistedMessages = (sessionId: string) => {
@@ -494,18 +480,18 @@ const FinancialAdvisorChat: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-3 sm:py-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-white mb-2 flex items-center">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center">
                             <MessageSquare className="w-8 h-8 mr-3 text-blue-400" />
                             AI Financial Advisor
                         </h1>
                         <p className="text-gray-400 mb-2">
                             Personalized financial guidance powered by your real data
                         </p>
-                        <div className="text-sm text-gray-500 flex items-center gap-4">
+                        <div className="text-xs sm:text-sm text-gray-500 flex flex-wrap items-center gap-2 sm:gap-4">
                             
                             {/* Simplified LLM Info */}
                             <div className="flex items-center gap-2">
@@ -561,10 +547,10 @@ const FinancialAdvisorChat: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* Reorganized Button Layout - Two Rows */}
+                    {/* Reorganized Button Layout - Mobile-first responsive */}
                     <div className="space-y-3">
-                        {/* Top row - Core functions */}
-                        <div className="flex space-x-3">
+                        {/* Top row - Core functions - Stack on mobile, row on larger screens */}
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                             {/* Enhanced Sync Finances Button */}
                             <Button
                                 onClick={handleManualSync}
@@ -675,11 +661,11 @@ const FinancialAdvisorChat: React.FC = () => {
                 )}
 
                 
-                {/* Main Chat Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Main Chat Layout - Mobile-first responsive */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
                     
-                    {/* Chat Interface - Main Area */}
-                    <div className="lg:col-span-3">
+                    {/* Chat Interface - Main Area - Full width on mobile, 3/4 on desktop */}
+                    <div className="lg:col-span-3 order-1">
                         <ChatInterface
                             messages={messages}
                             loading={loading}
@@ -687,8 +673,8 @@ const FinancialAdvisorChat: React.FC = () => {
                         />
                     </div>
                     
-                    {/* Suggested Questions - Sidebar (compact, avoids page scrolling) */}
-                    <div className="lg:col-span-1">
+                    {/* Suggested Questions - Sidebar - Show above chat on mobile, side on desktop */}
+                    <div className="lg:col-span-1 order-0 lg:order-1">
                         <SuggestedQuestions
                             onQuestionClick={sendMessage}
                             disabled={loading}
@@ -700,8 +686,8 @@ const FinancialAdvisorChat: React.FC = () => {
                 {currentSession && (
                     <Card className="mt-6 bg-gray-800/50 border-gray-700">
                         <Card.Body className="p-4">
-                            <div className="flex items-center justify-between text-sm text-gray-400">
-                                <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm text-gray-400 gap-3">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4" />
                                         <span>Session: {new Date(currentSession.startTime).toLocaleTimeString()}</span>
@@ -719,8 +705,8 @@ const FinancialAdvisorChat: React.FC = () => {
                                         <span>${currentSession.totalCost.toFixed(4)} total cost</span>
                                     </div>
                                 </div>
-                                <div className="text-xs opacity-60">
-                                    Session ID: {currentSession.sessionId}
+                                <div className="text-xs opacity-60 truncate">
+                                    ID: {currentSession.sessionId.substring(0, 8)}...
                                 </div>
                             </div>
                         </Card.Body>

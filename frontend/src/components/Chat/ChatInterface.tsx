@@ -87,7 +87,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
 
     return (
-        <Card className="bg-gray-800 border-gray-700 h-[600px] flex flex-col">
+        <Card className="bg-gray-800 border-gray-700 h-[400px] md:h-[500px] lg:h-[600px] flex flex-col">
             
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -213,7 +213,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             onChange={handleInputChange}
                             onKeyPress={handleKeyPress}
                             placeholder="Ask about your finances, goals, or investments..."
-                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] max-h-[120px]"
+                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[48px] md:min-h-[44px] max-h-[120px] text-[16px] md:text-base"
                             disabled={loading}
                         />
                     </div>
