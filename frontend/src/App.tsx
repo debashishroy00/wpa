@@ -456,8 +456,11 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
                 </button>
               )}
               
-              <a 
-                href="/"
+              <button 
+                onClick={() => {
+                  setUser(null)
+                  setCurrentView('home')
+                }}
                 style={{
                   background: 'rgba(102, 126, 234, 0.1)',
                   color: '#667eea',
@@ -472,7 +475,7 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
                 }}
               >
                 ← Back to Home
-              </a>
+              </button>
             </div>
           </div>
           <p style={{ fontSize: '1.3em', color: '#94a3b8' }}>
@@ -4087,9 +4090,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister }) => {
             </button>
           </p>
           {/* Force navigation to landing page */}
-          <a href="/" className="mt-4 text-gray-500 hover:text-gray-700 inline-block">
+          <button 
+            onClick={() => {
+              setUser(null)
+              setCurrentView('home')
+            }}
+            className="mt-4 text-gray-500 hover:text-gray-700 inline-block bg-transparent border-none cursor-pointer"
+          >
             ← Back to Home
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -4297,9 +4306,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onLogin }) 
             </button>
           </p>
           {/* Force navigation to landing page */}
-          <a href="/" className="mt-4 text-gray-500 hover:text-gray-700 inline-block">
+          <button 
+            onClick={() => {
+              setUser(null)
+              setCurrentView('home')
+            }}
+            className="mt-4 text-gray-500 hover:text-gray-700 inline-block bg-transparent border-none cursor-pointer"
+          >
             ← Back to Home
-          </a>
+          </button>
         </div>
       </div>
     </div>
