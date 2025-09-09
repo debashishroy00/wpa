@@ -231,6 +231,16 @@ function App() {
     )
   }
 
+  // Fallback: Show Landing Page for all non-authenticated users
+  if (!user) {
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-gray-900"><div className="text-white">Loading...</div></div>}>
+        <LandingPage onLogin={showLogin} onRegister={showRegister} />
+      </React.Suspense>
+    )
+  }
+
+  // If user is authenticated but no specific view, show status page
   return (
     <>
       <Helmet>
