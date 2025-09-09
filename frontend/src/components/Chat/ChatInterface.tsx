@@ -38,12 +38,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    // Removed auto-scrolling - let user control scrolling like Claude
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        // Only scroll if the chat container is visible and has messages
+        if (messagesEndRef.current && messages.length > 0) {
+            const chatContainer = messagesEndRef.current.closest('.overflow-y-auto');
+            if (chatContainer && chatContainer.scrollHeight > chatContainer.clientHeight) {
+                messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
     };
 
     const handleSend = () => {
@@ -51,9 +55,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             onSendMessage(inputMessage.trim());
             setInputMessage('');
             
-            // Reset textarea height
+            // Reset textarea height to single line
             if (textareaRef.current) {
-                textareaRef.current.style.height = 'auto';
+                textareaRef.current.style.height = '52px'; // Back to min height
+                textareaRef.current.setAttribute('rows', '1');
             }
         }
     };
@@ -68,10 +73,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInputMessage(e.target.value);
         
-        // Auto-resize textarea
+        // Auto-resize textarea like Claude chat
         const textarea = e.target;
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        const newHeight = Math.min(textarea.scrollHeight, 200); // Max 200px height
+        textarea.style.height = newHeight + 'px';
+        
+        // Adjust rows based on content
+        const lineHeight = 24; // Approximate line height
+        const rows = Math.max(1, Math.min(8, Math.ceil(newHeight / lineHeight)));
+        textarea.setAttribute('rows', rows.toString());
     };
 
     const formatTimestamp = (timestamp: Date) => {
@@ -87,9 +98,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
 
     return (
-        <Card className="bg-gray-800 border-gray-700 h-[300px] md:h-[350px] lg:h-[400px] flex flex-col">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg h-[65vh] flex flex-col">
             
-            {/* Messages Area */}
+            {/* Messages Area - Maximized */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 ? (
                     <div className="text-center text-gray-500 mt-8">
@@ -100,10 +111,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     messages.map((message) => (
                         <div
                             key={message.id}
-                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} group`}
+                            className="group"
                         >
                             <div
-                                className={`max-w-[80%] rounded-lg p-4 ${
+                                className={`w-full rounded-lg p-4 ${
                                     message.role === 'user'
                                         ? 'bg-blue-600 text-white'
                                         : message.role === 'assistant'
@@ -203,33 +214,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
+            {/* Input Area - Claude-style */}
             <div className="border-t border-gray-700 p-4">
-                <div className="flex space-x-3">
-                    <div className="flex-1">
-                        <textarea
-                            ref={textareaRef}
-                            value={inputMessage}
-                            onChange={handleInputChange}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Ask about your finances, goals, or investments..."
-                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[48px] md:min-h-[44px] max-h-[120px] text-[16px] md:text-base"
-                            disabled={loading}
-                        />
-                    </div>
-                    <Button
+                <div className="relative">
+                    <textarea
+                        ref={textareaRef}
+                        value={inputMessage}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Ask about your finances, goals, or investments..."
+                        className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 pr-12 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[52px] max-h-[200px] text-base leading-6"
+                        disabled={loading}
+                        rows={1}
+                    />
+                    <button
                         onClick={handleSend}
                         disabled={!inputMessage.trim() || loading}
-                        variant="primary"
-                        size="sm"
-                        leftIcon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                        className="bg-blue-600 hover:bg-blue-700 px-6 self-end"
+                        className="absolute right-2 bottom-2 p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors duration-200 flex items-center justify-center"
                     >
-                        {loading ? 'Sending...' : 'Send'}
-                    </Button>
+                        {loading ? (
+                            <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        ) : (
+                            <Send className="w-5 h-5 text-white" />
+                        )}
+                    </button>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 };
 

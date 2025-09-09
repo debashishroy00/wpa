@@ -3874,15 +3874,7 @@ const RoadmapStep: React.FC<RoadmapStepProps> = ({ onNext }) => (
 )
 
 const ChatStep: React.FC = () => (
-  <div>
-    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-      <h2 style={{ color: '#667eea', fontSize: '1.5em', marginBottom: '5px' }}>💬 AI Financial Advisor Chat</h2>
-      <p style={{ color: '#94a3b8', fontSize: '0.95em' }}>
-        Chat with your personal AI Financial Advisor
-      </p>
-    </div>
-    <FinancialAdvisorChat />
-  </div>
+  <FinancialAdvisorChat />
 )
 
 const DebugStep: React.FC = () => (

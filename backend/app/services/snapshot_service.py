@@ -2,9 +2,9 @@ from datetime import datetime, date
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
-from app.models.snapshot import FinancialSnapshot, SnapshotEntry, SnapshotFinancialGoal
+from app.models.snapshot import FinancialSnapshot, SnapshotEntry, SnapshotGoal
 from app.models.financial import FinancialEntry
-from app.models.goal import FinancialFinancialGoal
+from app.models.goal import FinancialGoal
 from app.models.user import User
 
 

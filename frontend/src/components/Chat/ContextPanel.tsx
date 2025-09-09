@@ -84,7 +84,7 @@ const ContextPanel: React.FC<ContextPanelProps> = ({ session }) => {
     const averageCostPerMessage = assistantMessages.length > 0 
         ? session.totalCost / assistantMessages.length 
         : 0;
-    const sessionDuration = new Date().getTime() - session.startTime.getTime();
+    const sessionDuration = new Date().getTime() - new Date(session.startTime).getTime();
     const sessionMinutes = Math.round(sessionDuration / (1000 * 60));
 
     const getProviderIcon = (provider: string) => {
@@ -158,7 +158,7 @@ const ContextPanel: React.FC<ContextPanelProps> = ({ session }) => {
                             {sessionMinutes}m
                         </div>
                         <div className="text-xs text-gray-400">
-                            Started {session.startTime.toLocaleTimeString()}
+                            Started {new Date(session.startTime).toLocaleTimeString()}
                         </div>
                     </div>
                 </div>

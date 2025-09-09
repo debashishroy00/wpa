@@ -479,15 +479,23 @@ const FinancialAdvisorChat: React.FC = () => {
     };
 
     return (
-        <div className="w-full text-white">
-            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+        <div className="w-full">
+            <div className="container mx-auto px-4 py-2">
+                <div className="mb-4">
+                    <h1 className="text-3xl font-bold text-white mb-2">AI Financial Advisor Chat</h1>
+                    <p className="text-gray-300">Get personalized financial advice and insights from your AI advisor</p>
+                </div>
+
                 {/* Compact Header */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="text-xs sm:text-sm text-gray-500 flex flex-wrap items-center gap-2 sm:gap-4">
-                        {/* Simplified LLM Info */}
-                        <div className="flex items-center gap-2">
+                        {/* Enhanced LLM Info with Model Tier and Response Depth */}
+                        <div className="flex items-center gap-1 text-xs">
                             <span>{LLMSettingsService.getProviderIcon(llmSettings.provider)}</span>
-                            <span>AI: {llmSettings.provider.toUpperCase()}</span>
+                            <span className="text-white font-medium">{llmSettings.provider.toUpperCase()}</span>
+                            <span className="text-blue-400">• {llmSettings.modelTier.toUpperCase()}</span>
+                            <span className="text-green-400">• {llmSettings.selectedModel}</span>
+                            <span className="text-yellow-400">• {(llmSettings.insightLevel || 'balanced').charAt(0).toUpperCase() + (llmSettings.insightLevel || 'balanced').slice(1)}</span>
                         </div>
                         
                         {/* Cost Display (kept for transparency) */}
@@ -496,13 +504,18 @@ const FinancialAdvisorChat: React.FC = () => {
                             <span>Cost: ${llmSettings.estimatedCostPerMessage.toFixed(3)}/msg</span>
                         </div>
                         
-                        {/* Intelligence Metrics Display */}
-                        {useIntelligentChat && intelligenceMetrics && (
-                            <div className="flex items-center gap-2 text-purple-400">
-                                <span>🧠</span>
-                                <span>AI Memory: {intelligenceMetrics.insights_extracted} insights captured</span>
-                            </div>
-                        )}
+                        {/* AI Mode and Intelligence Status */}
+                        <div className="flex items-center gap-1 text-xs">
+                            <span>🧠</span>
+                            <span className="text-purple-400">
+                                Memory: {useIntelligentChat ? 'ON' : 'OFF'}
+                            </span>
+                            {useIntelligentChat && intelligenceMetrics && (
+                                <span className="text-purple-300">
+                                    • {intelligenceMetrics.insights_extracted} insights
+                                </span>
+                            )}
+                        </div>
                         
                         {/* Enhanced Sync Status Indicator */}
                         <div className="flex items-center gap-2">
@@ -537,81 +550,50 @@ const FinancialAdvisorChat: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* Reorganized Button Layout - Mobile-first responsive */}
-                    <div className="space-y-3">
-                        {/* Top row - Core functions - Stack on mobile, row on larger screens */}
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                            {/* Enhanced Sync Finances Button */}
-                            <Button
-                                onClick={handleManualSync}
-                                variant="outline"
-                                size="sm"
-                                disabled={syncStatus === 'syncing'}
-                                leftIcon={
-                                    syncStatus === 'syncing' ? 
-                                        <RefreshCw className="w-4 h-4 animate-spin" /> : 
-                                        <Database className="w-4 h-4" />
-                                }
-                                className={`
-                                    ${syncStatus === 'error' ? 'border-red-500 text-red-400 hover:bg-red-500/10' : ''}
-                                    ${syncStatus === 'pending' ? 'border-yellow-500 text-yellow-400 hover:bg-yellow-500/10' : ''}
-                                    ${syncStatus === 'synced' ? 'border-green-500 text-green-400 hover:bg-green-500/10' : ''}
-                                    ${syncStatus === 'syncing' ? 'border-blue-500 text-blue-400 cursor-not-allowed' : ''}
-                                `}
-                            >
-                                📊 {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Finances'}
-                            </Button>
-                            
-                            <Button
-                                onClick={() => setShowProviderSettings(!showProviderSettings)}
-                                variant="outline"
-                                size="sm"
-                                leftIcon={<Zap className="w-4 h-4" />}
-                                className={`text-xs ${showProviderSettings ? 'ring-2 ring-orange-400' : ''}`}
-                            >
-                                ⚙️ LLM Settings
-                            </Button>
-                            
-                            <Button
-                                onClick={() => setShowContextPanel(!showContextPanel)}
-                                variant="outline"
-                                size="sm"
-                                leftIcon={<BarChart3 className="w-4 h-4" />}
-                            >
-                                📋 Context & Usage
-                            </Button>
-                        </div>
-
-                        {/* Bottom row - Memory and actions */}
-                        <div className="flex justify-between items-center">
-                            {/* AI Memory Button - Enhanced with insight count */}
-                            <Button
-                                onClick={() => setUseIntelligentChat(!useIntelligentChat)}
-                                variant={useIntelligentChat ? "primary" : "outline"}
-                                size="sm"
-                                leftIcon={<span>🧠</span>}
-                                className={`
-                                    ${useIntelligentChat 
-                                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-none' 
-                                        : 'border-purple-500 text-purple-400 hover:bg-purple-500/10'
-                                    }
-                                `}
-                            >
-                                AI Memory: {useIntelligentChat 
-                                    ? `On${intelligenceMetrics?.insights_extracted ? ` (${intelligenceMetrics.insights_extracted} insights)` : ''}`
-                                    : 'Off'
-                                }
-                            </Button>
-                            
-                            <Button
-                                onClick={clearChat}
-                                variant="outline"
-                                size="sm"
-                                className="text-red-400 border-red-500/50 hover:bg-red-900/20"
-                            >
-                                🗑️ Clear Chat
-                            </Button>
-                        </div>
+                    {/* Compact Single Row Button Layout */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            onClick={() => setShowProviderSettings(!showProviderSettings)}
+                            variant="outline"
+                            size="sm"
+                            leftIcon={<Zap className="w-4 h-4" />}
+                            className={`text-xs ${showProviderSettings ? 'ring-2 ring-orange-400' : ''}`}
+                        >
+                            ⚙️ Settings
+                        </Button>
+                        
+                        <Button
+                            onClick={() => setShowContextPanel(!showContextPanel)}
+                            variant="outline"
+                            size="sm"
+                            leftIcon={<BarChart3 className="w-4 h-4" />}
+                            className="text-xs"
+                        >
+                            📋 Context
+                        </Button>
+                        
+                        <Button
+                            onClick={() => setUseIntelligentChat(!useIntelligentChat)}
+                            variant={useIntelligentChat ? "primary" : "outline"}
+                            size="sm"
+                            leftIcon={<span>🧠</span>}
+                            className={`text-xs ${
+                                useIntelligentChat 
+                                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-none' 
+                                    : 'border-purple-500 text-purple-400 hover:bg-purple-500/10'
+                            }`}
+                        >
+                            Memory: {useIntelligentChat ? 'On' : 'Off'}
+                        </Button>
+                        
+                        <Button
+                            onClick={clearChat}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs text-red-400 border-red-500/50 hover:bg-red-900/20"
+                        >
+                            🗑️ Clear
+                        </Button>
                     </div>
                 </div>
 
@@ -651,75 +633,30 @@ const FinancialAdvisorChat: React.FC = () => {
                 )}
 
                 
-                {/* Main Chat Layout - Mobile-first responsive */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+                {/* Main Chat Layout - Maximized for chat real estate */}
+                <div className="grid grid-cols-1 xl:grid-cols-5 gap-3">
                     
-                    {/* Chat Interface - Main Area - Full width on mobile, 3/4 on desktop */}
-                    <div className="lg:col-span-3 order-1">
+                    {/* Suggested Questions - Compact Sidebar */}
+                    <div className="xl:col-span-1 order-0 xl:order-0">
+                        <SuggestedQuestions
+                            onQuestionClick={sendMessage}
+                            disabled={loading}
+                        />
+                    </div>
+                    
+                    {/* Chat Interface - Main Area - Maximum width */}
+                    <div className="xl:col-span-4 order-1 xl:order-1">
                         <ChatInterface
                             messages={messages}
                             loading={loading}
                             onSendMessage={sendMessage}
                         />
                     </div>
-                    
-                    {/* Suggested Questions - Sidebar - Show above chat on mobile, side on desktop */}
-                    <div className="lg:col-span-1 order-0 lg:order-1">
-                        <SuggestedQuestions
-                            onQuestionClick={sendMessage}
-                            disabled={loading}
-                        />
-                    </div>
                 </div>
 
-                {/* Session Stats */}
-                {currentSession && (
-                    <Card className="mt-6 bg-gray-800/50 border-gray-700">
-                        <Card.Body className="p-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm text-gray-400 gap-3">
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4" />
-                                        <span>Session: {new Date(currentSession.startTime).toLocaleTimeString()}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <MessageSquare className="w-4 h-4" />
-                                        <span>{messages.length} messages</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <BarChart3 className="w-4 h-4" />
-                                        <span>{currentSession.totalTokens} tokens</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <DollarSign className="w-4 h-4" />
-                                        <span>${currentSession.totalCost.toFixed(4)} total cost</span>
-                                    </div>
-                                </div>
-                                <div className="text-xs opacity-60 truncate">
-                                    ID: {currentSession.sessionId.substring(0, 8)}...
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                )}
+                {/* Session Stats removed to maximize chat space */}
 
-                {/* Compliance Disclaimer */}
-                <Card className="mt-4 bg-yellow-900/20 border-yellow-500/30">
-                    <Card.Body className="p-4">
-                        <div className="flex items-start space-x-3">
-                            <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                            <div className="text-sm text-yellow-300">
-                                <p className="font-medium mb-1">Important Disclaimer</p>
-                                <p className="opacity-90">
-                                    This AI advisor provides general financial information based on your data. 
-                                    This is not personalized investment advice. Please consult with a qualified 
-                                    financial professional before making investment decisions. Past performance 
-                                    does not guarantee future results.
-                                </p>
-                            </div>
-                        </div>
-                    </Card.Body>
-                </Card>
+                {/* Disclaimer removed to maximize chat space */}
 
             </div>
             
