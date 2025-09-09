@@ -124,7 +124,8 @@ if settings.ENABLE_CORS:
         "http://localhost:3002",
         "http://localhost:3003",
         "http://localhost:3004",
-        "http://localhost:3005"
+        "http://localhost:3005",
+        "http://localhost:3015"  # Add current frontend port
     ]
     
     logger.info("CORS enabled with origins", origins=production_origins)

@@ -161,7 +161,9 @@
       "Bash(npx vercel:*)",
       "Bash(git rm:*)",
       "Bash(npm run install:*)",
-      "Bash(npm ci:*)"
+      "Bash(npm ci:*)",
+      "Bash(venv/Scripts/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload)",
+      "Bash(venv/Scripts/pip install:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
