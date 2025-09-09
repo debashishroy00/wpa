@@ -25,6 +25,7 @@ const LandingPage = React.lazy(() => import('./pages/LandingPage'))
 // Page Components
 const Login = React.lazy(() => import('./pages/Login'))
 const Register = React.lazy(() => import('./pages/Register'))
+const Profile = React.lazy(() => import('./pages/Profile'))
 
 // Utilities
 import { isCurrentUserAdmin } from './utils/adminAuth'
@@ -635,7 +636,11 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
                 <TestFinancialService />
               </div>
             )}
-            {currentStep === 1 && <ProfileDataStep onNext={() => showStep(2)} />}
+            {currentStep === 1 && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <Profile onNext={() => showStep(2)} />
+              </Suspense>
+            )}
             {currentStep === 2 && <FinancialDataStep onNext={() => showStep(3)} />}
             {currentStep === 3 && <CurrentStateStep onNext={() => showStep(4)} manualEntries={manualEntries} />}
             {currentStep === 4 && <GoalDefinitionStep onNext={() => showStep(5)} />}
@@ -769,66 +774,6 @@ const FinancialDataStep: React.FC<FinancialDataStepProps> = ({ onNext }) => {
   )
 }
 
-// Profile Data Entry Step
-interface ProfileDataStepProps {
-  onNext: () => void
-}
-
-const ProfileDataStep: React.FC<ProfileDataStepProps> = ({ onNext }) => {
-  return (
-    <div style={{ 
-      background: '#ffffff',
-      borderRadius: '12px',
-      margin: '-40px',
-      minHeight: '500px'
-    }}>
-      {/* Step Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-        color: '#e2e8f0',
-        padding: '20px 30px',
-        borderRadius: '12px 12px 0 0',
-        marginBottom: '0'
-      }}>
-        <h2 style={{ fontSize: '1.8em', margin: '0 0 10px 0', fontWeight: 'bold' }}>
-          👤 Profile & Family Information
-        </h2>
-        <p style={{ margin: '0', opacity: '0.9', fontSize: '1.1em' }}>
-          Start by setting up your personal profile, family members, benefits, and tax information
-        </p>
-      </div>
-      
-      {/* Profile Management Page */}
-      <ProfileManagementPage />
-      
-      {/* Continue Button */}
-      <div style={{
-        padding: '20px 30px',
-        borderTop: '1px solid #e2e8f0',
-        background: '#f8fafc',
-        borderRadius: '0 0 12px 12px'
-      }}>
-        <button
-          onClick={onNext}
-          style={{
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: '#e2e8f0',
-            border: 'none',
-            padding: '12px 30px',
-            borderRadius: '8px',
-            fontSize: '1.1em',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            float: 'right'
-          }}
-        >
-          Continue to Financial Data →
-        </button>
-        <div style={{ clear: 'both' }}></div>
-      </div>
-    </div>
-  )
-}
 
 interface DataAggregationStepProps {
   onNext: () => void
