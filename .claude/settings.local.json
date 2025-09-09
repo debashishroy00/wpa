@@ -158,7 +158,9 @@
       "Bash(npm run preview:*)",
       "WebFetch(domain:wpa-git-main-debashishroy.vercel.app)",
       "WebFetch(domain:wpa-debashishroy00.vercel.app)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(git rm:*)",
+      "Bash(npm run install:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
