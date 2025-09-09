@@ -1,28 +1,32 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { 
   TrendingUp, Shield, Users, Star, ChartBar, Brain, 
   Target, Lightbulb, Rocket, Clock, CreditCard, CheckCircle 
 } from 'lucide-react';
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  onLogin: () => void;
+  onRegister: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onRegister }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <ChartBar className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">WealthPath AI</span>
-            </Link>
+            </div>
             <div className="flex items-center space-x-6">
               <a href="#features" className="text-gray-600 hover:text-gray-900 font-medium">Features</a>
               <a href="#pricing" className="text-gray-600 hover:text-gray-900 font-medium">Pricing</a>
-              <Link to="/login" className="text-gray-600 hover:text-gray-900 font-medium">Login</Link>
-              <Link to="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+              <button onClick={onLogin} className="text-gray-600 hover:text-gray-900 font-medium">Login</button>
+              <button onClick={onRegister} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
                 Get Started
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -38,10 +42,10 @@ const LandingPage: React.FC = () => {
             Transform your financial future with personalized AI insights and comprehensive planning.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link to="/register" className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition transform hover:-translate-y-1">
+            <button onClick={onRegister} className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition transform hover:-translate-y-1">
               <Rocket className="inline-block mr-2 h-5 w-5" />
               Start Your Free Analysis
-            </Link>
+            </button>
             <a href="#demo" className="border-2 border-white/30 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/10 transition">
               See How It Works
             </a>
@@ -170,10 +174,10 @@ const LandingPage: React.FC = () => {
                 ))}
               </ul>
               
-              <Link to="/register" className="block w-full bg-blue-600 text-white text-center py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition">
+              <button onClick={onRegister} className="block w-full bg-blue-600 text-white text-center py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition">
                 <Rocket className="inline-block mr-2 h-5 w-5" />
                 Claim Your Free Access
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -184,10 +188,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Financial Future?</h2>
           <p className="text-xl mb-8 opacity-95">Join thousands building wealth with AI-powered planning.</p>
-          <Link to="/register" className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition">
+          <button onClick={onRegister} className="inline-flex items-center bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition">
             <Rocket className="mr-2 h-5 w-5" />
             Get Early Access Now
-          </Link>
+          </button>
           <div className="flex justify-center gap-6 mt-6 text-sm">
             <span className="flex items-center gap-2">
               <Clock className="h-4 w-4" />

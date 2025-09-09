@@ -20,6 +20,7 @@ const FinancialAdvisorChat = React.lazy(() => import('./components/Chat/Financia
 const DebugView = React.lazy(() => import('./components/Debug/DebugView'))
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'))
 const PasswordResetScreen = React.lazy(() => import('./components/auth/PasswordResetScreen'))
+const LandingPage = React.lazy(() => import('./pages/LandingPage'))
 
 // Utilities
 import { isCurrentUserAdmin } from './utils/adminAuth'
@@ -213,6 +214,15 @@ function App() {
 
   if (currentView === 'wealthpath') {
     return <WealthPathApp user={user} onLogout={handleLogout} />
+  }
+
+  // Show Landing Page for non-authenticated users on home view
+  if (currentView === 'home' && !user) {
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-gray-900"><div className="text-white">Loading...</div></div>}>
+        <LandingPage onLogin={showLogin} onRegister={showRegister} />
+      </React.Suspense>
+    )
   }
 
   return (
