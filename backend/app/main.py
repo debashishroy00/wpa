@@ -114,9 +114,11 @@ app.add_middleware(
 
 # CORS middleware
 if settings.ENABLE_CORS:
-    # Production CORS configuration for smartfinanceadvisor.net
+    # Production CORS configuration for smartfinanceadvisor.net and Vercel deployments
     production_origins = [
         "https://smartfinanceadvisor.net",
+        "https://www.smartfinanceadvisor.net",  # Add www subdomain
+        "https://wealthpath-app.vercel.app",  # Add Vercel frontend domain
         "http://localhost:3000",
         "http://localhost:3001", 
         "http://localhost:3002",
