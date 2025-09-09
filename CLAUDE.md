@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 WealthPath AI is an optimized financial planning platform with a FastAPI backend and React frontend, designed for maximum efficiency:
 
-- **Backend**: FastAPI + PostgreSQL + Redis (15 core packages only, 396MB Docker image)
+- **Backend**: FastAPI + PostgreSQL + Redis (17 core packages only, 396MB Docker image)
 - **Frontend**: React 18 + TypeScript + Vite with Tailwind CSS
 - **Database**: PostgreSQL with Alembic migrations
 - **Cache**: Redis for session management and caching
 - **Vector Storage**: Simple JSON-based vector store (no ML dependencies)
 - **LLM Integration**: Multi-provider support (OpenAI, Gemini, Anthropic)
-- **Deployment**: Optimized for cloud platforms (Railway, Render)
+- **Deployment**: Optimized for cloud platforms (Railway, Render, Vercel)
 
 ## Key Development Commands
 
