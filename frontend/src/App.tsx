@@ -191,8 +191,21 @@ function App() {
   }
   
   const handleLogout = () => {
+    // Clear localStorage tokens
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('auth_tokens')
+    localStorage.removeItem('refresh_token')
+    
+    // Clear API client tokens
+    apiClient.clearTokens()
+    
+    // Clear auth store (handles sessionStorage and other state)
     clearAuth()
+    
+    // Navigate to landing page
     startTransition(() => setCurrentView('home'))
+    
+    console.log('✅ User logged out successfully')
   }
 
   if (currentView === 'login') {
@@ -489,14 +502,11 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
               )}
               
               <button 
-                onClick={() => {
-                  clearAuth()
-                  setCurrentView('home')
-                }}
+                onClick={onLogout}
                 style={{
-                  background: 'rgba(102, 126, 234, 0.1)',
-                  color: '#667eea',
-                  border: '1px solid #667eea',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                  border: '1px solid #ef4444',
                   borderRadius: '8px',
                   padding: '8px 16px',
                   fontWeight: '600',
@@ -506,7 +516,7 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
                   display: 'inline-block'
                 }}
               >
-                ← Back to Home
+                🚪 Logout
               </button>
             </div>
           </div>
