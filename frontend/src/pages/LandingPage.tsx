@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  TrendingUp, Shield, Users, Star, ChartBar, Brain, 
+  TrendingUp, Shield, Users, Star, BarChart3, Brain, 
   Target, Lightbulb, Rocket, Clock, CreditCard, CheckCircle 
 } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onRegister }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <ChartBar className="h-8 w-8 text-blue-600" />
+              <BarChart3 className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">WealthPath AI</span>
             </div>
             <div className="flex items-center space-x-6">
@@ -85,7 +85,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onRegister }) => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ChartBar className="h-8 w-8 text-white" />
+                <BarChart3 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Complete Analysis</h3>
               <p className="text-gray-600">360° view of your financial health with institutional-grade accuracy.</p>
