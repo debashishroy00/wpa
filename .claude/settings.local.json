@@ -160,7 +160,8 @@
       "WebFetch(domain:wpa-debashishroy00.vercel.app)",
       "Bash(npx vercel:*)",
       "Bash(git rm:*)",
-      "Bash(npm run install:*)"
+      "Bash(npm run install:*)",
+      "Bash(npm ci:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
