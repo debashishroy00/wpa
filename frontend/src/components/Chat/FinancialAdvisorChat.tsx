@@ -479,71 +479,61 @@ const FinancialAdvisorChat: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
-            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-3 sm:py-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2 flex items-center">
-                            <MessageSquare className="w-8 h-8 mr-3 text-blue-400" />
-                            AI Financial Advisor
-                        </h1>
-                        <p className="text-gray-400 mb-2">
-                            Personalized financial guidance powered by your real data
-                        </p>
-                        <div className="text-xs sm:text-sm text-gray-500 flex flex-wrap items-center gap-2 sm:gap-4">
-                            
-                            {/* Simplified LLM Info */}
-                            <div className="flex items-center gap-2">
-                                <span>{LLMSettingsService.getProviderIcon(llmSettings.provider)}</span>
-                                <span>AI: {llmSettings.provider.toUpperCase()}</span>
+        <div className="w-full text-white">
+            <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+                {/* Compact Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="text-xs sm:text-sm text-gray-500 flex flex-wrap items-center gap-2 sm:gap-4">
+                        {/* Simplified LLM Info */}
+                        <div className="flex items-center gap-2">
+                            <span>{LLMSettingsService.getProviderIcon(llmSettings.provider)}</span>
+                            <span>AI: {llmSettings.provider.toUpperCase()}</span>
+                        </div>
+                        
+                        {/* Cost Display (kept for transparency) */}
+                        <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4" />
+                            <span>Cost: ${llmSettings.estimatedCostPerMessage.toFixed(3)}/msg</span>
+                        </div>
+                        
+                        {/* Intelligence Metrics Display */}
+                        {useIntelligentChat && intelligenceMetrics && (
+                            <div className="flex items-center gap-2 text-purple-400">
+                                <span>🧠</span>
+                                <span>AI Memory: {intelligenceMetrics.insights_extracted} insights captured</span>
                             </div>
-                            
-                            {/* Cost Display (kept for transparency) */}
-                            <div className="flex items-center gap-2">
-                                <DollarSign className="w-4 h-4" />
-                                <span>Cost: ${llmSettings.estimatedCostPerMessage.toFixed(3)}/msg</span>
-                            </div>
-                            
-                            {/* Intelligence Metrics Display */}
-                            {useIntelligentChat && intelligenceMetrics && (
-                                <div className="flex items-center gap-2 text-purple-400">
-                                    <span>🧠</span>
-                                    <span>AI Memory: {intelligenceMetrics.insights_extracted} insights captured</span>
+                        )}
+                        
+                        {/* Enhanced Sync Status Indicator */}
+                        <div className="flex items-center gap-2">
+                            <Database className="w-4 h-4" />
+                            {syncStatus === 'synced' && syncInfo && (
+                                <div className="flex items-center gap-1 text-green-400">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Synced • {syncInfo.total} docs</span>
+                                    {syncInfo.dti_ratio && (
+                                        <span className="text-xs">• DTI: {syncInfo.dti_ratio.toFixed(1)}%</span>
+                                    )}
                                 </div>
                             )}
-                            
-                            {/* Enhanced Sync Status Indicator */}
-                            <div className="flex items-center gap-2">
-                                <Database className="w-4 h-4" />
-                                {syncStatus === 'synced' && syncInfo && (
-                                    <div className="flex items-center gap-1 text-green-400">
-                                        <CheckCircle className="w-4 h-4" />
-                                        <span>Synced • {syncInfo.total} docs</span>
-                                        {syncInfo.dti_ratio && (
-                                            <span className="text-xs">• DTI: {syncInfo.dti_ratio.toFixed(1)}%</span>
-                                        )}
-                                    </div>
-                                )}
-                                {syncStatus === 'pending' && syncInfo && (
-                                    <div className="flex items-center gap-1 text-yellow-400">
-                                        <RefreshCw className="w-4 h-4" />
-                                        <span>{syncInfo.unsynced} updates pending</span>
-                                    </div>
-                                )}
-                                {syncStatus === 'syncing' && (
-                                    <div className="flex items-center gap-1 text-blue-400">
-                                        <RefreshCw className="w-4 h-4 animate-spin" />
-                                        <span>Syncing AI data...</span>
-                                    </div>
-                                )}
-                                {syncStatus === 'error' && (
-                                    <div className="flex items-center gap-1 text-red-400">
-                                        <AlertTriangle className="w-4 h-4" />
-                                        <span>Sync failed - click to retry</span>
-                                    </div>
-                                )}
-                            </div>
+                            {syncStatus === 'pending' && syncInfo && (
+                                <div className="flex items-center gap-1 text-yellow-400">
+                                    <RefreshCw className="w-4 h-4" />
+                                    <span>{syncInfo.unsynced} updates pending</span>
+                                </div>
+                            )}
+                            {syncStatus === 'syncing' && (
+                                <div className="flex items-center gap-1 text-blue-400">
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                    <span>Syncing AI data...</span>
+                                </div>
+                            )}
+                            {syncStatus === 'error' && (
+                                <div className="flex items-center gap-1 text-red-400">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    <span>Sync failed - click to retry</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     

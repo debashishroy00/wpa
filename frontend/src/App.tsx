@@ -18,6 +18,8 @@ const SimplePortfolioAnalysis = React.lazy(() => import('./components/portfolio/
 const TestFinancialService = React.lazy(() => import('./components/TestFinancialService'))
 const FinancialAdvisorChat = React.lazy(() => import('./components/Chat/FinancialAdvisorChat'))
 const DebugView = React.lazy(() => import('./components/Debug/DebugView'))
+const FinancialDashboard = React.lazy(() => import('./components/Dashboard/FinancialDashboard'))
+const NavigationTabs = React.lazy(() => import('./components/NavigationTabs'))
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'))
 const PasswordResetScreen = React.lazy(() => import('./components/auth/PasswordResetScreen'))
 const LandingPage = React.lazy(() => import('./pages/LandingPage'))
@@ -428,10 +430,23 @@ interface WealthPathAppProps {
 }
 
 const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
-  const [currentStep, setCurrentStep] = useState(1) // Start directly with Step 1 (Profile)
+  const [currentView, setCurrentView] = useState('dashboard') // Start with Dashboard
   const [apiHealth, setApiHealth] = useState<any>(null)
-  const [manualEntries, setManualEntries] = useState<any[]>([]) // Shared state across steps
+  const [manualEntries, setManualEntries] = useState<any[]>([]) // Shared state across components
   const [showAdminDashboard, setShowAdminDashboard] = useState(false) // Admin dashboard state
+
+  // Navigation tabs configuration
+  const navigationTabs = [
+    { id: 'dashboard', label: 'Dashboard', view: 'dashboard' },
+    { id: 'profile', label: 'Profile', view: 'profile' },
+    { id: 'financial', label: 'Financial Data', view: 'financialManagement' },
+    { id: 'current', label: 'Current State', view: 'currentState' },
+    { id: 'goals', label: 'Goals', view: 'goals' },
+    { id: 'analysis', label: 'Analysis', view: 'intelligence' },
+    { id: 'advisory', label: 'Advisory', view: 'advisory' },
+    { id: 'chat', label: 'Chat', view: 'advisorChat' },
+    { id: 'debug', label: 'Debug', view: 'debug' }
+  ]
 
   useEffect(() => {
     // Check API connection
@@ -440,10 +455,14 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
       .catch(err => console.error('API connection failed:', err))
   }, [])
 
-  const showStep = (step: number) => {
+  const showView = (view: string) => {
     startTransition(() => {
-      setCurrentStep(step)
+      setCurrentView(view)
     })
+  }
+
+  const getCurrentTab = () => {
+    return navigationTabs.find(tab => tab.view === currentView)?.id || 'dashboard'
   }
 
   return (
@@ -456,24 +475,108 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
       <div style={{ 
         maxWidth: '1400px', 
         margin: '0 auto', 
-        padding: '20px 15px',
+        padding: '10px 15px',
         '@media (min-width: 768px)': {
-          padding: '40px 20px'
+          padding: '15px 20px'
         }
       }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <h1 style={{
-              fontSize: '3em',
+        
+        {/* OLD Step Navigation - Replaced with tab navigation in components */}
+        {/* <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 'clamp(20px, 5vw, 40px)',
+          marginBottom: '50px',
+          position: 'relative',
+          flexWrap: 'wrap'
+        }}> */}
+          {/* Progress line */}
+          {/* <div style={{
+            content: '',
+            position: 'absolute',
+            top: '50%',
+            left: '20%',
+            right: '20%',
+            height: '2px',
+            background: 'linear-gradient(90deg, #667eea 0%, #9f7aea 100%)',
+            zIndex: 0
+          }}></div>
+          
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(step => (
+            <div
+              key={step}
+              onClick={() => showView('step' + step)}
+              style={{
+                background: currentView === step ? 'linear-gradient(135deg, #667eea 0%, #9f7aea 100%)' : 
+                           step < currentView ? '#10b981' : '#1a1a2e',
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                fontSize: '1.2em',
+                border: currentView === step ? 'none' : '3px solid #2d2d4e',
+                cursor: 'pointer',
+                zIndex: 1,
+                position: 'relative',
+                transition: 'all 0.3s',
+                boxShadow: currentView === step ? '0 0 30px rgba(102,126,234,0.5)' : 'none'
+              }}
+            >
+              {step}
+            </div>
+          ))}
+        </div> */}
+
+        {/* Step Content */}
+        <div style={{
+          background: '#1a1a2e',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          border: '1px solid #2d2d4e'
+        }}>
+          {/* App Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
+            padding: '15px 30px',
+            borderBottom: '1px solid #2d2d4e',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div style={{
+              fontSize: '1.8em',
+              fontWeight: 'bold',
               background: 'linear-gradient(135deg, #667eea 0%, #9f7aea 100%)',
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '20px'
+              WebkitTextFillColor: 'transparent'
             }}>
               WealthPath AI
-            </h1>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            </div>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 16px',
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid #10b981',
+                borderRadius: '20px',
+                color: '#10b981',
+                fontSize: '0.9em'
+              }}>
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  background: '#10b981',
+                  borderRadius: '50%'
+                }}></div>
+                <span>{apiHealth ? 'Live Sync Active' : 'Connecting...'}</span>
+              </div>
+              
               {/* Admin Link - Only visible to admin users */}
               {(() => {
                 const authUser = useUnifiedAuthStore.getState().user;
@@ -520,116 +623,25 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
               </button>
             </div>
           </div>
-          <p style={{ fontSize: '1.3em', color: '#94a3b8' }}>
-            From Current State to Target Achievement: Intelligent Financial Guidance
-          </p>
-        </div>
-        
-        {/* Step Navigation */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 'clamp(20px, 5vw, 40px)',
-          marginBottom: '50px',
-          position: 'relative',
-          flexWrap: 'wrap'
-        }}>
-          {/* Progress line */}
-          <div style={{
-            content: '',
-            position: 'absolute',
-            top: '50%',
-            left: '20%',
-            right: '20%',
-            height: '2px',
-            background: 'linear-gradient(90deg, #667eea 0%, #9f7aea 100%)',
-            zIndex: 0
-          }}></div>
           
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(step => (
-            <div
-              key={step}
-              onClick={() => showStep(step)}
-              style={{
-                background: currentStep === step ? 'linear-gradient(135deg, #667eea 0%, #9f7aea 100%)' : 
-                           step < currentStep ? '#10b981' : '#1a1a2e',
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                fontSize: '1.2em',
-                border: currentStep === step ? 'none' : '3px solid #2d2d4e',
-                cursor: 'pointer',
-                zIndex: 1,
-                position: 'relative',
-                transition: 'all 0.3s',
-                boxShadow: currentStep === step ? '0 0 30px rgba(102,126,234,0.5)' : 'none'
-              }}
-            >
-              {step}
-            </div>
-          ))}
-        </div>
-
-        {/* Step Content */}
-        <div style={{
-          background: '#1a1a2e',
-          borderRadius: '20px',
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-          border: '1px solid #2d2d4e'
-        }}>
-          {/* App Header */}
-          <div style={{
-            background: 'linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)',
-            padding: '25px 30px',
-            borderBottom: '1px solid #2d2d4e',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{
-              fontSize: '1.8em',
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #667eea 0%, #9f7aea 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              WealthPath AI
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '8px 16px',
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid #10b981',
-              borderRadius: '20px',
-              color: '#10b981',
-              fontSize: '0.9em'
-            }}>
-              <div style={{
-                width: '8px',
-                height: '8px',
-                background: '#10b981',
-                borderRadius: '50%'
-              }}></div>
-              <span>{apiHealth ? 'Live Sync Active' : 'Connecting...'}</span>
-            </div>
-          </div>
+          {/* Navigation Tabs */}
+          <Suspense fallback={<div>Loading navigation...</div>}>
+            <NavigationTabs 
+              tabs={navigationTabs} 
+              activeTab={getCurrentTab()} 
+              onTabClick={showView} 
+            />
+          </Suspense>
           
           {/* Step Content Area */}
-          <div style={{ padding: '40px', minHeight: '500px' }}>
-            {currentStep === 0 && (
+          <div style={{ padding: '20px', minHeight: '500px', marginTop: '20px', position: 'relative', zIndex: 1, backgroundColor: 'transparent' }}>
+            {currentView === 'test' && (
               <div>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                   <h2 style={{ color: '#667eea', fontSize: '2em', marginBottom: '10px' }}>🧪 Phase 2 Test: Data Service Layer</h2>
                   <p style={{ color: '#94a3b8', fontSize: '1.1em' }}>Testing our clean FinancialDataService that fetches from new clean API endpoints</p>
                   <button 
-                    onClick={() => showStep(1)}
+                    onClick={() => showView('dashboard')}
                     style={{
                       background: '#667eea',
                       color: 'white',
@@ -647,22 +659,27 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
                 <TestFinancialService />
               </div>
             )}
-            {currentStep === 1 && (
+            {currentView === 'dashboard' && (
               <Suspense fallback={<div>Loading...</div>}>
-                <Profile onNext={() => showStep(2)} />
+                <FinancialDashboard />
               </Suspense>
             )}
-            {currentStep === 2 && (
+            {currentView === 'profile' && (
               <Suspense fallback={<div>Loading...</div>}>
-                <FinancialManagement onNext={() => showStep(3)} />
+                <Profile onNext={() => showView('financialManagement')} />
               </Suspense>
             )}
-            {currentStep === 3 && <CurrentStateStep onNext={() => showStep(4)} manualEntries={manualEntries} />}
-            {currentStep === 4 && <GoalDefinitionStep onNext={() => showStep(5)} />}
-            {currentStep === 5 && <IntelligenceStep onNext={() => showStep(6)} />}
-            {currentStep === 6 && <RoadmapStep onNext={() => showStep(7)} />}
-            {currentStep === 7 && <ChatStep />}
-            {currentStep === 8 && <DebugStep />}
+            {currentView === 'financialManagement' && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <FinancialManagement onNext={() => showView('currentState')} />
+              </Suspense>
+            )}
+            {currentView === 'currentState' && <CurrentStateStep onNext={() => showView('goals')} manualEntries={manualEntries} />}
+            {currentView === 'goals' && <GoalDefinitionStep onNext={() => showView('intelligence')} />}
+            {currentView === 'intelligence' && <IntelligenceStep onNext={() => showView('advisory')} />}
+            {currentView === 'advisory' && <RoadmapStep onNext={() => showView('advisorChat')} />}
+            {currentView === 'advisorChat' && <ChatStep />}
+            {currentView === 'debug' && <DebugStep />}
           </div>
         </div>
       </div>
@@ -3858,10 +3875,10 @@ const RoadmapStep: React.FC<RoadmapStepProps> = ({ onNext }) => (
 
 const ChatStep: React.FC = () => (
   <div>
-    <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-      <h2 style={{ color: '#667eea', fontSize: '2em', marginBottom: '10px' }}>💬 AI Financial Advisor Chat</h2>
-      <p style={{ color: '#94a3b8', fontSize: '1.1em' }}>
-        Chat with your personal AI Financial Advisor using real-time data from your financial profile
+    <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+      <h2 style={{ color: '#667eea', fontSize: '1.5em', marginBottom: '5px' }}>💬 AI Financial Advisor Chat</h2>
+      <p style={{ color: '#94a3b8', fontSize: '0.95em' }}>
+        Chat with your personal AI Financial Advisor
       </p>
     </div>
     <FinancialAdvisorChat />

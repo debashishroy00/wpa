@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "glob": "^11.0.3",
     "playwright": "^1.55.0",
     "playwright-chromium": "^1.55.0"
   },

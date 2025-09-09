@@ -13,7 +13,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "check": "node ../scripts/check-quality.js",
+    "check:size": "find src -name '*.tsx' -o -name '*.ts' | xargs wc -l | sort -rn | head -10",
+    "check:fix": "echo 'Files over 300 lines need manual refactoring'",
+    "precommit": "npm run check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -55,6 +59,7 @@
     "eslint": "^8.53.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.4",
+    "glob": "^10.4.5",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.32",
