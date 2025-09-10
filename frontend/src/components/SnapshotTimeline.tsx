@@ -90,16 +90,11 @@ const SnapshotTimeline: React.FC<SnapshotTimelineProps> = ({ refreshTrigger }) =
   };
 
   const renderTrendRow = (label: string, values: number[], colorClass: string = 'text-white') => (
-    <div className="grid grid-cols-5 gap-4 items-center py-2">
-      <div className="text-gray-300 font-medium">{label}:</div>
+    <div className="grid grid-cols-5 gap-3 items-center py-0.5">
+      <div className="text-gray-300 font-medium text-xs">{label}:</div>
       {values.map((value, index) => (
         <div key={index} className="text-center">
-          <div className={`${colorClass} font-medium`}>{formatCurrency(value)}</div>
-          {index > 0 && (
-            <div className="text-sm text-gray-400 mt-1">
-              {getTrendArrow(value, values[index - 1])}
-            </div>
-          )}
+          <div className={`${colorClass} font-medium text-xs`}>{formatCurrency(value)}</div>
         </div>
       ))}
     </div>
@@ -188,63 +183,69 @@ const SnapshotTimeline: React.FC<SnapshotTimelineProps> = ({ refreshTrigger }) =
           )}
 
           {view === 'table' && detailedSnapshots.length >= 2 && (
-            <div className="space-y-6">
+            <div className="space-y-2">
               {/* Date Headers */}
-              <div className="grid grid-cols-5 gap-4 mb-4">
-                <div className="text-gray-400 font-medium"></div>
+              <div className="grid grid-cols-5 gap-3 mb-2 pb-1 border-b border-gray-600">
+                <div className="text-gray-400 font-medium text-xs"></div>
                 {detailedSnapshots.map((snapshot, index) => (
-                  <div key={index} className="text-center text-gray-300 text-sm font-medium">
+                  <div key={index} className="text-center text-gray-200 text-xs font-semibold">
                     {formatDateForTrends(snapshot.snapshot_date, period)}
                   </div>
                 ))}
               </div>
 
               {/* Net Worth Trend */}
-              <div className="border-b border-gray-600 pb-4">
-                <h3 className="text-lg font-semibold text-white mb-3">Net Worth Trend</h3>
-                {renderTrendRow('Net Worth', detailedSnapshots.map(s => s.net_worth), 'text-white font-semibold')}
+              <div className="bg-gray-750 rounded p-2 border-l-2 border-blue-500">
+                <h3 className="text-sm font-bold text-white mb-1 uppercase tracking-wide">Net Worth</h3>
+                {renderTrendRow('Net Worth', detailedSnapshots.map(s => s.net_worth), 'text-white font-bold')}
               </div>
 
               {/* Asset Breakdown */}
-              <div className="border-b border-gray-600 pb-4">
-                <h3 className="text-lg font-semibold text-white mb-3">ASSETS</h3>
-                {renderTrendRow('Real Estate', detailedSnapshots.map(s => s.categorized.real_estate), 'text-green-400')}
-                {renderTrendRow('Investments', detailedSnapshots.map(s => s.categorized.investments), 'text-green-400')}
-                {renderTrendRow('Cash', detailedSnapshots.map(s => s.categorized.cash), 'text-green-400')}
-                {detailedSnapshots.some(s => s.categorized.other_assets > 0) && 
-                  renderTrendRow('Other Assets', detailedSnapshots.map(s => s.categorized.other_assets), 'text-green-400')}
+              <div className="bg-gray-750 rounded p-2 border-l-2 border-green-500">
+                <h3 className="text-sm font-bold text-green-400 mb-1 uppercase tracking-wide">Assets</h3>
+                <div className="space-y-0">
+                  {renderTrendRow('Real Estate', detailedSnapshots.map(s => s.categorized.real_estate), 'text-green-400')}
+                  {renderTrendRow('Investments', detailedSnapshots.map(s => s.categorized.investments), 'text-green-400')}
+                  {renderTrendRow('Cash', detailedSnapshots.map(s => s.categorized.cash), 'text-green-400')}
+                  {detailedSnapshots.some(s => s.categorized.other_assets > 0) && 
+                    renderTrendRow('Other Assets', detailedSnapshots.map(s => s.categorized.other_assets), 'text-green-400')}
+                </div>
               </div>
 
               {/* Liability Breakdown */}
-              <div className="border-b border-gray-600 pb-4">
-                <h3 className="text-lg font-semibold text-white mb-3">LIABILITIES</h3>
-                {renderTrendRow('Mortgages', detailedSnapshots.map(s => s.categorized.mortgages), 'text-red-400')}
-                {renderTrendRow('Other Debt', detailedSnapshots.map(s => s.categorized.other_debt), 'text-red-400')}
+              <div className="bg-gray-750 rounded p-2 border-l-2 border-red-500">
+                <h3 className="text-sm font-bold text-red-400 mb-1 uppercase tracking-wide">Liabilities</h3>
+                <div className="space-y-0">
+                  {renderTrendRow('Mortgages', detailedSnapshots.map(s => s.categorized.mortgages), 'text-red-400')}
+                  {renderTrendRow('Other Debt', detailedSnapshots.map(s => s.categorized.other_debt), 'text-red-400')}
+                </div>
               </div>
 
               {/* Monthly Cash Flow */}
-              <div className="border-b border-gray-600 pb-4">
-                <h3 className="text-lg font-semibold text-white mb-3">MONTHLY CASH FLOW</h3>
-                {renderTrendRow('Income', detailedSnapshots.map(s => s.monthly_income), 'text-blue-400')}
-                {renderTrendRow('Expenses', detailedSnapshots.map(s => s.monthly_expenses), 'text-orange-400')}
-                {renderTrendRow('Savings', detailedSnapshots.map(s => s.monthly_income - s.monthly_expenses), 'text-purple-400')}
+              <div className="bg-gray-750 rounded p-2 border-l-2 border-purple-500">
+                <h3 className="text-sm font-bold text-purple-400 mb-1 uppercase tracking-wide">Monthly Cash Flow</h3>
+                <div className="space-y-0">
+                  {renderTrendRow('Income', detailedSnapshots.map(s => s.monthly_income), 'text-blue-400')}
+                  {renderTrendRow('Expenses', detailedSnapshots.map(s => s.monthly_expenses), 'text-orange-400')}
+                  {renderTrendRow('Savings', detailedSnapshots.map(s => s.monthly_income - s.monthly_expenses), 'text-purple-400')}
+                </div>
               </div>
 
               {/* Manage Snapshots */}
-              <div className="pt-4">
-                <h3 className="text-lg font-semibold text-white mb-3">Manage Snapshots</h3>
-                <div className="space-y-2">
+              <div className="bg-gray-750 rounded p-2 border-l-2 border-gray-500">
+                <h3 className="text-sm font-bold text-gray-300 mb-1 uppercase tracking-wide">Manage Snapshots</h3>
+                <div className="space-y-0">
                   {detailedSnapshots.map((snapshot) => (
-                    <div key={snapshot.id} className="flex justify-between items-center bg-gray-700 p-3 rounded">
+                    <div key={snapshot.id} className="flex justify-between items-center bg-gray-700 p-1 rounded text-xs">
                       <div className="text-gray-300">
                         <span className="font-medium">{formatDate(snapshot.snapshot_date)}</span>
-                        <span className="ml-2 text-gray-400">({snapshot.snapshot_name || 'Unnamed'})</span>
+                        <span className="ml-1 text-gray-400">({snapshot.snapshot_name || 'Unnamed'})</span>
                       </div>
                       <button
                         onClick={() => deleteSnapshot(snapshot.id)}
                         className="text-red-400 hover:text-red-300 transition-colors"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
