@@ -35,8 +35,8 @@ class SnapshotService:
             monthly_income=financial_summary.get('monthly_income', 0),
             monthly_expenses=financial_summary.get('monthly_expenses', 0),
             savings_rate=financial_summary.get('savings_rate', 0),
-            age=self._calculate_age(user.date_of_birth) if user.date_of_birth else None,
-            employment_status=user.occupation or "Not specified"
+            age=self._calculate_age(user.profile.date_of_birth) if user.profile and user.profile.date_of_birth else None,
+            employment_status=getattr(user.profile, 'occupation', None) if user.profile else "Not specified"
         )
         
         db.add(snapshot)
@@ -96,15 +96,16 @@ class SnapshotService:
         return last_snapshot.snapshot_date if last_snapshot else None
 
     def _calculate_financial_summary(self, db: Session, user_id: int) -> Dict[str, float]:
-        """Calculate financial metrics from current entries"""
+        """Calculate financial metrics from current active entries only"""
         entries = db.query(FinancialEntry)\
             .filter(FinancialEntry.user_id == user_id)\
+            .filter(FinancialEntry.is_active == True)\
             .all()
 
-        assets = sum(e.amount for e in entries if e.entry_type == 'asset')
-        liabilities = sum(e.amount for e in entries if e.entry_type == 'liability')
-        income = sum(e.amount for e in entries if e.entry_type == 'income')
-        expenses = sum(e.amount for e in entries if e.entry_type == 'expense')
+        assets = sum(float(e.amount) for e in entries if e.category.value == 'assets')
+        liabilities = sum(float(e.amount) for e in entries if e.category.value == 'liabilities')
+        income = sum(float(e.amount) for e in entries if e.category.value == 'income')
+        expenses = sum(float(e.amount) for e in entries if e.category.value == 'expenses')
         
         net_worth = assets - liabilities
         savings_rate = ((income - expenses) / income * 100) if income > 0 else 0
@@ -119,19 +120,20 @@ class SnapshotService:
         }
 
     def _copy_financial_entries(self, db: Session, user_id: int, snapshot_id: int):
-        """Copy current financial entries to snapshot"""
+        """Copy current active financial entries to snapshot"""
         entries = db.query(FinancialEntry)\
             .filter(FinancialEntry.user_id == user_id)\
+            .filter(FinancialEntry.is_active == True)\
             .all()
 
         for entry in entries:
             snapshot_entry = SnapshotEntry(
                 snapshot_id=snapshot_id,
-                category=entry.category,
+                category=entry.category.value,
                 subcategory=entry.subcategory,
-                name=entry.name,
-                institution=entry.institution,
-                account_type=entry.account_type,
+                name=entry.description,  # Use description field
+                institution=getattr(entry, 'institution', None),
+                account_type=getattr(entry, 'account_type', None),
                 amount=entry.amount,
                 interest_rate=getattr(entry, 'interest_rate', None)
             )
@@ -148,7 +150,7 @@ class SnapshotService:
         for goal in goals:
             completion = (goal.current_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0
             
-            snapshot_goal = SnapshotFinancialGoal(
+            snapshot_goal = SnapshotGoal(
                 snapshot_id=snapshot_id,
                 goal_name=goal.name,
                 target_amount=goal.target_amount,

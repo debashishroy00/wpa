@@ -50,7 +50,6 @@ class SnapshotEntry(Base):
     
     # Additional context
     interest_rate = Column(Numeric(5, 2), nullable=True)
-    asset_allocation = Column(JSON, nullable=True)
     
     # Relationships
     snapshot = relationship("FinancialSnapshot", back_populates="entries")

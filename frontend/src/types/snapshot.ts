@@ -53,3 +53,26 @@ export interface LastSnapshotInfo {
   days_since_last?: number;
   can_create_new: boolean;
 }
+
+export interface CategorizedFinancials {
+  real_estate: number;
+  investments: number;
+  cash: number;
+  other_assets: number;
+  mortgages: number;
+  other_debt: number;
+  income: number;
+  expenses: number;
+}
+
+export interface DetailedSnapshot {
+  id: number;
+  snapshot_date: string;
+  snapshot_name?: string;
+  net_worth: number;
+  total_assets: number;
+  total_liabilities: number;
+  monthly_income: number;
+  monthly_expenses: number;
+  categorized: CategorizedFinancials;
+}

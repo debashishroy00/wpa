@@ -3,8 +3,7 @@ WealthPath AI - API v1 Router
 """
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, goals_v2, advisor_data, plan_engine, advisory, financial_clean, vector_db, debug, profile, admin, embeddings, insights, chat_simple
-# snapshots temporarily disabled due to import errors
+from app.api.v1.endpoints import auth, users, financial, goals, goal_templates, goals_v2, advisor_data, plan_engine, advisory, financial_clean, vector_db, debug, profile, admin, embeddings, insights, chat_simple, simple_snapshots
 # Re-enabled intelligence endpoint for working system
 from app.api.v1.endpoints import intelligence  # Real intelligence analysis
 from app.api.v1.endpoints import intelligence_stub  # Keep as fallback
@@ -12,7 +11,7 @@ from app.api.v1.endpoints import projections_stub  # Stub to prevent 404s
 from app.api.v1.endpoints import tax_stub  # Stub to prevent 404s
 from app.api.v1.endpoints import verification_test_stub  # Stub to prevent 404s
 # Temporarily disabled endpoints that import removed services:
-# projections (original), verification_test (original), tax (original)
+# projections (original), verification_test (original), tax (original), snapshots (original)
 # Keep original LLM endpoints for Step 5 (working yesterday)
 from app.api.v1.endpoints import llm  # Re-enabled for frontend compatibility
 # Import the missing endpoints
@@ -44,8 +43,8 @@ api_router.include_router(vector_db.router, prefix="/vector", tags=["vector-data
 api_router.include_router(debug.router, prefix="/debug", tags=["step7-debug"])
 # Profile endpoints for user demographics, family, benefits, and tax info
 api_router.include_router(profile.router, prefix="/profile", tags=["profile"])
-# Snapshot endpoints temporarily disabled due to import errors
-# api_router.include_router(snapshots.router, prefix="/snapshots", tags=["snapshots"])
+# Snapshot endpoints - using simplified working version
+api_router.include_router(simple_snapshots.router, prefix="/snapshots", tags=["snapshots"])
 # Verification test endpoints for system health and fixes validation
 # api_router.include_router(verification_test.router, prefix="/verify", tags=["verification"])  # Disabled - imports removed services
 api_router.include_router(verification_test_stub.router, prefix="/verify", tags=["verification-stub"])  # Stub to prevent 404s
@@ -64,3 +63,5 @@ api_router.include_router(tax_stub.router, prefix="/tax", tags=["tax-stub"])  # 
 api_router.include_router(insights.router, prefix="/insights", tags=["insights"])
 # Simplified chat endpoint using new architecture
 api_router.include_router(chat_simple.router, prefix="/chat-simple", tags=["chat-simple"])
+
+# Snapshot endpoints are handled by simple_snapshots.py router

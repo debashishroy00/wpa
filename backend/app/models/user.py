@@ -79,6 +79,13 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    
+    # Financial snapshots relationship
+    financial_snapshots = relationship(
+        "FinancialSnapshot",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', status='{self.status.value}')>"

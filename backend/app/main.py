@@ -10,12 +10,14 @@ import structlog
 import time
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from fastapi.responses import Response
+from fastapi import Depends
 
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.core.security import get_password_hash
-from app.db.session import engine
+from app.db.session import engine, get_db
 from app.db.base import Base
+from sqlalchemy.orm import Session
 
 # Configure structured logging
 structlog.configure(
@@ -216,6 +218,9 @@ async def health_check():
 
 # API Routes
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+# Snapshot endpoints are now handled by the API router (simple_snapshots.py)
+# No duplicate endpoints needed in main.py
 
 
 

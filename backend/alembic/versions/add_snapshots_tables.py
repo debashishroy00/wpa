@@ -1,8 +1,8 @@
 """Add financial snapshots tables
 
-Revision ID: add_snapshots_001
-Revises: 
-Create Date: 2024-01-09 12:00:00.000000
+Revision ID: snapshot_001
+Revises: f96632089afd
+Create Date: 2024-09-10 12:00:00.000000
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers
-revision = 'add_snapshots_001'
-down_revision = None
+revision = 'snapshot_001'
+down_revision = 'f96632089afd'  # Latest existing migration
 branch_labels = None
 depends_on = None
 

@@ -20,13 +20,7 @@ const SnapshotButton: React.FC<SnapshotButtonProps> = ({ onSnapshotCreated, clas
       const info = await snapshotApi.getLastSnapshotInfo();
       setLastSnapshotInfo(info);
       
-      if (!info.can_create_new) {
-        setMessage({
-          type: 'warning',
-          text: `Last snapshot was ${info.days_since_last} days ago. Wait at least 30 days between snapshots.`
-        });
-        return false;
-      }
+      // No restrictions - always allow snapshot creation
       return true;
     } catch (error) {
       console.error('Failed to check last snapshot:', error);

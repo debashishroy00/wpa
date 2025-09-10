@@ -2,18 +2,63 @@ import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Target, Calendar } from 'lucide-react';
 import SnapshotButton from '../SnapshotButton';
 import SnapshotTimeline from '../SnapshotTimeline';
+import { apiClient } from '../../utils/api-simple';
 
 interface FinancialDashboardProps {
 }
 
 const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [dashboardStats, setDashboardStats] = useState({
     netWorth: 0,
     monthlyIncome: 0,
     savingsRate: 0,
     totalGoals: 0
   });
+
+  // Fetch real financial data from API
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Extract user ID from stored auth tokens
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      // Decode JWT to get user ID (JWT payload is base64 encoded)
+      const tokenParts = token.split('.');
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const userId = payload.sub; // 'sub' field contains user ID
+      
+      console.log('Using user ID:', userId);
+
+      // Fetch financial data in parallel
+      const [liveSummary, cashFlow, goals] = await Promise.all([
+        apiClient.get<{net_worth: number}>(`/api/v1/financial/live-summary/${userId}`),
+        apiClient.get<{monthly_income: number; savings_rate: number}>(`/api/v1/financial/cash-flow/${userId}`),
+        apiClient.get<Array<any>>(`/api/v1/goals?user_id=${userId}`)
+      ]);
+
+      setDashboardStats({
+        netWorth: liveSummary.net_worth || 0,
+        monthlyIncome: cashFlow.monthly_income || 0,
+        savingsRate: cashFlow.savings_rate || 0,
+        totalGoals: goals.length || 0
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+      // Keep default values of 0 on error
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const refreshTimeline = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -96,7 +141,11 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
                 <div>
                   <p className="text-gray-300 text-sm mb-1">{card.title}</p>
                   <p className={`text-2xl font-bold ${card.textColor}`}>
-                    {formatValue(card.value, card.format)}
+                    {loading ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      formatValue(card.value, card.format)
+                    )}
                   </p>
                 </div>
               </div>
