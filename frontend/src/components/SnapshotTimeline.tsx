@@ -228,6 +228,19 @@ const SnapshotTimeline: React.FC<SnapshotTimelineProps> = ({ refreshTrigger }) =
                   {renderTrendRow('Income', detailedSnapshots.map(s => s.monthly_income), 'text-blue-400')}
                   {renderTrendRow('Expenses', detailedSnapshots.map(s => s.monthly_expenses), 'text-orange-400')}
                   {renderTrendRow('Savings', detailedSnapshots.map(s => s.monthly_income - s.monthly_expenses), 'text-purple-400')}
+                  <div className="grid grid-cols-5 gap-3 items-center py-0.5">
+                    <div className="text-gray-300 font-medium text-xs">Savings Rate:</div>
+                    {detailedSnapshots.map((snapshot, index) => {
+                      const savingsRate = snapshot.monthly_income > 0 
+                        ? ((snapshot.monthly_income - snapshot.monthly_expenses) / snapshot.monthly_income * 100)
+                        : 0;
+                      return (
+                        <div key={index} className="text-center">
+                          <div className="text-green-400 font-medium text-xs">{savingsRate.toFixed(1)}%</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

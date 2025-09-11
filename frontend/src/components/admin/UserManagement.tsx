@@ -131,12 +131,12 @@ const UserManagement: React.FC = () => {
 
   // Safe error display
   const ErrorMessage = ({ error, onClear }: { error: string; onClear: () => void }) => (
-    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+    <div className="mb-4 p-3 bg-red-900/20 border border-red-800 rounded-lg">
       <div className="flex justify-between items-center">
-        <span className="text-red-700 text-sm">{error}</span>
+        <span className="text-red-400 text-sm">{error}</span>
         <button
           onClick={onClear}
-          className="text-red-500 hover:text-red-700 text-sm"
+          className="text-red-400 hover:text-red-300 text-sm"
         >
           ×
         </button>
@@ -147,14 +147,17 @@ const UserManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className="text-xl font-semibold text-white">User Management</h2>
+          <p className="text-sm text-gray-400 mt-1">Manage users and sessions</p>
+        </div>
         <button
           onClick={() => {
             fetchUsers();
             fetchSessions();
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           disabled={loading.users || loading.sessions}
         >
           {loading.users || loading.sessions ? 'Refreshing...' : 'Refresh'}
@@ -189,7 +192,7 @@ const UserManagement: React.FC = () => {
           </div>
         ) : users.length === 0 ? (
           <div className="p-6 text-center">
-            <div className="text-gray-500">No users found</div>
+            <div className="text-gray-400">No users found</div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -237,21 +240,21 @@ const UserManagement: React.FC = () => {
                         <div className="flex flex-col">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             user.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-green-900/50 text-green-400 border border-green-800' 
+                              : 'bg-red-900/50 text-red-400 border border-red-800'
                           }`}>
                             {user.is_active ? 'Active' : 'Inactive'}
                           </span>
-                          <span className="text-xs text-gray-500 mt-1">{user.status}</span>
+                          <span className="text-xs text-gray-400 mt-1">{user.status}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                         <div>
                           <div>Registered: {formatDate(user.created_at)}</div>
                           <div>Last Login: {user.last_login_at ? formatDate(user.last_login_at) : 'Never'}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                         <div>
                           <div>Entries: {user.financial_entries_count || 0}</div>
                           <div>Net Worth: ${user.net_worth?.toLocaleString() || 'N/A'}</div>
@@ -262,8 +265,8 @@ const UserManagement: React.FC = () => {
                         <div className="flex items-center">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             userSessions.length > 0 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-600 text-gray-100'
+                              ? 'bg-green-900/50 text-green-400 border border-green-800' 
+                              : 'bg-gray-700 text-gray-300 border border-gray-600'
                           }`}>
                             {userSessions.length} active
                           </span>
@@ -273,33 +276,33 @@ const UserManagement: React.FC = () => {
                         <div className="flex space-x-2 justify-end">
                           <button
                             onClick={() => handleAction('view', user.id, user.email)}
-                            className="text-blue-600 hover:text-blue-900 text-xs"
+                            className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
                           >
                             View
                           </button>
                           <button
                             onClick={() => handleAction('clear_cache', user.id, user.email)}
-                            className="text-yellow-600 hover:text-yellow-900 text-xs"
+                            className="text-yellow-400 hover:text-yellow-300 text-xs transition-colors"
                           >
                             Clear Cache
                           </button>
                           <button
                             onClick={() => handleAction('clear_tokens', user.id, user.email)}
-                            className="text-orange-600 hover:text-orange-900 text-xs"
+                            className="text-orange-400 hover:text-orange-300 text-xs transition-colors"
                           >
                             Clear Tokens
                           </button>
                           {userSessions.length > 0 && (
                             <button
                               onClick={() => handleAction('force_logout', user.id, user.email)}
-                              className="text-red-600 hover:text-red-900 text-xs"
+                              className="text-red-400 hover:text-red-300 text-xs transition-colors"
                             >
                               Force Logout
                             </button>
                           )}
                           <button
                             onClick={() => handleAction('impersonate', user.id, user.email)}
-                            className="text-purple-600 hover:text-purple-900 text-xs"
+                            className="text-purple-400 hover:text-purple-300 text-xs transition-colors"
                           >
                             Impersonate
                           </button>
@@ -316,13 +319,13 @@ const UserManagement: React.FC = () => {
 
       {/* User Details Modal */}
       {selectedUser && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border border-gray-700 w-11/12 max-w-2xl shadow-lg rounded-lg bg-gray-800">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">User Details</h3>
+              <h3 className="text-lg font-medium text-white">User Details</h3>
               <button
                 onClick={() => setSelectedUser(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-200 text-2xl"
               >
                 ×
               </button>
@@ -331,16 +334,16 @@ const UserManagement: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Email</label>
-                  <div className="text-sm text-gray-900">{selectedUser.email}</div>
+                  <label className="block text-sm font-medium text-gray-400">Email</label>
+                  <div className="text-sm text-gray-200">{selectedUser.email}</div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">ID</label>
-                  <div className="text-sm text-gray-900">{selectedUser.id}</div>
+                  <label className="block text-sm font-medium text-gray-400">ID</label>
+                  <div className="text-sm text-gray-200">{selectedUser.id}</div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Name</label>
-                  <div className="text-sm text-gray-900">
+                  <label className="block text-sm font-medium text-gray-400">Name</label>
+                  <div className="text-sm text-gray-200">
                     {selectedUser.first_name || selectedUser.last_name 
                       ? `${selectedUser.first_name || ''} ${selectedUser.last_name || ''}`.trim()
                       : 'N/A'
@@ -348,53 +351,53 @@ const UserManagement: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Status</label>
-                  <div className="text-sm text-gray-900">{selectedUser.status}</div>
+                  <label className="block text-sm font-medium text-gray-400">Status</label>
+                  <div className="text-sm text-gray-200">{selectedUser.status}</div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Created</label>
-                  <div className="text-sm text-gray-900">{formatDate(selectedUser.created_at)}</div>
+                  <label className="block text-sm font-medium text-gray-400">Created</label>
+                  <div className="text-sm text-gray-200">{formatDate(selectedUser.created_at)}</div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Last Login</label>
-                  <div className="text-sm text-gray-900">
+                  <label className="block text-sm font-medium text-gray-400">Last Login</label>
+                  <div className="text-sm text-gray-200">
                     {selectedUser.last_login_at ? formatDate(selectedUser.last_login_at) : 'Never'}
                   </div>
                 </div>
               </div>
 
-              <div className="border-t pt-4">
+              <div className="border-t border-gray-700 pt-4">
                 <h4 className="text-sm font-medium text-gray-300 mb-2">Data Summary</h4>
                 <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="bg-gray-700/50 p-3 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-400">
                       {selectedUser.financial_entries_count || 0}
                     </div>
-                    <div className="text-xs text-gray-500">Financial Entries</div>
+                    <div className="text-xs text-gray-400">Financial Entries</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="bg-gray-700/50 p-3 rounded-lg">
+                    <div className="text-2xl font-bold text-green-400">
                       ${selectedUser.net_worth?.toLocaleString() || 'N/A'}
                     </div>
-                    <div className="text-xs text-gray-500">Net Worth</div>
+                    <div className="text-xs text-gray-400">Net Worth</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="bg-gray-700/50 p-3 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-400">
                       {selectedUser.goals_count || 0}
                     </div>
-                    <div className="text-xs text-gray-500">Goals</div>
+                    <div className="text-xs text-gray-400">Goals</div>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t pt-4">
+              <div className="border-t border-gray-700 pt-4">
                 <h4 className="text-sm font-medium text-gray-300 mb-2">Active Sessions</h4>
                 {getActiveSessionsForUser(selectedUser.id).length === 0 ? (
-                  <div className="text-sm text-gray-500">No active sessions</div>
+                  <div className="text-sm text-gray-400">No active sessions</div>
                 ) : (
                   <div className="space-y-2">
                     {getActiveSessionsForUser(selectedUser.id).map((session, index) => (
-                      <div key={index} className="p-2 bg-gray-600 rounded text-xs">
+                      <div key={index} className="p-2 bg-gray-700 rounded text-xs text-gray-300">
                         <div>Login: {formatDate(session.login_time)}</div>
                         <div>Expires: {formatDate(session.expires_at)}</div>
                         {session.ip_address && <div>IP: {session.ip_address}</div>}
@@ -410,29 +413,29 @@ const UserManagement: React.FC = () => {
 
       {/* Confirmation Modal */}
       {confirmAction && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border border-gray-700 w-96 shadow-lg rounded-lg bg-gray-800">
             <div className="mb-4">
-              <h3 className="text-lg font-medium text-gray-900">Confirm Action</h3>
+              <h3 className="text-lg font-medium text-white">Confirm Action</h3>
             </div>
             
             <div className="mb-4">
               <p className="text-sm text-gray-300">
-                Are you sure you want to <strong>{confirmAction.type.replace('_', ' ')}</strong> for user{' '}
-                <strong>{confirmAction.userEmail}</strong>?
+                Are you sure you want to <strong className="text-white">{confirmAction.type.replace('_', ' ')}</strong> for user{' '}
+                <strong className="text-white">{confirmAction.userEmail}</strong>?
               </p>
             </div>
 
             <div className="flex space-x-4 justify-end">
               <button
                 onClick={() => setConfirmAction(null)}
-                className="px-4 py-2 text-sm text-gray-100 bg-gray-600 rounded hover:bg-gray-500"
+                className="px-4 py-2 text-sm text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={executeConfirmedAction}
-                className="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
               >
                 Confirm
               </button>

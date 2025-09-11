@@ -85,15 +85,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1a1a1a' }}>
       {/* Header */}
-      <div style={{ backgroundColor: '#2a2a2a', borderBottom: '1px solid #404040' }} className="shadow-sm">
+      <div style={{ backgroundColor: '#1a1a2e', borderBottom: '1px solid #404040' }} className="shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold" style={{ color: '#ffffff' }}>Admin Dashboard</h1>
-              <p className="text-sm" style={{ color: '#a0a0a0' }}>WealthPath AI System Administration</p>
+              <h1 className="text-xl font-semibold" style={{ color: '#ffffff' }}>Admin Dashboard</h1>
+              <p className="text-sm" style={{ color: '#9ca3af' }}>WealthPath AI System Administration</p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm" style={{ color: '#a0a0a0' }}>
+              <div className="text-sm" style={{ color: '#9ca3af' }}>
                 Logged in as: <span className="font-medium" style={{ color: '#ffffff' }}>{user?.email || 'Unknown'}</span>
               </div>
               <div className="w-2 h-2 bg-green-400 rounded-full" title="Admin features active"></div>

@@ -3910,9 +3910,19 @@ const AdminStep: React.FC = () => {
   
   return (
     <div>
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h2 style={{ color: '#667eea', fontSize: '2em', marginBottom: '10px' }}>🛡️ Admin Dashboard</h2>
-        <p style={{ color: '#94a3b8', fontSize: '1.1em' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ 
+          color: '#ffffff', 
+          fontSize: '1.75rem', 
+          fontWeight: 'bold',
+          marginBottom: '4px' 
+        }}>
+          Admin Dashboard
+        </h1>
+        <p style={{ 
+          color: '#9ca3af', 
+          fontSize: '0.875rem' 
+        }}>
           System administration and debugging tools
         </p>
       </div>

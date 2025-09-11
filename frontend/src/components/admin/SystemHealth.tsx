@@ -119,9 +119,9 @@ const SystemHealth: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header with Controls */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">System Health Dashboard</h2>
+          <h2 className="text-xl font-semibold text-white">System Health Dashboard</h2>
           <p className="text-sm text-gray-400 mt-1">
             Real-time monitoring of system components and services
           </p>
@@ -133,7 +133,7 @@ const SystemHealth: React.FC = () => {
             <label className="text-sm text-gray-300">Auto-refresh:</label>
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`w-12 h-6 rounded-full ${autoRefresh ? 'bg-green-500' : 'bg-gray-300'} relative transition-colors`}
+              className={`w-12 h-6 rounded-full ${autoRefresh ? 'bg-green-600' : 'bg-gray-600'} relative transition-colors`}
             >
               <div className={`w-5 h-5 bg-white rounded-full transition-transform ${autoRefresh ? 'translate-x-6' : 'translate-x-1'} mt-0.5`} />
             </button>
@@ -145,7 +145,7 @@ const SystemHealth: React.FC = () => {
             <select
               value={refreshInterval}
               onChange={(e) => setRefreshInterval(Number(e.target.value))}
-              className="text-sm border border-gray-300 rounded px-2 py-1"
+              className="text-sm bg-gray-700 border border-gray-600 text-gray-200 rounded px-2 py-1 focus:border-blue-500 focus:outline-none"
             >
               <option value={10}>10s</option>
               <option value={30}>30s</option>
@@ -167,15 +167,15 @@ const SystemHealth: React.FC = () => {
 
       {/* Error Display */}
       {errors.health && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <span className="text-red-500">❌</span>
-              <span className="text-red-700 text-sm">{errors.health}</span>
+              <span className="text-red-400">❌</span>
+              <span className="text-red-400 text-sm">{errors.health}</span>
             </div>
             <button
               onClick={() => clearError('health')}
-              className="text-red-500 hover:text-red-700"
+              className="text-red-400 hover:text-red-300 text-xl"
             >
               ×
             </button>
