@@ -69,12 +69,34 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
         apiClient.get<Array<any>>(`/api/v1/goals?user_id=${userId}`)
       ]);
 
+      // Try to fetch user profile separately with error handling
+      let userProfile = { age: null, retirement_age: 65 };
+      try {
+        userProfile = await apiClient.get<{age: number; retirement_age: number; date_of_birth: string}>(`/api/v1/users/${userId}/profile`);
+      } catch (error) {
+        console.log('Could not fetch user profile, using defaults:', error);
+      }
+
+      // Debug logging
+      console.log('Dashboard Data Debug:', {
+        liveSummary,
+        cashFlow,
+        userProfile
+      });
+
       // Calculate burn rate: (monthlyExpenses / monthlyIncome) * 100
       const burnRate = cashFlow.monthly_income > 0 ? (cashFlow.monthly_expenses / cashFlow.monthly_income) * 100 : 0;
       
-      // Calculate DTI ratio: Estimate monthly debt payments as 5% of total debt
-      const estimatedMonthlyDebtPayments = (liveSummary.total_liabilities || 0) * 0.05;
-      const dtiRatio = cashFlow.monthly_income > 0 ? (estimatedMonthlyDebtPayments / cashFlow.monthly_income) * 100 : 0;
+      // Calculate DTI ratio using actual debt payments from expense breakdown
+      let monthlyDebtPayments = 0;
+      if (cashFlow.expense_breakdown) {
+        // Housing typically includes mortgage payments
+        monthlyDebtPayments += cashFlow.expense_breakdown.housing || 0;
+        // Transportation often includes car payments
+        monthlyDebtPayments += cashFlow.expense_breakdown.transportation || 0;
+        // You might want to add other categories that represent debt payments
+      }
+      const dtiRatio = cashFlow.monthly_income > 0 ? (monthlyDebtPayments / cashFlow.monthly_income) * 100 : 0;
 
       // Find top expense category
       let topExpenseCategory = '';
@@ -120,24 +142,106 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
         }
       }
 
-      // Calculate Years to Retirement (estimate)
-      // Simplified calculation based on 4% rule and current savings rate
+      // Calculate Years to Retirement using sophisticated 80/4/3/7 formula
       let yearsToRetirement = 0;
-      if (cashFlow.monthly_income > 0 && cashFlow.monthly_expenses > 0) {
-        const annualExpenses = cashFlow.monthly_expenses * 12;
-        const retirementTarget = annualExpenses * 25; // 4% rule
-        const currentAssets = liveSummary.net_worth > 0 ? liveSummary.net_worth : 0;
-        const monthlyNetSavings = cashFlow.monthly_income - cashFlow.monthly_expenses;
-        const annualNetSavings = monthlyNetSavings * 12;
+      try {
+        const currentAge = userProfile?.age || null;
+        const targetRetirementAge = userProfile?.retirement_age || 65; // From benefits section or default to 65
         
-        if (annualNetSavings > 0) {
-          const remaining = Math.max(0, retirementTarget - currentAssets);
-          yearsToRetirement = Math.ceil(remaining / annualNetSavings);
-          // Cap at reasonable numbers
-          yearsToRetirement = Math.min(yearsToRetirement, 50);
+        if (currentAge && currentAge > 0) {
+          if (targetRetirementAge <= currentAge) {
+            yearsToRetirement = 0; // Already at or past retirement age
+          } else {
+            // Use sophisticated retirement calculation
+            const REPLACEMENT_RATIO = 0.80; // Need 80% of current income in retirement
+            const WITHDRAWAL_RATE = 0.04;   // 4% withdrawal rate
+            const INFLATION_RATE = 0.03;    // 3% inflation
+            const INVESTMENT_GROWTH = 0.07; // 7% investment growth
+            const REAL_RETURN = INVESTMENT_GROWTH - INFLATION_RATE; // 4% real return
+            
+            // Calculate required annual income in retirement (80% of current)
+            const currentAnnualIncome = cashFlow.monthly_income * 12;
+            const requiredRetirementIncome = currentAnnualIncome * REPLACEMENT_RATIO;
+            
+            // Social Security benefits - assume $2,000/month starting at age 67
+            const socialSecurityMonthly = 2000; // From benefits section
+            const socialSecurityStartAge = 67;
+            const socialSecurityAnnual = socialSecurityMonthly * 12;
+            
+            // Adjust for inflation to retirement age
+            const yearsToRetire = targetRetirementAge - currentAge;
+            const inflationAdjustedIncome = requiredRetirementIncome * Math.pow(1 + INFLATION_RATE, yearsToRetire);
+            
+            // Calculate Social Security value at retirement (if retirement age >= SS start age)
+            let inflationAdjustedSocialSecurity = 0;
+            if (targetRetirementAge >= socialSecurityStartAge) {
+              const yearsToSS = socialSecurityStartAge - currentAge;
+              inflationAdjustedSocialSecurity = socialSecurityAnnual * Math.pow(1 + INFLATION_RATE, yearsToSS);
+            }
+            
+            // Net income needed from portfolio (total needed minus Social Security)
+            const netIncomeNeeded = Math.max(0, inflationAdjustedIncome - inflationAdjustedSocialSecurity);
+            
+            // Calculate required portfolio size (using 4% rule on net income needed)
+            const requiredPortfolioSize = netIncomeNeeded / WITHDRAWAL_RATE;
+            
+            // Current portfolio value (net worth or investment assets)
+            const currentPortfolio = liveSummary.net_worth > 0 ? liveSummary.net_worth : 0;
+            
+            // Monthly savings available for retirement
+            const monthlyNetSavings = Math.max(0, cashFlow.monthly_income - cashFlow.monthly_expenses);
+            const annualSavings = monthlyNetSavings * 12;
+            
+            
+            if (annualSavings > 0) {
+              console.log('Using sophisticated calculation - user has savings:', annualSavings);
+              // Calculate years needed using future value of annuity formula
+              // FV = PV(1+r)^n + PMT[((1+r)^n - 1)/r]
+              // Solving for n when we know FV (required portfolio), PV (current portfolio), PMT (annual savings), r (real return)
+              
+              const presentValue = currentPortfolio;
+              const futureValue = requiredPortfolioSize;
+              const payment = annualSavings;
+              const rate = REAL_RETURN;
+              
+              console.log('Calculation inputs:', { presentValue, futureValue, payment, rate });
+              
+              // If current portfolio already meets requirement
+              if (presentValue >= futureValue) {
+                yearsToRetirement = 0;
+                console.log('Portfolio already meets requirement');
+              } else {
+                // Iterative solution to find years needed
+                let years = 1;
+                let portfolioValue = presentValue;
+                
+                while (portfolioValue < futureValue && years <= 50) {
+                  portfolioValue = presentValue * Math.pow(1 + rate, years) + 
+                                 payment * ((Math.pow(1 + rate, years) - 1) / rate);
+                  years++;
+                }
+                
+                // Use the financial calculation result (don't cap at target age)
+                // The user needs to know if they need more time than planned
+                yearsToRetirement = years - 1;
+                console.log('Sophisticated calculation result:', yearsToRetirement, 'years');
+              }
+            } else {
+              console.log('Falling back to simple calculation - no savings. Annual savings:', annualSavings);
+              console.log('Monthly income:', cashFlow.monthly_income, 'Monthly expenses:', cashFlow.monthly_expenses);
+              // No savings - can only retire at target age with current assets
+              yearsToRetirement = yearsToRetire;
+            }
+          }
         } else {
-          yearsToRetirement = 50; // If not saving, set to max
+          // Fallback: use simple age-based calculation
+          yearsToRetirement = Math.max(0, 65 - (currentAge || 35));
         }
+      } catch (error) {
+        console.error('Error calculating years to retirement:', error);
+        const currentAge = userProfile?.age || 35;
+        const targetAge = userProfile?.retirement_age || 65;
+        yearsToRetirement = Math.max(0, targetAge - currentAge);
       }
 
       setDashboardStats({
@@ -187,97 +291,121 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       );
     }
 
+    // Calculate percentages and ensure they add up to 100%
     const liquidPct = (liquid / total) * 100;
     const investedPct = (invested / total) * 100;
     const realEstatePct = (real_estate / total) * 100;
     const otherPct = (other / total) * 100;
+    
+    // Round percentages and adjust for rounding errors
+    const roundedLiquid = Math.round(liquidPct * 10) / 10;
+    const roundedInvested = Math.round(investedPct * 10) / 10;
+    const roundedRealEstate = Math.round(realEstatePct * 10) / 10;
+    const roundedOther = Math.round(otherPct * 10) / 10;
+    
+    // Ensure total is exactly 100% by adjusting the largest component
+    const roundedTotal = roundedLiquid + roundedInvested + roundedRealEstate + roundedOther;
+    let finalLiquid = roundedLiquid;
+    let finalInvested = roundedInvested;
+    let finalRealEstate = roundedRealEstate;
+    let finalOther = roundedOther;
+    
+    if (Math.abs(roundedTotal - 100) > 0.1) {
+      const adjustment = 100 - roundedTotal;
+      // Apply adjustment to the largest percentage
+      const max = Math.max(roundedLiquid, roundedInvested, roundedRealEstate, roundedOther);
+      if (roundedLiquid === max) finalLiquid += adjustment;
+      else if (roundedInvested === max) finalInvested += adjustment;
+      else if (roundedRealEstate === max) finalRealEstate += adjustment;
+      else finalOther += adjustment;
+    }
 
-    // Calculate cumulative percentages for positioning
-    const investedStart = liquidPct;
-    const realEstateStart = liquidPct + investedPct;
-    const otherStart = liquidPct + investedPct + realEstatePct;
+    // Calculate cumulative percentages for positioning using corrected values
+    const investedStart = finalLiquid;
+    const realEstateStart = finalLiquid + finalInvested;
+    const otherStart = finalLiquid + finalInvested + finalRealEstate;
 
     return (
       <div className="flex items-center gap-2">
-        <div className="relative w-12 h-12">
-          <svg className="w-12 h-12 -rotate-90" viewBox="0 0 32 32">
-            {/* Liquid - Blue */}
-            {liquidPct > 0 && (
+        <div className="relative w-8 h-8">
+          <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
+            {/* Liquid - Cyan */}
+            {finalLiquid > 0 && (
               <circle
                 cx="16"
                 cy="16"
                 r="15.5"
                 fill="transparent"
-                stroke="#3B82F6"
-                strokeWidth="1"
-                strokeDasharray={`${liquidPct} ${100 - liquidPct}`}
+                stroke="#67E8F9"
+                strokeWidth="2"
+                strokeDasharray={`${finalLiquid} ${100 - finalLiquid}`}
                 strokeDashoffset="0"
               />
             )}
             {/* Invested - Green */}
-            {investedPct > 0 && (
+            {finalInvested > 0 && (
               <circle
                 cx="16"
                 cy="16"
                 r="15.5"
                 fill="transparent"
-                stroke="#10B981"
-                strokeWidth="1"
-                strokeDasharray={`${investedPct} ${100 - investedPct}`}
+                stroke="#86EFAC"
+                strokeWidth="2"
+                strokeDasharray={`${finalInvested} ${100 - finalInvested}`}
                 strokeDashoffset={`-${investedStart}`}
               />
             )}
-            {/* Real Estate - Orange */}
-            {realEstatePct > 0 && (
+            {/* Real Estate - Yellow */}
+            {finalRealEstate > 0 && (
               <circle
                 cx="16"
                 cy="16"
                 r="15.5"
                 fill="transparent"
-                stroke="#F59E0B"
-                strokeWidth="1"
-                strokeDasharray={`${realEstatePct} ${100 - realEstatePct}`}
+                stroke="#FDE047"
+                strokeWidth="2"
+                strokeDasharray={`${finalRealEstate} ${100 - finalRealEstate}`}
                 strokeDashoffset={`-${realEstateStart}`}
               />
             )}
-            {/* Other - Purple */}
-            {otherPct > 0 && (
+            {/* Other - Pink */}
+            {finalOther > 0 && (
               <circle
                 cx="16"
                 cy="16"
                 r="15.5"
                 fill="transparent"
-                stroke="#8B5CF6"
-                strokeWidth="1"
-                strokeDasharray={`${otherPct} ${100 - otherPct}`}
+                stroke="#F9A8D4"
+                strokeWidth="2"
+                strokeDasharray={`${finalOther} ${100 - finalOther}`}
                 strokeDashoffset={`-${otherStart}`}
               />
             )}
           </svg>
         </div>
         <div className="text-[10px] space-y-0.5">
-          {liquidPct > 0 && (
+          {finalLiquid > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-300">Cash {liquidPct.toFixed(0)}%</span>
+              <div className="w-1.5 h-1.5 bg-cyan-300 rounded-full"></div>
+              <span className="text-purple-200">Cash {finalLiquid.toFixed(0)}%</span>
             </div>
           )}
-          {investedPct > 0 && (
+          {finalInvested > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-              <span className="text-gray-300">Inv {investedPct.toFixed(0)}%</span>
+              <div className="w-1.5 h-1.5 bg-green-300 rounded-full"></div>
+              <span className="text-purple-200">Inv {finalInvested.toFixed(0)}%</span>
             </div>
           )}
-          {realEstatePct > 0 && (
+          {finalRealEstate > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
-              <span className="text-gray-300">RE {realEstatePct.toFixed(0)}%</span>
+              <div className="w-1.5 h-1.5 bg-yellow-300 rounded-full"></div>
+              <span className="text-purple-200">RE {finalRealEstate.toFixed(0)}%</span>
             </div>
           )}
-          {otherPct > 0 && (
+          {finalOther > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
-              <span className="text-gray-300">Other {otherPct.toFixed(0)}%</span>
+              <div className="w-1.5 h-1.5 bg-pink-300 rounded-full"></div>
+              <span className="text-purple-200">Other {finalOther.toFixed(0)}%</span>
             </div>
           )}
         </div>
@@ -285,15 +413,18 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
     );
   };
 
-  // Quick stats cards data - New financial insights
+  // Quick stats cards data - Updated to match Financial Data page gradient colors
   const statsCards = [
     {
       title: 'Burn Rate',
       value: dashboardStats.burnRate,
       format: 'percentage',
       icon: Flame,
-      color: 'from-red-400 to-red-600',
-      textColor: 'text-red-600',
+      color: 'bg-gradient-to-r from-blue-900 to-blue-800',
+      textColor: 'text-white',
+      labelColor: 'text-blue-200',
+      iconColor: 'text-blue-400',
+      descColor: 'text-blue-300',
       description: 'Percentage of income spent monthly'
     },
     {
@@ -301,8 +432,11 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       value: dashboardStats.dtiRatio,
       format: 'percentage',
       icon: CreditCard,
-      color: 'from-yellow-400 to-yellow-600',
-      textColor: 'text-yellow-600',
+      color: 'bg-gradient-to-r from-green-900 to-green-800',
+      textColor: 'text-white',
+      labelColor: 'text-green-200',
+      iconColor: 'text-green-400',
+      descColor: 'text-green-300',
       description: 'Monthly debt payments vs income'
     },
     {
@@ -311,8 +445,11 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       categoryName: dashboardStats.topExpenseCategory,
       format: 'expense-category',
       icon: ShoppingBag,
-      color: 'from-orange-400 to-orange-600',
-      textColor: 'text-orange-600',
+      color: 'bg-gradient-to-r from-red-900 to-red-800',
+      textColor: 'text-white',
+      labelColor: 'text-red-200',
+      iconColor: 'text-red-400',
+      descColor: 'text-red-300',
       description: 'Highest monthly spending category'
     },
     {
@@ -320,8 +457,11 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       value: dashboardStats.assetDiversificationScore,
       format: 'pie-chart',
       icon: PieChart,
-      color: 'from-blue-400 to-blue-600',
-      textColor: 'text-blue-600',
+      color: 'bg-gradient-to-r from-purple-900 to-purple-800',
+      textColor: 'text-white',
+      labelColor: 'text-purple-200',
+      iconColor: 'text-purple-400',
+      descColor: 'text-purple-300',
       description: 'Asset allocation breakdown',
       assetBreakdown: dashboardStats.assetBreakdown
     },
@@ -330,8 +470,11 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       value: dashboardStats.yearsToRetirement,
       format: 'years',
       icon: Clock,
-      color: 'from-purple-400 to-purple-600',
-      textColor: 'text-purple-600',
+      color: 'bg-gradient-to-r from-blue-900 to-blue-800',
+      textColor: 'text-white',
+      labelColor: 'text-blue-200',
+      iconColor: 'text-blue-400',
+      descColor: 'text-blue-300',
       description: 'Estimated years until financial independence'
     }
   ];
@@ -352,7 +495,8 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       case 'score':
         return `${Math.round(value)}/100`;
       case 'years':
-        return value === 50 ? '50+' : `${Math.round(value)}`;
+        if (value === 0) return '0';
+        return value >= 50 ? '50+' : `${Math.round(value)}`;
       default:
         return value.toString();
     }
@@ -360,50 +504,49 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
 
   return (
     <div className="w-full">
-      <div className="container mx-auto px-4 py-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Financial Dashboard</h1>
-          <p className="text-gray-300">Track your financial progress and take snapshots of your wealth over time</p>
+      <div className="container mx-auto px-4 py-3">
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-white mb-1">Financial Dashboard</h1>
+          <p className="text-gray-300 text-sm">Track your financial progress and take snapshots of your wealth over time</p>
         </div>
 
         {/* Quick Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
           {statsCards.map((card) => {
             return (
               <div
                 key={card.title}
-                className="bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20"
+                className={`${card.color} rounded-lg p-3 shadow-lg`}
               >
-                <div>
-                  <p className="text-gray-300 text-xs mb-2">{card.title}</p>
-                  {card.format === 'pie-chart' ? (
-                    <div className="mt-2">
-                      {loading ? (
-                        <span className="animate-pulse text-gray-400">Loading...</span>
-                      ) : (
-                        renderPieChart((card as any).assetBreakdown)
-                      )}
-                    </div>
-                  ) : (
-                    <>
-                      <p className={`text-xl font-bold ${card.textColor}`}>
-                        {loading ? (
-                          <span className="animate-pulse">Loading...</span>
-                        ) : (
-                          formatValue(card.value, card.format, (card as any).categoryName)
-                        )}
-                      </p>
-                      {card.format === 'expense-category' && card.value > 0 && !loading && (
-                        <p className="text-gray-300 text-xs mt-1">
-                          {formatValue(card.value, 'currency')}
-                        </p>
-                      )}
-                    </>
-                  )}
-                  {card.description && (
-                    <p className="text-gray-400 text-xs mt-1">{card.description}</p>
-                  )}
+                <div className="flex items-center justify-between mb-1">
+                  <p className={`text-xs font-medium ${(card as any).labelColor}`}>{card.title}</p>
+                  <card.icon className={`w-4 h-4 ${(card as any).iconColor}`} />
                 </div>
+                {card.format === 'pie-chart' ? (
+                  <div className="mt-1">
+                    {loading ? (
+                      <span className="animate-pulse text-white text-sm">Loading...</span>
+                    ) : (
+                      renderPieChart((card as any).assetBreakdown)
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <p className={`text-lg font-bold ${card.textColor} mb-1`}>
+                      {loading ? (
+                        <span className="animate-pulse">Loading...</span>
+                      ) : (
+                        formatValue(card.value, card.format, (card as any).categoryName)
+                      )}
+                    </p>
+                    {card.format === 'expense-category' && card.value > 0 && !loading && (
+                      <p className={`text-xs ${(card as any).descColor}`}>
+                        {formatValue(card.value, 'currency')}
+                      </p>
+                    )}
+                  </>
+                )}
+                <p className={`text-xs mt-1 ${(card as any).descColor} line-clamp-2`}>{card.description}</p>
               </div>
             );
           })}

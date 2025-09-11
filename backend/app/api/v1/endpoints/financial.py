@@ -1960,8 +1960,30 @@ def get_cash_flow_analysis(
         for e in entries if e.category == EntryCategory.expenses
     )
     
+    # Calculate monthly debt payments from liability entries that have minimum_payment
+    # and from expense entries that are debt-related (mortgage, car payments, etc.)
+    monthly_debt_payments = 0
+    
+    # Get debt payments from liability entries (minimum_payment field)
+    for entry in entries:
+        if entry.category == EntryCategory.liabilities and entry.minimum_payment:
+            monthly_debt_payments += float(entry.minimum_payment)
+    
+    # Get debt payments from expense entries (mortgage, car payments, student loans, etc.)
+    debt_expense_categories = ['housing', 'transportation']  # Categories that often include debt payments
+    for entry in entries:
+        if (entry.category == EntryCategory.expenses and 
+            entry.subcategory in debt_expense_categories and
+            entry.description and any(keyword in entry.description.lower() 
+                                    for keyword in ['mortgage', 'loan', 'payment', 'car payment', 'student loan'])):
+            monthly_debt_payment = to_monthly(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
+            monthly_debt_payments += monthly_debt_payment
+    
     monthly_surplus = monthly_income - monthly_expenses
     savings_rate = (monthly_surplus / monthly_income * 100) if monthly_income > 0 else 0
+    
+    # Calculate debt-to-income ratio
+    dti_ratio = (monthly_debt_payments / monthly_income * 100) if monthly_income > 0 else 0
     
     # Get detailed breakdown
     income_breakdown = {}
@@ -1991,6 +2013,8 @@ def get_cash_flow_analysis(
         "annual_income": monthly_income * 12,
         "annual_expenses": monthly_expenses * 12,
         "annual_surplus": monthly_surplus * 12,
+        "monthly_debt_payments": monthly_debt_payments,
+        "debt_to_income_ratio": dti_ratio,
         "income_breakdown": income_breakdown,
         "expense_breakdown": expense_breakdown,
         "calculation_time": datetime.now(timezone.utc).isoformat()
