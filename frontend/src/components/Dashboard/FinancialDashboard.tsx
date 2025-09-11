@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, Target, Calendar, Flame, Percent, CreditCard, ShoppingBag, PieChart, Clock } from 'lucide-react';
+import { DollarSign, TrendingUp, Target, Calendar, Flame, Percent, CreditCard, ShoppingBag, PieChart } from 'lucide-react';
 import SnapshotButton from '../SnapshotButton';
 import SnapshotTimeline from '../SnapshotTimeline';
 import { apiClient } from '../../utils/api-simple';
@@ -28,7 +28,6 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       real_estate: 0,
       other: 0
     },
-    yearsToRetirement: 0
   });
 
   // Fetch real financial data from API
@@ -69,19 +68,10 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
         apiClient.get<Array<any>>(`/api/v1/goals?user_id=${userId}`)
       ]);
 
-      // Try to fetch user profile separately with error handling
-      let userProfile = { age: null, retirement_age: 65 };
-      try {
-        userProfile = await apiClient.get<{age: number; retirement_age: number; date_of_birth: string}>(`/api/v1/users/${userId}/profile`);
-      } catch (error) {
-        console.log('Could not fetch user profile, using defaults:', error);
-      }
-
       // Debug logging
       console.log('Dashboard Data Debug:', {
         liveSummary,
-        cashFlow,
-        userProfile
+        cashFlow
       });
 
       // Calculate burn rate: (monthlyExpenses / monthlyIncome) * 100
@@ -142,107 +132,6 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
         }
       }
 
-      // Calculate Years to Retirement using sophisticated 80/4/3/7 formula
-      let yearsToRetirement = 0;
-      try {
-        const currentAge = userProfile?.age || null;
-        const targetRetirementAge = userProfile?.retirement_age || 65; // From benefits section or default to 65
-        
-        if (currentAge && currentAge > 0) {
-          if (targetRetirementAge <= currentAge) {
-            yearsToRetirement = 0; // Already at or past retirement age
-          } else {
-            // Use sophisticated retirement calculation
-            const REPLACEMENT_RATIO = 0.80; // Need 80% of current income in retirement
-            const WITHDRAWAL_RATE = 0.04;   // 4% withdrawal rate
-            const INFLATION_RATE = 0.03;    // 3% inflation
-            const INVESTMENT_GROWTH = 0.07; // 7% investment growth
-            const REAL_RETURN = INVESTMENT_GROWTH - INFLATION_RATE; // 4% real return
-            
-            // Calculate required annual income in retirement (80% of current)
-            const currentAnnualIncome = cashFlow.monthly_income * 12;
-            const requiredRetirementIncome = currentAnnualIncome * REPLACEMENT_RATIO;
-            
-            // Social Security benefits - assume $2,000/month starting at age 67
-            const socialSecurityMonthly = 2000; // From benefits section
-            const socialSecurityStartAge = 67;
-            const socialSecurityAnnual = socialSecurityMonthly * 12;
-            
-            // Adjust for inflation to retirement age
-            const yearsToRetire = targetRetirementAge - currentAge;
-            const inflationAdjustedIncome = requiredRetirementIncome * Math.pow(1 + INFLATION_RATE, yearsToRetire);
-            
-            // Calculate Social Security value at retirement (if retirement age >= SS start age)
-            let inflationAdjustedSocialSecurity = 0;
-            if (targetRetirementAge >= socialSecurityStartAge) {
-              const yearsToSS = socialSecurityStartAge - currentAge;
-              inflationAdjustedSocialSecurity = socialSecurityAnnual * Math.pow(1 + INFLATION_RATE, yearsToSS);
-            }
-            
-            // Net income needed from portfolio (total needed minus Social Security)
-            const netIncomeNeeded = Math.max(0, inflationAdjustedIncome - inflationAdjustedSocialSecurity);
-            
-            // Calculate required portfolio size (using 4% rule on net income needed)
-            const requiredPortfolioSize = netIncomeNeeded / WITHDRAWAL_RATE;
-            
-            // Current portfolio value (net worth or investment assets)
-            const currentPortfolio = liveSummary.net_worth > 0 ? liveSummary.net_worth : 0;
-            
-            // Monthly savings available for retirement
-            const monthlyNetSavings = Math.max(0, cashFlow.monthly_income - cashFlow.monthly_expenses);
-            const annualSavings = monthlyNetSavings * 12;
-            
-            
-            if (annualSavings > 0) {
-              console.log('Using sophisticated calculation - user has savings:', annualSavings);
-              // Calculate years needed using future value of annuity formula
-              // FV = PV(1+r)^n + PMT[((1+r)^n - 1)/r]
-              // Solving for n when we know FV (required portfolio), PV (current portfolio), PMT (annual savings), r (real return)
-              
-              const presentValue = currentPortfolio;
-              const futureValue = requiredPortfolioSize;
-              const payment = annualSavings;
-              const rate = REAL_RETURN;
-              
-              console.log('Calculation inputs:', { presentValue, futureValue, payment, rate });
-              
-              // If current portfolio already meets requirement
-              if (presentValue >= futureValue) {
-                yearsToRetirement = 0;
-                console.log('Portfolio already meets requirement');
-              } else {
-                // Iterative solution to find years needed
-                let years = 1;
-                let portfolioValue = presentValue;
-                
-                while (portfolioValue < futureValue && years <= 50) {
-                  portfolioValue = presentValue * Math.pow(1 + rate, years) + 
-                                 payment * ((Math.pow(1 + rate, years) - 1) / rate);
-                  years++;
-                }
-                
-                // Use the financial calculation result (don't cap at target age)
-                // The user needs to know if they need more time than planned
-                yearsToRetirement = years - 1;
-                console.log('Sophisticated calculation result:', yearsToRetirement, 'years');
-              }
-            } else {
-              console.log('Falling back to simple calculation - no savings. Annual savings:', annualSavings);
-              console.log('Monthly income:', cashFlow.monthly_income, 'Monthly expenses:', cashFlow.monthly_expenses);
-              // No savings - can only retire at target age with current assets
-              yearsToRetirement = yearsToRetire;
-            }
-          }
-        } else {
-          // Fallback: use simple age-based calculation
-          yearsToRetirement = Math.max(0, 65 - (currentAge || 35));
-        }
-      } catch (error) {
-        console.error('Error calculating years to retirement:', error);
-        const currentAge = userProfile?.age || 35;
-        const targetAge = userProfile?.retirement_age || 65;
-        yearsToRetirement = Math.max(0, targetAge - currentAge);
-      }
 
       setDashboardStats({
         netWorth: liveSummary.net_worth || 0,
@@ -261,8 +150,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
           invested: 0,
           real_estate: 0,
           other: 0
-        },
-        yearsToRetirement: yearsToRetirement
+        }
       });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -466,16 +354,20 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
       assetBreakdown: dashboardStats.assetBreakdown
     },
     {
-      title: 'Years to Retirement',
-      value: dashboardStats.yearsToRetirement,
-      format: 'years',
-      icon: Clock,
-      color: 'bg-gradient-to-r from-blue-900 to-blue-800',
+      title: 'Savings Rate',
+      value: dashboardStats.savingsRate,
+      format: 'percentage',
+      icon: Percent,
+      color: 'bg-gradient-to-r from-green-900 to-green-800',
       textColor: 'text-white',
-      labelColor: 'text-blue-200',
-      iconColor: 'text-blue-400',
-      descColor: 'text-blue-300',
-      description: 'Estimated years until financial independence'
+      labelColor: 'text-green-200',
+      iconColor: 'text-green-400',
+      descColor: 'text-green-300',
+      description: dashboardStats.savingsRate >= 20 
+        ? 'Excellent savings rate! (Target: 20%+)'
+        : dashboardStats.savingsRate >= 10
+        ? 'Good savings rate (Target: 20%+)'
+        : 'Percentage of income saved monthly'
     }
   ];
 
@@ -494,9 +386,6 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = () => {
         return categoryName || 'None';
       case 'score':
         return `${Math.round(value)}/100`;
-      case 'years':
-        if (value === 0) return '0';
-        return value >= 50 ? '50+' : `${Math.round(value)}`;
       default:
         return value.toString();
     }

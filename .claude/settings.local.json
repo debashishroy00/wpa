@@ -169,7 +169,8 @@
       "Bash(alembic upgrade:*)",
       "Bash(./venv/Scripts/python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000)",
       "Bash(./venv/Scripts/python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(claude mcp:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

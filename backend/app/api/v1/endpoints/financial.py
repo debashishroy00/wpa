@@ -1649,6 +1649,88 @@ def get_portfolio_allocation(
     }
 
 
+@router.get("/retirement-readiness")
+def get_retirement_readiness(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    FIXED: Get accurate retirement readiness calculation using liquid assets only.
+    Uses conservative 4% withdrawal rule and excludes primary residence.
+    """
+    try:
+        # Import retirement calculator
+        import sys
+        import os
+        current_file = os.path.abspath(__file__)
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file))))
+        sys.path.insert(0, backend_dir)
+        import retirement_calculator
+        
+        # Get data using the same approach as the working debug script
+        live_summary_response = get_live_summary(current_user.id, current_user, db)
+        cash_flow_response = get_cash_flow_analysis(current_user.id, current_user, db)
+        
+        # Create financial summary
+        financial_summary = {
+            'monthlyExpenses': cash_flow_response.get('monthly_expenses', 0),
+            'monthlySurplus': cash_flow_response.get('monthly_income', 0) - cash_flow_response.get('monthly_expenses', 0),
+            'assetsBreakdown': {}
+        }
+        
+        # Reconstruct assets from live summary
+        if 'asset_breakdown' in live_summary_response:
+            asset_breakdown = live_summary_response['asset_breakdown']
+            financial_summary['assetsBreakdown'] = {
+                'cash_bank_accounts': asset_breakdown.get('liquid', 0),
+                'investment_accounts': asset_breakdown.get('invested', 0), 
+                'retirement_accounts': asset_breakdown.get('other', 0),
+                'real_estate': asset_breakdown.get('real_estate', 0)
+            }
+        
+        # Flatten assets (this data is already flat from our structure)
+        assets_breakdown_flat = {}
+        for category, value in financial_summary['assetsBreakdown'].items():
+            assets_breakdown_flat[category] = float(value) if value else 0
+        
+        # Get user age from profile
+        from app.models.user_profile import UserProfile
+        profile = db.query(UserProfile).filter(UserProfile.user_id == current_user.id).first()
+        user_age = profile.age if profile and profile.age else 35
+        
+        # Create user context
+        user_context = {
+            'age': user_age,
+            'monthly_expenses': financial_summary.get('monthlyExpenses', 0),
+            'monthly_surplus': financial_summary.get('monthlySurplus', 0),
+            'assets_breakdown': assets_breakdown_flat
+        }
+        
+        # Calculate retirement using the working logic
+        calc = retirement_calculator.RetirementCalculator()
+        result = calc.calculate_years_to_financial_independence(user_context)
+        
+        if 'error' in result:
+            return {"error": result['error'], "years_to_retirement": None}
+        
+        return {
+            "years_to_retirement": result['years_to_financial_independence'],
+            "retirement_age": result.get('retirement_age'),
+            "current_liquid_assets": result['current_liquid_assets'],
+            "target_portfolio": result['target_portfolio'],
+            "annual_savings": result.get('annual_savings_needed', 0),
+            "retirement_monthly_expenses": result['retirement_monthly_expenses'],
+            "status": result.get('status', 'calculating'),
+            "message": "Fixed calculation - liquid assets only"
+        }
+        
+    except Exception as e:
+        return {
+            "error": f"Calculation failed: {str(e)}",
+            "years_to_retirement": None
+        }
+
+
 @router.get("/debug/entries")
 def debug_entries(
     current_user: User = Depends(get_current_active_user),
