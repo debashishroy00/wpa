@@ -431,11 +431,15 @@ interface WealthPathAppProps {
 
 const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
   const [currentView, setCurrentView] = useState('dashboard') // Start with Dashboard
+  const [navigationHistory, setNavigationHistory] = useState(['dashboard']) // Track navigation history
   const [apiHealth, setApiHealth] = useState<any>(null)
   const [manualEntries, setManualEntries] = useState<any[]>([]) // Shared state across components
   const [showAdminDashboard, setShowAdminDashboard] = useState(false) // Admin dashboard state
 
-  // Navigation tabs configuration
+  // Check if current user is admin
+  const isAdmin = isCurrentUserAdmin(user)
+
+  // Navigation tabs configuration with conditional admin tab
   const navigationTabs = [
     { id: 'dashboard', label: 'Dashboard', view: 'dashboard' },
     { id: 'profile', label: 'Profile', view: 'profile' },
@@ -445,7 +449,8 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
     { id: 'analysis', label: 'Analysis', view: 'intelligence' },
     { id: 'advisory', label: 'Advisory', view: 'advisory' },
     { id: 'chat', label: 'Chat', view: 'advisorChat' },
-    { id: 'debug', label: 'Debug', view: 'debug' }
+    // Only show Admin tab for admin users
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin', view: 'admin' }] : [])
   ]
 
   useEffect(() => {
@@ -458,7 +463,20 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
   const showView = (view: string) => {
     startTransition(() => {
       setCurrentView(view)
+      // Track navigation history
+      setNavigationHistory(prev => [...prev, view])
     })
+  }
+
+  // Back button handler
+  const handleBack = () => {
+    if (navigationHistory.length > 1) {
+      const newHistory = [...navigationHistory]
+      newHistory.pop() // Remove current
+      const previousView = newHistory[newHistory.length - 1]
+      setCurrentView(previousView)
+      setNavigationHistory(newHistory)
+    }
   }
 
   const getCurrentTab = () => {
@@ -557,50 +575,35 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
               WealthPath AI
             </div>
             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '8px 16px',
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid #10b981',
-                borderRadius: '20px',
-                color: '#10b981',
-                fontSize: '0.9em'
-              }}>
-                <div style={{
-                  width: '8px',
-                  height: '8px',
-                  background: '#10b981',
-                  borderRadius: '50%'
-                }}></div>
-                <span>{apiHealth ? 'Live Sync Active' : 'Connecting...'}</span>
-              </div>
-              
-              {/* Admin Link - Only visible to admin users */}
-              {(() => {
-                const authUser = useUnifiedAuthStore.getState().user;
-                return isCurrentUserAdmin(authUser || user);
-              })() && (
+              {/* Back Button - Show on all pages except dashboard */}
+              {currentView !== 'dashboard' && (
                 <button 
-                  onClick={() => setShowAdminDashboard(!showAdminDashboard)}
+                  onClick={handleBack}
                   style={{
-                    background: 'rgba(34, 197, 94, 0.2)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(34, 197, 94, 0.6)',
-                    borderRadius: '6px',
-                    padding: '6px 12px',
-                    fontWeight: '700',
+                    background: 'rgba(102, 126, 234, 0.1)',
+                    color: '#667eea',
+                    border: '1px solid #667eea',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontWeight: '600',
                     cursor: 'pointer',
-                    fontSize: '12px',
-                    opacity: 1,
-                    transition: 'opacity 0.2s'
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                  title="Admin Dashboard"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(102, 126, 234, 0.2)';
+                    e.currentTarget.style.transform = 'translateX(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(102, 126, 234, 0.1)';
+                    e.currentTarget.style.transform = 'translateX(0)';
+                  }}
                 >
-                  🛡️ Admin
+                  ← Back
                 </button>
               )}
               
@@ -616,7 +619,14 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
                   cursor: 'pointer',
                   fontSize: '14px',
                   textDecoration: 'none',
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
                 }}
               >
                 🚪 Logout
@@ -679,7 +689,7 @@ const WealthPathApp: React.FC<WealthPathAppProps> = ({ user, onLogout }) => {
             {currentView === 'intelligence' && <IntelligenceStep onNext={() => showView('advisory')} />}
             {currentView === 'advisory' && <RoadmapStep onNext={() => showView('advisorChat')} />}
             {currentView === 'advisorChat' && <ChatStep />}
-            {currentView === 'debug' && <DebugStep />}
+            {currentView === 'admin' && <AdminStep />}
           </div>
         </div>
       </div>
@@ -3888,6 +3898,132 @@ const DebugStep: React.FC = () => (
     <DebugView />
   </div>
 )
+
+const AdminStep: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'debug' | 'users' | 'system'>('overview')
+  
+  const handleTabChange = (tab: 'overview' | 'debug' | 'users' | 'system') => {
+    startTransition(() => {
+      setActiveTab(tab)
+    })
+  }
+  
+  return (
+    <div>
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <h2 style={{ color: '#667eea', fontSize: '2em', marginBottom: '10px' }}>🛡️ Admin Dashboard</h2>
+        <p style={{ color: '#94a3b8', fontSize: '1.1em' }}>
+          System administration and debugging tools
+        </p>
+      </div>
+      
+      {/* Admin Tabs */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '10px', 
+        marginBottom: '30px',
+        borderBottom: '1px solid #2d2d4e',
+        paddingBottom: '10px'
+      }}>
+        <button
+          onClick={() => handleTabChange('overview')}
+          style={{
+            background: activeTab === 'overview' ? '#667eea' : 'transparent',
+            color: activeTab === 'overview' ? '#fff' : '#94a3b8',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            fontSize: '1em',
+            fontWeight: '500'
+          }}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => handleTabChange('debug')}
+          style={{
+            background: activeTab === 'debug' ? '#667eea' : 'transparent',
+            color: activeTab === 'debug' ? '#fff' : '#94a3b8',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            fontSize: '1em',
+            fontWeight: '500'
+          }}
+        >
+          Debug Tools
+        </button>
+        <button
+          onClick={() => handleTabChange('users')}
+          style={{
+            background: activeTab === 'users' ? '#667eea' : 'transparent',
+            color: activeTab === 'users' ? '#fff' : '#94a3b8',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            fontSize: '1em',
+            fontWeight: '500'
+          }}
+        >
+          User Management
+        </button>
+        <button
+          onClick={() => handleTabChange('system')}
+          style={{
+            background: activeTab === 'system' ? '#667eea' : 'transparent',
+            color: activeTab === 'system' ? '#fff' : '#94a3b8',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            fontSize: '1em',
+            fontWeight: '500'
+          }}
+        >
+          System Health
+        </button>
+      </div>
+      
+      {/* Tab Content */}
+      <Suspense fallback={<div style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>Loading...</div>}>
+        {activeTab === 'overview' && (
+          <AdminDashboard user={useUnifiedAuthStore.getState().user} />
+        )}
+        
+        {activeTab === 'debug' && (
+          <DebugView />
+        )}
+        
+        {activeTab === 'users' && (
+          <div style={{
+            background: '#1a1a2e',
+            border: '1px solid #2d2d4e',
+            borderRadius: '12px',
+            padding: '24px'
+          }}>
+            <h3 style={{ color: '#e2e8f0', marginBottom: '20px' }}>User Management</h3>
+            <p style={{ color: '#94a3b8' }}>User management features coming soon...</p>
+          </div>
+        )}
+        
+        {activeTab === 'system' && (
+          <div style={{
+            background: '#1a1a2e',
+            border: '1px solid #2d2d4e',
+            borderRadius: '12px',
+            padding: '24px'
+          }}>
+            <h3 style={{ color: '#e2e8f0', marginBottom: '20px' }}>System Health</h3>
+            <p style={{ color: '#94a3b8' }}>System health monitoring coming soon...</p>
+          </div>
+        )}
+      </Suspense>
+    </div>
+  )
+}
 
 
 
