@@ -11,20 +11,39 @@ import type {
   UserPreferencesUpdate
 } from '../types/goals';
 
-// Query keys
+// Helper to get current user ID from auth token
+const getCurrentUserId = (): string | null => {
+  try {
+    const tokens = localStorage.getItem('auth_tokens');
+    if (!tokens) return null;
+    
+    const tokenData = JSON.parse(tokens);
+    const accessToken = tokenData.access_token;
+    if (!accessToken) return null;
+    
+    // Decode JWT to get user ID
+    const payload = JSON.parse(atob(accessToken.split('.')[1]));
+    return payload.sub || payload.user_id || null;
+  } catch (error) {
+    console.warn('Failed to extract user ID from token:', error);
+    return null;
+  }
+};
+
+// Query keys with user context
 export const goalQueryKeys = {
-  all: ['goals'] as const,
-  lists: () => [...goalQueryKeys.all, 'list'] as const,
-  list: (filters: Record<string, any>) => [...goalQueryKeys.lists(), { filters }] as const,
-  details: () => [...goalQueryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...goalQueryKeys.details(), id] as const,
-  progress: (id: string) => [...goalQueryKeys.detail(id), 'progress'] as const,
-  history: (id: string) => [...goalQueryKeys.detail(id), 'history'] as const,
-  summary: () => [...goalQueryKeys.all, 'summary'] as const,
-  conflicts: () => [...goalQueryKeys.all, 'conflicts'] as const,
-  preferences: () => ['preferences'] as const,
-  categories: () => ['categories'] as const,
-  templates: () => ['templates'] as const,
+  all: (userId?: string) => ['goals', userId || getCurrentUserId()] as const,
+  lists: (userId?: string) => [...goalQueryKeys.all(userId), 'list'] as const,
+  list: (filters: Record<string, any>, userId?: string) => [...goalQueryKeys.lists(userId), { filters }] as const,
+  details: (userId?: string) => [...goalQueryKeys.all(userId), 'detail'] as const,
+  detail: (id: string, userId?: string) => [...goalQueryKeys.details(userId), id] as const,
+  progress: (id: string, userId?: string) => [...goalQueryKeys.detail(id, userId), 'progress'] as const,
+  history: (id: string, userId?: string) => [...goalQueryKeys.detail(id, userId), 'history'] as const,
+  summary: (userId?: string) => [...goalQueryKeys.all(userId), 'summary'] as const,
+  conflicts: (userId?: string) => [...goalQueryKeys.all(userId), 'conflicts'] as const,
+  preferences: (userId?: string) => ['preferences', userId || getCurrentUserId()] as const,
+  categories: () => ['categories'] as const, // Global data
+  templates: () => ['templates'] as const, // Global data
 };
 
 // Goals queries
@@ -34,11 +53,13 @@ export const useGoalsQuery = (filters?: {
   limit?: number;
   offset?: number;
 }) => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.list(filters || {}),
+    queryKey: goalQueryKeys.list(filters || {}, userId),
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching goals with filters:', filters);
+        console.log('🔍 Fetching goals with filters:', filters, 'for user:', userId);
         const result = await goalsApi.getGoals(filters);
         console.log('✅ Goals API response:', result);
         console.log('📊 Goals count:', result?.length || 0);
@@ -50,38 +71,48 @@ export const useGoalsQuery = (filters?: {
         return [];
       }
     },
+    enabled: !!userId, // Only fetch if we have a user ID
   });
 };
 
 export const useGoalQuery = (goalId: string) => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.detail(goalId),
+    queryKey: goalQueryKeys.detail(goalId, userId),
     queryFn: () => goalsApi.getGoal(goalId),
-    enabled: !!goalId,
+    enabled: !!goalId && !!userId,
   });
 };
 
 export const useGoalProgressQuery = (goalId: string, limit?: number) => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.progress(goalId),
+    queryKey: goalQueryKeys.progress(goalId, userId),
     queryFn: () => goalsApi.getGoalProgress(goalId, limit),
-    enabled: !!goalId,
+    enabled: !!goalId && !!userId,
   });
 };
 
 export const useGoalHistoryQuery = (goalId: string) => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.history(goalId),
+    queryKey: goalQueryKeys.history(goalId, userId),
     queryFn: () => goalsApi.getGoalHistory(goalId),
-    enabled: !!goalId,
+    enabled: !!goalId && !!userId,
   });
 };
 
 export const useGoalSummaryQuery = () => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.summary(),
+    queryKey: goalQueryKeys.summary(userId),
     queryFn: async () => {
       try {
+        console.log('🔍 Fetching goal summary for user:', userId);
         const result = await goalsApi.getGoalSummary();
         return result || {
           active_goals: 0,
@@ -101,12 +132,15 @@ export const useGoalSummaryQuery = () => {
         };
       }
     },
+    enabled: !!userId,
   });
 };
 
 export const useGoalConflictsQuery = () => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.conflicts(),
+    queryKey: goalQueryKeys.conflicts(userId),
     queryFn: async () => {
       try {
         const result = await goalsApi.getGoalConflicts();
@@ -116,14 +150,18 @@ export const useGoalConflictsQuery = () => {
         return [];
       }
     },
+    enabled: !!userId,
   });
 };
 
 // User preferences queries
 export const useUserPreferencesQuery = () => {
+  const userId = getCurrentUserId();
+  
   return useQuery({
-    queryKey: goalQueryKeys.preferences(),
+    queryKey: goalQueryKeys.preferences(userId),
     queryFn: goalsApi.getPreferences,
+    enabled: !!userId,
   });
 };
 
@@ -161,65 +199,70 @@ export const useTemplatesQuery = () => {
 // Mutations
 export const useCreateGoalMutation = () => {
   const queryClient = useQueryClient();
+  const userId = getCurrentUserId();
   
   return useMutation({
     mutationFn: (goalData: GoalCreate) => goalsApi.createGoal(goalData),
     onSuccess: () => {
-      // Invalidate and refetch goals list and summary
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary() });
+      // Invalidate and refetch goals list and summary for current user
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.lists(userId) });
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary(userId) });
     },
   });
 };
 
 export const useUpdateGoalMutation = () => {
   const queryClient = useQueryClient();
+  const userId = getCurrentUserId();
   
   return useMutation({
     mutationFn: ({ goalId, update }: { goalId: string; update: GoalUpdate }) => 
       goalsApi.updateGoal(goalId, update),
     onSuccess: (data) => {
       // Update the specific goal in cache
-      queryClient.setQueryData(goalQueryKeys.detail(data.goal_id), data);
-      // Invalidate lists and summary
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary() });
+      queryClient.setQueryData(goalQueryKeys.detail(data.goal_id, userId), data);
+      // Invalidate lists and summary for current user
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.lists(userId) });
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary(userId) });
     },
   });
 };
 
 export const useDeleteGoalMutation = () => {
   const queryClient = useQueryClient();
+  const userId = getCurrentUserId();
   
   return useMutation({
     mutationFn: (goalId: string) => goalsApi.deleteGoal(goalId),
     onSuccess: (_, goalId) => {
-      // Remove from cache
-      queryClient.removeQueries({ queryKey: goalQueryKeys.detail(goalId) });
-      // Invalidate lists and summary
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary() });
+      // Remove from cache for current user
+      queryClient.removeQueries({ queryKey: goalQueryKeys.detail(goalId, userId) });
+      // Invalidate lists and summary for current user
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.lists(userId) });
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary(userId) });
     },
   });
 };
 
 export const useRecordProgressMutation = () => {
   const queryClient = useQueryClient();
+  const userId = getCurrentUserId();
   
   return useMutation({
     mutationFn: ({ goalId, progress }: { goalId: string; progress: GoalProgressCreate }) =>
       goalsApi.recordProgress(goalId, progress),
     onSuccess: (_, { goalId }) => {
-      // Invalidate progress, goal detail, and summary
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.progress(goalId) });
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.detail(goalId) });
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary() });
+      // Invalidate progress, goal detail, and summary for current user
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.progress(goalId, userId) });
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.detail(goalId, userId) });
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.summary(userId) });
     },
   });
 };
 
 export const useBatchUpdateGoalsMutation = () => {
   const queryClient = useQueryClient();
+  const userId = getCurrentUserId();
   
   return useMutation({
     mutationFn: ({ goalIds, updates, reason }: { 
@@ -228,20 +271,21 @@ export const useBatchUpdateGoalsMutation = () => {
       reason: string;
     }) => goalsApi.batchUpdateGoals(goalIds, updates, reason),
     onSuccess: () => {
-      // Invalidate all goal-related queries
-      queryClient.invalidateQueries({ queryKey: goalQueryKeys.all });
+      // Invalidate all goal-related queries for current user
+      queryClient.invalidateQueries({ queryKey: goalQueryKeys.all(userId) });
     },
   });
 };
 
 export const useUpdatePreferencesMutation = () => {
   const queryClient = useQueryClient();
+  const userId = getCurrentUserId();
   
   return useMutation({
     mutationFn: (update: UserPreferencesUpdate) => goalsApi.updatePreferences(update),
     onSuccess: (data) => {
-      // Update preferences in cache
-      queryClient.setQueryData(goalQueryKeys.preferences(), data);
+      // Update preferences in cache for current user
+      queryClient.setQueryData(goalQueryKeys.preferences(userId), data);
     },
   });
 };

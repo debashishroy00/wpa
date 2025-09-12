@@ -37,51 +37,32 @@ class TrustEngine:
         # Find assumptions
         result["assumptions"] = self._find_assumptions(ai_response)
         
-        # Tighten disclaimer triggers - only add when truly necessary
+        # VERY restrictive disclaimer triggers - only for truly risky situations
         disclaimer_needed = False
         
-        # Check for strong recommendation language
-        recommendation_keywords = [
-            "recommend", "should", "suggest", "advise", "consider",
-            "would be", "might want", "could benefit"
+        # Only check for STRONG action recommendations (not general advice)
+        strong_action_keywords = [
+            "you should immediately", "must do", "required to", "have to",
+            "need to sell", "need to buy", "liquidate", "move all your money",
+            "put everything in", "go all-in", "urgent action needed"
         ]
         
-        # Check for projection language
-        projection_keywords = [
-            "will be", "projected", "forecast", "expect", "estimate",
-            "approximately", "roughly", "around"
+        # Check for high-risk financial advice
+        high_risk_keywords = [
+            "guaranteed", "risk-free", "can't lose", "certain to",
+            "definite profit", "100% sure", "no risk involved"
         ]
         
-        has_recommendations = any(kw in ai_response.lower() for kw in recommendation_keywords)
-        has_projections = any(kw in ai_response.lower() for kw in projection_keywords)
+        has_strong_actions = any(kw in ai_response.lower() for kw in strong_action_keywords)
+        has_high_risk_claims = any(kw in ai_response.lower() for kw in high_risk_keywords)
         
-        # Count how many numbers in response match context facts
-        matched_numbers = 0
-        response_numbers = self._extract_numbers(ai_response)
-        
-        for fact_key, fact_value in claims.items():
-            if fact_value and str(fact_value) in ai_response:
-                matched_numbers += 1
-            else:
-                # Check for formatted versions (with commas)
-                if isinstance(fact_value, str) and fact_value.isdigit():
-                    formatted = f"{int(fact_value):,.0f}"
-                    if formatted in ai_response:
-                        matched_numbers += 1
-        
-        # ONLY add disclaimer if:
-        # 1. Has recommendations/projections AND
-        # 2. Low ratio of matched facts OR high ungrounded count
-        total_numbers = len(response_numbers)
-        confidence_ratio = matched_numbers / total_numbers if total_numbers > 0 else 1
-        
-        # Determine confidence and add disclaimers
-        if ungrounded_count > 8:  # High number of calculations/projections
-            result["confidence"] = "MEDIUM"
+        # Only add disclaimer in truly risky situations:
+        # 1. Strong action recommendations that could cause financial harm
+        # 2. High-risk claims that could mislead users
+        # 3. Extremely high number of ungrounded calculations (>15)
+        if has_strong_actions or has_high_risk_claims:
             disclaimer_needed = True
-        elif (has_recommendations or has_projections) and confidence_ratio < 0.5:
-            disclaimer_needed = True
-        elif result["assumptions"]:
+        elif ungrounded_count > 15:  # Much higher threshold
             result["confidence"] = "MEDIUM"
             disclaimer_needed = True
         

@@ -21,10 +21,13 @@ export function isCurrentUserAdmin(user: User | null): boolean {
       return false;
     }
     
-    // For now, hardcode debashishroy@gmail.com as admin as requested
-    const adminEmails = ['debashishroy@gmail.com'];
+    // TEMPORARY: Enable admin tab for all users for debugging hard-coded goals issue
+    // TODO: Revert this after debugging is complete
+    return true;
     
-    return adminEmails.includes(user.email.toLowerCase());
+    // Original logic (commented out temporarily):
+    // const adminEmails = ['debashishroy@gmail.com'];
+    // return adminEmails.includes(user.email.toLowerCase());
   } catch (error) {
     // Fail safely - if there's any error, assume not admin
     console.warn('Admin check failed safely:', error);

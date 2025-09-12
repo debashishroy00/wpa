@@ -31,14 +31,16 @@ class UserProfile(Base):
     occupation = Column(String(100))
     risk_tolerance = Column(String(20))  # conservative, moderate, aggressive
     
-    # Financial Goals
+    # Financial Goals - Made nullable for user customization
+    # These are fallback defaults only, real goals should come from financial_goals table
     retirement_age = Column(Integer, default=64)
-    retirement_goal = Column(Numeric(12, 2), default=3500000)
+    retirement_goal = Column(Numeric(12, 2), nullable=True)  # Removed hard-coded default
     emergency_fund_months = Column(Integer, default=6)
     
     # Social Security estimates (moved from UserBenefit for easy access)
+    # These are estimates only, real values should come from user input or SSA API
     social_security_age = Column(Integer, default=67)
-    social_security_monthly = Column(Numeric(12, 2), default=4000)
+    social_security_monthly = Column(Numeric(12, 2), nullable=True)  # Removed hard-coded default
     
     # Risk profile (1-10 scale)
     risk_tolerance_score = Column(Integer, default=7)

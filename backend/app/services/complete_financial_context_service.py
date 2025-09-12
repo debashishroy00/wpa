@@ -333,45 +333,50 @@ STANDARD FINANCIAL PLANNING ASSUMPTIONS (USE THESE FOR ALL CALCULATIONS):
 - 80% Rule: Assume retirement expenses = 80% of current monthly expenses (${int(financial_data['monthly_expenses'] * 0.8):,}/month)
 
 RETIREMENT CALCULATION METHODOLOGY:
+CRITICAL: Social Security benefits of ${financial_data.get('social_security_monthly', 0):,.0f}/month do NOT start until age {financial_data.get('social_security_age', 67)}!
+
+PHASE 1 - EARLY RETIREMENT (Before Age {financial_data.get('social_security_age', 67)}):
+1. Monthly retirement need: ${int(financial_data['monthly_expenses'] * 0.8):,}/month (NO Social Security yet)
+2. Annual need from savings ONLY: ${int(financial_data['monthly_expenses'] * 0.8) * 12:,.0f}
+3. Total savings needed for early retirement: ${(int(financial_data['monthly_expenses'] * 0.8) * 12) / 0.04:,.0f}
+
+PHASE 2 - FULL RETIREMENT (After Age {financial_data.get('social_security_age', 67)}):
 1. Monthly retirement need: ${int(financial_data['monthly_expenses'] * 0.8):,}/month - ${financial_data.get('social_security_monthly', 0):,.0f}/month (SS) = ${int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0):,.0f}/month from savings
-2. Annual need from savings: ${(int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12:,.0f}
-3. Total savings needed (4% rule): ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04:,.0f}
+2. Annual need from savings with SS: ${(int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12:,.0f}
+3. Total savings needed with SS: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04:,.0f}
+
+CURRENT SITUATION:
 4. Current liquid assets: ${financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']:,.0f}
-5. Gap to fill: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04 - (financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']):,.0f}
-6. With ${financial_data['monthly_surplus']:,.0f}/month savings at 7% growth: CALCULATE YEARS TO RETIREMENT
+5. Current age: {financial_data.get('age', 54)}
+6. With ${financial_data['monthly_surplus']:,.0f}/month savings at 7% growth: CALCULATE YEARS TO EACH RETIREMENT PHASE
 
 STEP-BY-STEP CALCULATION EXAMPLE FOR "WHEN CAN I RETIRE?":
 ALWAYS SHOW THE ACTUAL MATH - DO NOT JUST SAY "approximately X years":
 
-Step 1: Gap calculation
-- Need: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04:,.0f}
-- Have: ${financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']:,.0f}  
-- Gap: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04 - (financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']):,.0f}
+OPTION 1: EARLY RETIREMENT (Before Age {financial_data.get('social_security_age', 67)} - NO Social Security):
+Step 1a: Early retirement gap calculation
+- Need for early retirement: ${(int(financial_data['monthly_expenses'] * 0.8) * 12) / 0.04:,.0f}
+- Have: ${financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']:,.0f}
+- Early retirement gap: ${(int(financial_data['monthly_expenses'] * 0.8) * 12) / 0.04 - (financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']):,.0f}
 
-Step 2: If gap > 0, calculate years:
+Step 2a: Calculate years to early retirement (if gap > 0):
 - Formula: ln(1 + (Gap × 0.07)/(Monthly_savings × 12)) / ln(1.07)
-- Plugging numbers: ln(1 + (Gap × 0.07)/(${financial_data['monthly_surplus']:,.0f} × 12)) / ln(1.07)
-- Calculate: 1 + (Gap × 0.07)/(${financial_data['monthly_surplus'] * 12:,.0f}) = X
-- Then: ln(X) / ln(1.07) = Y years
-- Result: Current age {financial_data.get('age', 54)} + Y = Retirement age
+- Early retirement age: Current age {financial_data.get('age', 54)} + calculated years
 
-Step 3: If gap ≤ 0: "You can retire NOW!"
+OPTION 2: FULL RETIREMENT (Age {financial_data.get('social_security_age', 67)}+ with Social Security):
+Step 1b: Full retirement gap calculation  
+- Need with SS: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04:,.0f}
+- Have: ${financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']:,.0f}
+- Full retirement gap: ${((int(financial_data['monthly_expenses'] * 0.8) - financial_data.get('social_security_monthly', 0)) * 12) / 0.04 - (financial_data['retirement_accounts']['total'] + financial_data['investment_accounts']['total']):,.0f}
+
+Step 2b: Calculate years to full retirement (if gap > 0):
+- Full retirement age: Current age {financial_data.get('age', 54)} + calculated years (minimum age {financial_data.get('social_security_age', 67)})
+
+CRITICAL: If current age + calculated years < {financial_data.get('social_security_age', 67)}, user must wait until {financial_data.get('social_security_age', 67)} for Social Security benefits!
 
 ALWAYS SHOW THESE ACTUAL CALCULATIONS - NO SHORTCUTS OR "APPROXIMATELY"
 
-STRESS TESTING CALCULATIONS (Market Crash/Negative Scenarios):
-You have ALL the data needed - NEVER say "need more information":
-- Current Investments: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f}
-- Current Real Estate: ${financial_data['real_estate_properties']['total']:,.0f}
-- Current Cash: ${financial_data['cash_accounts']['total']:,.0f}
-
-MARKET CRASH CALCULATION EXAMPLE (30% stocks, 15% real estate):
-1. Investment loss: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × 30% = ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30:,.0f}
-2. Real estate loss: ${financial_data['real_estate_properties']['total']:,.0f} × 15% = ${financial_data['real_estate_properties']['total'] * 0.15:,.0f}  
-3. Total loss: ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f}
-4. New net worth: ${financial_data['net_worth']:,.0f} - ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f} = ${financial_data['net_worth'] - (financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 - financial_data['real_estate_properties']['total'] * 0.15:,.0f}
-5. Recovery: With ${financial_data['monthly_surplus']:,.0f}/month at 7%
-6. NEVER avoid this calculation - USE THESE EXACT NUMBERS
+{self._get_conditional_stress_testing(financial_data, user_query)}
 
 ===========================================================
 USER'S CURRENT QUESTION: {user_query}
@@ -417,16 +422,12 @@ Before responding, verify:
 □ For retirement timing questions: PROVIDED SPECIFIC YEAR/DATE - not "requires analysis"
 □ CALCULATED results using the methodology above - showed the math step-by-step
 □ NO "approximately" or shortcuts - showed actual arithmetic calculations
-□ For stress testing: CALCULATED with existing data - no "need more information" excuses
 □ Maintained consistency with previous advice
 □ Direct answer to: {user_query}
 
 FAILURE TO USE SPECIFIC DATA = INVALID RESPONSE
 
-CRITICAL: For "market crash" or "stress test" questions, you MUST use these calculations:
-Investment Loss = ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × crash %
-Real Estate Loss = ${financial_data['real_estate_properties']['total']:,.0f} × decline %
-DO NOT ask for more information - you have all data needed!
+NOTE: Only include stress testing calculations if user specifically asks about market crashes, downturns, or risk scenarios.
 ==========================================================="""
         
         return context
@@ -545,16 +546,20 @@ INSURANCE & ESTATE:
             name = f"{user.first_name} {user.last_name}".strip() if user and (user.first_name or user.last_name) else "Client"
             age = profile.age if profile and profile.age else 54
             
-            # Get retirement goal
+            # Get retirement goal - PRIORITY ORDER:
+            # 1. User's actual goals from financial_goals table
+            # 2. User's profile retirement_goal (if set)
+            # 3. Safe fallback for calculation purposes
             retirement_goals = db.query(Goal).filter(
                 Goal.user_id == user_id,
                 Goal.name.ilike('%retirement%')
             ).all()
             
-            retirement_goal = 3500000  # Default $3.5M as specified
+            retirement_goal = None
             target_date = None
             retirement_age_target = 65  # Default
             
+            # Priority 1: Use database goals if available
             if retirement_goals:
                 retirement_goal = max(float(goal.target_amount) for goal in retirement_goals)
                 # Use actual target date from goal, not hardcoded age
@@ -566,6 +571,17 @@ INSURANCE & ESTATE:
                         goal_retirement_age = goal.params.get('retirement_age')
                         if goal_retirement_age:
                             retirement_age_target = goal_retirement_age
+            
+            # Priority 2: Use profile retirement goal if no database goal exists
+            elif profile and profile.retirement_goal:
+                retirement_goal = float(profile.retirement_goal)
+                
+            # Priority 3: Safe fallback based on user's current financial situation
+            else:
+                # Calculate reasonable retirement goal based on user's actual expenses
+                monthly_expenses = summary.get('monthlyExpenses', 7500)  # Use actual or reasonable default
+                # Standard rule: 25x annual expenses for 4% withdrawal rate
+                retirement_goal = monthly_expenses * 12 * 25  # Safe, personalized estimate
             
             # Process asset breakdown
             assets_breakdown = summary.get('assetsBreakdown', {})
@@ -654,24 +670,52 @@ INSURANCE & ESTATE:
             # REMOVED: Rental income estimation (actual rental already included in monthly_income)
             # The $844 actual rental income is already included in the $17,744 total
             
-            # Get Social Security benefits
+            # Get Social Security benefits - PRIORITY ORDER:
+            # 1. User benefits table (if exists and populated)
+            # 2. Profile social_security_monthly (if set)
+            # 3. Reasonable estimate based on income
             social_security_monthly = 0
             social_security_annual = 0
             social_security_age = 67
             
             try:
+                # Priority 1: Check user benefits table
                 from ..models.user_profile import UserBenefit
                 ss_benefits = db.query(UserBenefit).join(UserProfile).filter(
                     UserProfile.user_id == user_id,
                     UserBenefit.benefit_type == 'social_security'
                 ).first()
                 
-                if ss_benefits:
-                    social_security_monthly = float(ss_benefits.estimated_monthly_benefit or 0)
+                if ss_benefits and ss_benefits.estimated_monthly_benefit:
+                    social_security_monthly = float(ss_benefits.estimated_monthly_benefit)
                     social_security_annual = social_security_monthly * 12
                     social_security_age = ss_benefits.full_retirement_age or 67
+                    
+                # Priority 2: Check profile estimate
+                elif profile and profile.social_security_monthly:
+                    social_security_monthly = float(profile.social_security_monthly)
+                    social_security_annual = social_security_monthly * 12
+                    social_security_age = profile.social_security_age or 67
+                    
+                # Priority 3: Reasonable estimate based on income
+                else:
+                    # Rough SS estimate: ~40% of average earnings up to SS max
+                    monthly_income = summary.get('monthlyIncome', 0)
+                    if monthly_income > 0:
+                        # Cap at roughly Social Security maximum benefit level
+                        estimated_replacement = min(monthly_income * 0.4, 4500)  # Reasonable SS max
+                        social_security_monthly = max(1000, estimated_replacement)  # Min of $1k/month
+                    else:
+                        social_security_monthly = 2000  # Very conservative fallback
+                    social_security_annual = social_security_monthly * 12
+                    social_security_age = 67
+                    
             except Exception as e:
                 logger.warning(f"Could not retrieve Social Security benefits: {str(e)}")
+                # Safe fallback
+                social_security_monthly = 2000
+                social_security_annual = 24000
+                social_security_age = 67
             
             # Get personal information from profile
             state = profile.state if profile and profile.state else "Unknown"
@@ -1207,6 +1251,39 @@ CASH OPTIMIZATION STATUS:
         
         return '\n'.join(formatted)
     
+    def _get_conditional_stress_testing(self, financial_data: Dict, user_query: str) -> str:
+        """Include stress testing calculations only when user asks for risk analysis"""
+        # Keywords that indicate user wants stress testing
+        stress_keywords = [
+            'stress test', 'market crash', 'recession', 'downturn', 'bear market',
+            'market decline', 'economic crisis', 'worst case', 'risk', 'volatility',
+            'what if', 'crash', 'drop', 'fall', 'decline', 'lose value',
+            'market correction', 'portfolio risk'
+        ]
+        
+        # Check if user query contains any stress testing keywords
+        query_lower = user_query.lower()
+        if not any(keyword in query_lower for keyword in stress_keywords):
+            return ""
+        
+        # Only include stress testing if specifically requested
+        return f"""
+STRESS TESTING CALCULATIONS (Market Crash/Negative Scenarios):
+You have the data needed for stress testing:
+- Current Investments: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f}
+- Current Real Estate: ${financial_data['real_estate_properties']['total']:,.0f}
+- Current Cash: ${financial_data['cash_accounts']['total']:,.0f}
+
+MARKET CRASH CALCULATION EXAMPLE (30% stocks, 15% real estate):
+1. Investment loss: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × 30% = ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30:,.0f}
+2. Real estate loss: ${financial_data['real_estate_properties']['total']:,.0f} × 15% = ${financial_data['real_estate_properties']['total'] * 0.15:,.0f}  
+3. Total loss: ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f}
+4. New net worth: ${financial_data['net_worth']:,.0f} - ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f} = ${financial_data['net_worth'] - (financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 - financial_data['real_estate_properties']['total'] * 0.15:,.0f}
+5. Recovery: With ${financial_data['monthly_surplus']:,.0f}/month at 7%
+
+Use these calculations to analyze portfolio resilience.
+"""
+
     def _get_insight_level_instructions(self, insight_level: str) -> str:
         """Get response depth instructions based on insight level"""
         instructions = {
