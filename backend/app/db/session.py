@@ -4,22 +4,43 @@ WealthPath AI - Database Session Management
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 import structlog
+import os
 
 from app.core.config import settings
 
 logger = structlog.get_logger()
 
-# Create database engine with optimized pool settings for Supabase
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    pool_size=5,  # Reduced from default 10 to prevent exhaustion
-    max_overflow=10,  # Allow some overflow connections
-    pool_timeout=30,  # Wait up to 30 seconds for a connection
-    echo=settings.DEBUG,  # Log SQL queries in debug mode
-)
+# Check if we're in production (Supabase)
+is_production = "supabase" in settings.DATABASE_URL.lower()
+
+if is_production:
+    # Use NullPool for Supabase to avoid connection pooling issues
+    # Each request gets its own connection which is immediately closed after use
+    engine = create_engine(
+        settings.DATABASE_URL,
+        poolclass=NullPool,  # No connection pooling - critical for Supabase
+        echo=settings.DEBUG,
+        connect_args={
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        }
+    )
+    logger.info("Using NullPool for Supabase production database")
+else:
+    # Use normal pooling for local development
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        pool_size=5,
+        max_overflow=10,
+        echo=settings.DEBUG
+    )
+    logger.info("Using standard connection pool for local database")
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
