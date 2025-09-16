@@ -172,7 +172,16 @@
       "Bash(netstat:*)",
       "Bash(claude mcp:*)",
       "Bash(column:*)",
-      "Bash(ruff check:*)"
+      "Bash(ruff check:*)",
+      "Bash(xargs sed:*)",
+      "Bash(while read file)",
+      "Bash(do sed -i '/console\\.log/d' \"$file\")",
+      "Bash(done)",
+      "Bash(for file in main.tsx hooks/*.ts components/*/*.tsx services/*.ts utils/*.ts stores/*.ts)",
+      "Bash(then sed -i '/console\\.log/d' \"$file\")",
+      "Bash(fi)",
+      "Bash(for:*)",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",

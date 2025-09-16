@@ -103,7 +103,7 @@ class KnowledgeBaseService:
                 self.document_map[kb_document.id] = kb_document
                 loaded_count += 1
         
-        print(f"✅ Loaded {loaded_count} KB documents into vector store (total: {self.vector_store.count_documents()} documents)")
+        logger.debug(f"Loaded {loaded_count} KB documents into vector store (total: {self.vector_store.count_documents()} documents)")
     
     def _update_document_map(self):
         """Update document map from vector store"""

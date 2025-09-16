@@ -170,27 +170,18 @@ async def chat_message(
                 # Step 2: Add conversation memory to foundation context
                 conversation_text = _format_context_for_prompt(conversation_context)
                 
-                # CRITICAL DEBUGGING - Force logging even at WARNING level
-                print(f"MEMORY DEBUG - conversation_context keys: {list(conversation_context.keys())}")
-                print(f"MEMORY DEBUG - recent_messages count: {len(conversation_context.get('recent_messages', []))}")
-                print(f"MEMORY DEBUG - session message_count: {conversation_context.get('message_count', 0)}")
-                print(f"MEMORY DEBUG - conversation_text length: {len(conversation_text) if conversation_text else 0}")
-                
-                if conversation_context.get('recent_messages'):
-                    print(f"MEMORY DEBUG - first recent message: {conversation_context['recent_messages'][0] if conversation_context['recent_messages'] else 'EMPTY'}")
-                
-                logger.error("FORCE MEMORY DEBUG - conversation_context", extra=conversation_context)
-                logger.error(f"FORCE MEMORY DEBUG - formatted text length: {len(conversation_text) if conversation_text else 0}")
+                # Memory context integration
+                logger.debug(f"Memory context has {len(conversation_context.get('recent_messages', []))} messages")
                 
                 if conversation_text:
                     complete_context = f"""🧠 CONVERSATION MEMORY:
 {conversation_text}
 
 {foundation_context}"""
-                    print(f"MEMORY SUCCESS - Enhanced context with {len(conversation_text)} chars of memory")
+                    logger.debug(f"Enhanced context with {len(conversation_text)} chars of memory")
                 else:
                     complete_context = foundation_context
-                    print(f"MEMORY FAILURE - No conversation memory available, using foundation only")
+                    logger.debug("No conversation memory available, using foundation only")
                 
                 # Extract key facts from complete context for validation
                 import re
@@ -367,7 +358,7 @@ CRITICAL OVERRIDE: For market crash/stress test questions, you HAVE ALL DATA NEE
             response = await llm_service.generate(llm_request)
             
             # CRITICAL FIX: Store memory IMMEDIATELY after LLM response to fix timing issue
-            print(f"TIMING FIX - Storing memory IMMEDIATELY after LLM response")
+            logger.debug("Storing conversation memory after LLM response")
             vector_chat_memory_service.add_message_pair(
                 user_id=current_user.id,
                 user_message=request.message,
@@ -459,10 +450,10 @@ CRITICAL OVERRIDE: For market crash/stress test questions, you HAVE ALL DATA NEE
 Current question: {request.message}
 
 Please respond naturally building on the conversation context above."""
-                print(f"GENERAL CHAT MEMORY - Enhanced prompt with {len(conversation_text)} chars of context")
+                logger.debug(f"General chat enhanced with {len(conversation_text)} chars of context")
             else:
                 enhanced_prompt = request.message
-                print(f"GENERAL CHAT MEMORY - No context available, using raw message")
+                logger.debug("No context available for general chat")
             
             llm_request = LLMRequest(
                 provider=chosen_provider,

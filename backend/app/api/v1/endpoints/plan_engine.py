@@ -51,7 +51,7 @@ async def calculate_plan(
                 user_id=current_user.id
             )
             plan_output.client_info = client_info
-            print(f"✅ Added client_info to plan output: {client_info.name}, age {client_info.age}, income ${client_info.current_income:,.0f}")
+            logger.debug(f"Added client_info to plan output: {client_info.name}, age {client_info.age}, income ${client_info.current_income:,.0f}")
         
         # Log calculation for audit trail (temporarily disabled due to DB session error)
         try:

@@ -796,11 +796,16 @@ INSURANCE & ESTATE:
             
             try:
                 from ..models.insurance import UserInsurancePolicy
+                logger.debug(f"🔍 Insurance debug: Querying UserInsurancePolicy for user_id {user_id}")
+
                 insurance_docs = db.query(UserInsurancePolicy).filter(
                     UserInsurancePolicy.user_id == user_id
                 ).all()
-                
+
+                logger.debug(f"🔍 Insurance debug: Found {len(insurance_docs)} insurance policies")
+
                 for policy in insurance_docs:
+                    logger.debug(f"🔍 Insurance debug: Processing policy {policy.policy_type} - {policy.policy_name}")
                     insurance_policies.append({
                         'policy_type': policy.policy_type,
                         'policy_name': policy.policy_name,
@@ -810,8 +815,13 @@ INSURANCE & ESTATE:
                         'beneficiary_secondary': policy.beneficiary_secondary,
                         'policy_details': policy.policy_details
                     })
+
+                logger.debug(f"🔍 Insurance debug: Final insurance_policies list has {len(insurance_policies)} items")
+
             except Exception as e:
                 logger.warning(f"Could not retrieve insurance information: {str(e)}")
+                import traceback
+                logger.warning(f"Insurance retrieval traceback: {traceback.format_exc()}")
             
             try:
                 from ..models.investment_preferences import UserInvestmentPreferences
@@ -1413,9 +1423,13 @@ This should be your most detailed, thorough response mode.
     
     def _format_insurance_policies(self, insurance_policies: List[Dict]) -> str:
         """Format insurance policies"""
+        logger.debug(f"🔍 Insurance format debug: Received {len(insurance_policies) if insurance_policies else 0} policies")
+        logger.debug(f"🔍 Insurance format debug: Policies data: {insurance_policies}")
+
         if not insurance_policies:
+            logger.debug("🔍 Insurance format debug: No policies found, returning default message")
             return "  • No insurance policies on record"
-        
+
         formatted = []
         for policy in insurance_policies:
             policy_type = policy.get('policy_type', 'Unknown')

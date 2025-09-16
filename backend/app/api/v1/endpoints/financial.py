@@ -54,29 +54,29 @@ def categorize_financial_entry(category: str, description: str, subcategory: str
     description_lower = description.lower()
     
     # Debug logging
-    print(f"🔍 CATEGORIZE: description='{description}', category='{category}', subcategory='{subcategory}'")
+    logger.debug(f"Categorizing: {description} -> {category}.{subcategory}")
     
     # If a valid subcategory is already provided that matches our expected values, use it
     if subcategory and category == "assets":
         if subcategory in ['retirement_accounts', 'investment_accounts', 'cash_bank_accounts', 
                           'real_estate', 'personal_property', 'business_assets']:
-            print(f"✅ Using existing subcategory: {subcategory}")
+            logger.debug(f"Using existing subcategory: {subcategory}")
             return subcategory
     
     # Check for valid expense subcategories
     if subcategory and category == "expenses":
         if subcategory in ['housing', 'utilities', 'transportation', 'food', 'healthcare', 'personal']:
-            print(f"✅ Using existing expense subcategory: {subcategory}")
+            logger.debug(f"Using existing expense subcategory: {subcategory}")
             return subcategory
     
     if category == "assets":
         # Retirement Accounts (check first - highest priority)
         if any(keyword in description_lower for keyword in ['401k', '401(k)', '401 k', 'ira', 'roth', 'retirement', 'pension', 'sep', '403b', 'tsp', '529']):
-            print(f"➡️ Matched retirement: {description}")
+            logger.debug(f"Matched retirement: {description}")
             return "retirement_accounts"
         # Investment Accounts (check before cash accounts to avoid conflicts)
         elif any(keyword in description_lower for keyword in ['mutual fund', 'etf', 'stock', 'bond', 'brokerage', 'investment', 'portfolio', 'crypto', 'bitcoin', 'btc', 'ethereum', 'equity', 'securities', 'etrade', 'e-trade', 'robinhood', 'vanguard', 'fidelity', 'schwab', 'ameritrade', 'pacific life']):
-            print(f"➡️ Matched investment: {description}")
+            logger.debug(f"Matched investment: {description}")
             return "investment_accounts"
         # Cash & Bank Accounts (only pure cash/bank products)
         elif any(keyword in description_lower for keyword in ['checking', 'savings', 'money market', 'cd', 'certificate', 'offshore']) and not any(keyword in description_lower for keyword in ['mutual', 'fund', 'etf', 'stock', 'investment']):
@@ -91,7 +91,7 @@ def categorize_financial_entry(category: str, description: str, subcategory: str
         elif any(keyword in description_lower for keyword in ['business', 'company', 'llc', 'corporation', 'equipment', 'inventory']):
             return "business_assets"
         else:
-            print(f"⚠️ No match found, defaulting to other_assets: {description}")
+            logger.debug(f"No match found, defaulting to other_assets: {description}")
             return "other_assets"
     
     elif category == "income":
@@ -593,10 +593,10 @@ def get_categorized_entries(
         if entry.category == EntryCategory.assets:
             if subcategory in categorized['categories']['assets']:
                 categorized['categories']['assets'][subcategory].append(entry_data)
-                print(f"✅ MAPPED: {entry.description} -> assets.{subcategory}")
+                logger.debug(f"MAPPED: {entry.description} -> assets.{subcategory}")
             else:
                 categorized['categories']['assets']['other_assets'].append(entry_data)
-                print(f"⚠️ FALLBACK: {entry.description} -> assets.other_assets (subcategory '{subcategory}' not found)")
+                logger.debug(f"FALLBACK: {entry.description} -> assets.other_assets (subcategory '{subcategory}' not found)")
         elif entry.category == EntryCategory.liabilities:
             if subcategory in categorized['categories']['liabilities']:
                 categorized['categories']['liabilities'][subcategory].append(entry_data)
