@@ -10,11 +10,14 @@ from app.core.config import settings
 
 logger = structlog.get_logger()
 
-# Create database engine
+# Create database engine with optimized pool settings for Supabase
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
     pool_recycle=300,
+    pool_size=5,  # Reduced from default 10 to prevent exhaustion
+    max_overflow=10,  # Allow some overflow connections
+    pool_timeout=30,  # Wait up to 30 seconds for a connection
     echo=settings.DEBUG,  # Log SQL queries in debug mode
 )
 
@@ -27,7 +30,7 @@ Base = declarative_base()
 
 def get_db():
     """
-    Database dependency for FastAPI
+    Database dependency for FastAPI with proper cleanup
     """
     db = SessionLocal()
     try:
