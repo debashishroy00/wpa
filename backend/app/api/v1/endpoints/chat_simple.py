@@ -534,7 +534,15 @@ def _detect_insight_type(message: str) -> str:
         'allocation': 0.95, 'diversify': 0.9, 'diversification': 0.9,
         'portfolio': 0.8, 'balance': 0.7, 'rebalance': 0.8,
         'conservative': 0.8, 'aggressive': 0.8, 'moderate': 0.7,
-        'safe': 0.6, 'safety': 0.6, 'secure': 0.6
+        'safe': 0.6, 'safety': 0.6, 'secure': 0.6,
+        # Market crash and stress testing keywords
+        'market crash': 1.0, 'crash': 1.0, 'market correction': 0.9,
+        'bear market': 0.95, 'recession': 1.0, 'downturn': 0.9,
+        'market decline': 0.9, 'stress test': 1.0, 'what if': 0.8,
+        'market drop': 0.9, 'economic crisis': 0.9, 'financial crisis': 0.9,
+        'market volatility': 0.95, 'downside': 0.8, 'worst case': 0.9,
+        'if there': 0.7, 'market falls': 0.9, 'portfolio crash': 0.9,
+        'corrects by': 0.8, 'drops by': 0.8, 'falls by': 0.8
     }
     
     goal_words = {
@@ -556,7 +564,13 @@ def _detect_insight_type(message: str) -> str:
         'how am i doing': 1.0, 'where do i stand': 0.9, 'status': 0.6,
         'overview': 0.7, 'summary': 0.7, 'complete': 0.6, 'full': 0.6,
         'assessment': 0.8, 'review': 0.7, 'show me': 0.5,
-        'advice': 0.6, 'recommend': 0.6, 'suggestions': 0.6, 'help': 0.5
+        'advice': 0.6, 'recommend': 0.6, 'suggestions': 0.6, 'help': 0.5,
+        # Spending comparison and expense analysis
+        'spending': 0.9, 'compare': 0.8, 'peers': 0.7, 'comparison': 0.8,
+        'breakdown': 0.9, 'expense breakdown': 1.0, 'my spending': 0.9,
+        'compare spending': 1.0, 'compare my spending': 1.0, 'versus peers': 0.8,
+        'benchmark': 0.7, 'average spending': 0.8, 'typical': 0.6,
+        'spending patterns': 0.8, 'spending habits': 0.8, 'last month': 0.7
     }
     
     # Calculate scores with phrase matching for better accuracy

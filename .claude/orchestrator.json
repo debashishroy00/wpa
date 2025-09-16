@@ -1,0 +1,45 @@
+{
+  "language": "python",
+  "project_type": "python_api",
+  "tools": {
+    "lint": "ruff check .",
+    "format": "ruff format .",
+    "test": "pytest --cov=. tests/",
+    "security": "bandit -r . && safety check",
+    "typecheck": "mypy ."
+  },
+  "metrics": {
+    "performance": {
+      "response_time": {
+        "target": -5,
+        "cap": 10,
+        "unit": "%"
+      },
+      "throughput": {
+        "target": 5,
+        "cap": -10,
+        "unit": "%"
+      },
+      "memory_usage": {
+        "target": 0,
+        "cap": 15,
+        "unit": "%"
+      }
+    }
+  },
+  "project_name": "wpa",
+  "orchestrator_version": "1.0.0",
+  "standards": {
+    "max_function_lines": 30,
+    "test_coverage": 80,
+    "security_level": "no-high",
+    "documentation_required": true
+  },
+  "gates": {
+    "build": "All code compiles without errors",
+    "test": "All tests pass, coverage >= 80%",
+    "review": "Code follows standards, functions <= 30 lines",
+    "security": "No high severity issues, no hardcoded secrets",
+    "performance": "Metrics within acceptable bounds"
+  }
+}

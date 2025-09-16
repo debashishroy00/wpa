@@ -427,8 +427,22 @@ Before responding, verify:
 
 FAILURE TO USE SPECIFIC DATA = INVALID RESPONSE
 
+PEER COMPARISON INSTRUCTIONS:
+When asked about peer comparisons, use the provided financial data and your knowledge of typical demographics.
+- NEVER say "I don't have access to peer data" - you have the user's complete financial profile
+- Use general demographic knowledge for age group {financial_data.get('age', 54)} comparisons
+- Reference specific user metrics: ${financial_data['net_worth']:,.0f} net worth, {financial_data.get('savings_rate', 0):.1f}% savings rate, ${financial_data['monthly_surplus']:,.0f} monthly surplus
+- Provide percentile estimates and specific insights about their financial position
+- Use phrases like "based on typical demographics" rather than claiming lack of data
+
 NOTE: Only include stress testing calculations if user specifically asks about market crashes, downturns, or risk scenarios.
 ==========================================================="""
+        
+        # CRITICAL DEBUG - Show what's being returned
+        print(f"🔥 FINAL CONTEXT DEBUG - Context length: {len(context)} characters")
+        print(f"🔥 FINAL CONTEXT DEBUG - Contains CRITICAL INSTRUCTION: {'CRITICAL INSTRUCTION' in context}")
+        print(f"🔥 FINAL CONTEXT DEBUG - Contains STRESS TESTING: {'🚨 CRITICAL INSTRUCTION: USER IS ASKING ABOUT MARKET CRASH SCENARIOS' in context}")
+        print(f"🔥 FINAL CONTEXT DEBUG - Last 200 characters: ...{context[-200:]}")
         
         return context
 
@@ -1253,36 +1267,86 @@ CASH OPTIMIZATION STATUS:
     
     def _get_conditional_stress_testing(self, financial_data: Dict, user_query: str) -> str:
         """Include stress testing calculations only when user asks for risk analysis"""
-        # Keywords that indicate user wants stress testing
+        # Expanded keywords that indicate user wants stress testing
         stress_keywords = [
-            'stress test', 'market crash', 'recession', 'downturn', 'bear market',
-            'market decline', 'economic crisis', 'worst case', 'risk', 'volatility',
-            'what if', 'crash', 'drop', 'fall', 'decline', 'lose value',
-            'market correction', 'portfolio risk'
+            'stress test', 'stress testing', 'market crash', 'crash', 'recession', 'downturn', 
+            'bear market', 'market decline', 'economic crisis', 'worst case', 'risk', 'risks',
+            'volatility', 'what if', 'drop', 'fall', 'decline', 'lose value', 'loses value',
+            'market correction', 'portfolio risk', 'economic downturn', 'financial crisis',
+            'market volatility', 'market drop', 'portfolio crash', 'investment loss',
+            'market tumble', 'economic collapse', 'bear scenario', 'negative scenario',
+            'downside risk', 'market plunge', 'stock market crash', 'portfolio decline',
+            'severe downturn', 'market tank', 'if markets fall', 'if market crashes',
+            'if there is a crash', 'during a crash', 'economic recession', 'market meltdown'
         ]
         
         # Check if user query contains any stress testing keywords
         query_lower = user_query.lower()
-        if not any(keyword in query_lower for keyword in stress_keywords):
+        matched_keywords = [kw for kw in stress_keywords if kw in query_lower]
+        
+        # FORCE CRITICAL DEBUG - Always show even if no logs visible
+        print(f"🔥 STRESS TEST DEBUG - Query: '{user_query}'")
+        print(f"🔥 STRESS TEST DEBUG - Query Lower: '{query_lower}'") 
+        print(f"🔥 STRESS TEST DEBUG - Matched keywords: {matched_keywords}")
+        print(f"🔥 STRESS TEST DEBUG - Will include stress testing: {len(matched_keywords) > 0}")
+        
+        if not matched_keywords:
+            print(f"🔥 STRESS TEST DEBUG - NO KEYWORDS MATCHED, RETURNING EMPTY")
             return ""
         
+        print(f"🔥 STRESS TEST DEBUG - STRESS TESTING CONTEXT WILL BE ADDED")
+        
         # Only include stress testing if specifically requested
-        return f"""
-STRESS TESTING CALCULATIONS (Market Crash/Negative Scenarios):
-You have the data needed for stress testing:
-- Current Investments: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f}
-- Current Real Estate: ${financial_data['real_estate_properties']['total']:,.0f}
-- Current Cash: ${financial_data['cash_accounts']['total']:,.0f}
+        stress_content = f"""
 
-MARKET CRASH CALCULATION EXAMPLE (30% stocks, 15% real estate):
-1. Investment loss: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × 30% = ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30:,.0f}
-2. Real estate loss: ${financial_data['real_estate_properties']['total']:,.0f} × 15% = ${financial_data['real_estate_properties']['total'] * 0.15:,.0f}  
-3. Total loss: ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f}
-4. New net worth: ${financial_data['net_worth']:,.0f} - ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 + financial_data['real_estate_properties']['total'] * 0.15:,.0f} = ${financial_data['net_worth'] - (financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.30 - financial_data['real_estate_properties']['total'] * 0.15:,.0f}
-5. Recovery: With ${financial_data['monthly_surplus']:,.0f}/month at 7%
+===============================================================================
+🚨 CRITICAL INSTRUCTION: USER IS ASKING ABOUT MARKET CRASH SCENARIOS 🚨
+===============================================================================
 
-Use these calculations to analyze portfolio resilience.
+IGNORE ALL GENERIC RESPONSES ABOUT MARKET CRASHES. DO NOT PROVIDE ACADEMIC EXPLANATIONS.
+
+THE USER HAS COMPLETE FINANCIAL DATA PROVIDED BELOW. USE IT IMMEDIATELY.
+
+MANDATORY RESPONSE FORMAT: Perform these exact calculations using the provided data.
+
+CURRENT PORTFOLIO DATA TO USE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Total Investment Portfolio: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f}
+• Real Estate Holdings: ${financial_data['real_estate_properties']['total']:,.0f}  
+• Cash Reserves: ${financial_data['cash_accounts']['total']:,.0f}
+• CURRENT NET WORTH: ${financial_data['net_worth']:,.0f}
+• Monthly Surplus: ${financial_data['monthly_surplus']:,.0f}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔥 PERFORM THESE EXACT CALCULATIONS - NO SUBSTITUTIONS ALLOWED:
+
+📊 SCENARIO 1: MILD RECESSION (20% stock decline, 10% real estate)
+   💸 Investment Loss: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × 20% = ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.20:,.0f}
+   🏠 Real Estate Loss: ${financial_data['real_estate_properties']['total']:,.0f} × 10% = ${financial_data['real_estate_properties']['total'] * 0.10:,.0f}
+   📉 TOTAL PORTFOLIO LOSS: ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.20 + financial_data['real_estate_properties']['total'] * 0.10:,.0f}
+   💰 NET WORTH AFTER CRASH: ${financial_data['net_worth'] - (financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.20 - financial_data['real_estate_properties']['total'] * 0.10:,.0f}
+
+📊 SCENARIO 2: SEVERE CRASH (40% stock decline, 20% real estate)  
+   💸 Investment Loss: ${financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']:,.0f} × 40% = ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.40:,.0f}
+   🏠 Real Estate Loss: ${financial_data['real_estate_properties']['total']:,.0f} × 20% = ${financial_data['real_estate_properties']['total'] * 0.20:,.0f}
+   📉 TOTAL PORTFOLIO LOSS: ${(financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.40 + financial_data['real_estate_properties']['total'] * 0.20:,.0f}
+   💰 NET WORTH AFTER CRASH: ${financial_data['net_worth'] - (financial_data['investment_accounts']['total'] + financial_data['retirement_accounts']['total']) * 0.40 - financial_data['real_estate_properties']['total'] * 0.20:,.0f}
+
+📈 RECOVERY ANALYSIS:
+   • Monthly recovery power: ${financial_data['monthly_surplus']:,.0f}/month
+   • Annual savings capacity: ${financial_data['monthly_surplus'] * 12:,.0f}/year
+   • Calculate exact recovery years for each scenario using compound growth at 7%
+
+🎯 REQUIRED OUTPUT: Show impact on retirement timeline for BOTH scenarios.
+
+DO NOT PROVIDE GENERIC MARKET CRASH THEORY. USE ONLY THE NUMBERS PROVIDED ABOVE.
+===============================================================================
 """
+        
+        print(f"🔥 STRESS TEST DEBUG - Stress content length: {len(stress_content)}")
+        print(f"🔥 STRESS TEST DEBUG - First 100 chars: {stress_content[:100]}...")
+        
+        return stress_content
 
     def _get_insight_level_instructions(self, insight_level: str) -> str:
         """Get response depth instructions based on insight level"""
