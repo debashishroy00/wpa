@@ -28,6 +28,26 @@ from app.services.complete_financial_context_service import CompleteFinancialCon
 from app.services.vector_db_service import get_vector_db
 
 logger = structlog.get_logger()
+
+# STANDARDIZED FREQUENCY CONVERSION FUNCTION - USE THIS EVERYWHERE
+def convert_to_monthly_amount(amount: float, frequency: str) -> float:
+    """
+    Centralized function to convert any frequency to monthly amount.
+    This ensures consistent calculations across all endpoints.
+    """
+    if frequency == 'monthly':
+        return amount
+    elif frequency == 'annually' or frequency == 'annual':
+        return amount / 12
+    elif frequency == 'quarterly':
+        return amount / 3
+    elif frequency == 'weekly':
+        return amount * 4.33  # Average weeks per month
+    elif frequency == 'bi_weekly':
+        return amount * 2.17  # Average bi-weeks per month
+    else:  # one_time or unknown
+        return 0  # Don't include one-time in monthly calculations
+
 router = APIRouter()
 
 # Initialize services
@@ -619,18 +639,8 @@ def get_categorized_entries(
         processed_count += 1
     
     # Calculate totals with proper frequency handling
-    def calculate_monthly_amount(amount: float, frequency: str) -> float:
-        """Convert any frequency to monthly amount"""
-        if frequency == 'monthly':
-            return amount
-        elif frequency == 'annually':
-            return amount / 12
-        elif frequency == 'quarterly':
-            return amount / 3
-        elif frequency == 'weekly':
-            return amount * 4.33  # Average weeks per month
-        else:  # one_time or other
-            return 0  # Don't include one-time in monthly calculations
+    # Use the centralized function for consistency
+    calculate_monthly_amount = convert_to_monthly_amount
     
     # Calculate monthly income from all subcategories
     monthly_income = 0
@@ -911,11 +921,9 @@ async def get_detailed_entries(
                 result['liabilities']['other'].append(data)
             
         elif entry.category.value == 'income':
-            # Convert to monthly for cash flow calculations
-            if entry.frequency and entry.frequency.value == 'monthly':
-                monthly_income += float(entry.amount)
-            elif entry.frequency and entry.frequency.value == 'annually':
-                monthly_income += float(entry.amount) / 12
+            # Convert to monthly for cash flow calculations using centralized function
+            monthly_amount = convert_to_monthly_amount(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
+            monthly_income += monthly_amount
                 
             category_type = categorize_financial_entry('income', entry.description, entry.subcategory)
             if category_type == 'employment_income':
@@ -928,11 +936,9 @@ async def get_detailed_entries(
                 result['income']['other'].append(data)
                 
         elif entry.category.value == 'expenses':
-            # Convert to monthly for cash flow calculations
-            if entry.frequency and entry.frequency.value == 'monthly':
-                monthly_expenses += float(entry.amount)
-            elif entry.frequency and entry.frequency.value == 'annually':
-                monthly_expenses += float(entry.amount) / 12
+            # Convert to monthly for cash flow calculations using centralized function
+            monthly_amount = convert_to_monthly_amount(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
+            monthly_expenses += monthly_amount
             
             category_type = categorize_financial_entry('expenses', entry.description, entry.subcategory)
             if category_type == 'housing':
@@ -1074,11 +1080,9 @@ def get_categorized_financial_summary(
                 
         elif category_main == "income":
             totals["income"] += entry.amount
-            # Convert to monthly for cash flow
-            if entry.frequency.value == "annually":
-                totals["monthly_income"] += entry.amount / 12
-            elif entry.frequency.value == "monthly":
-                totals["monthly_income"] += entry.amount
+            # Convert to monthly for cash flow using centralized function
+            monthly_amount = convert_to_monthly_amount(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
+            totals["monthly_income"] += monthly_amount
             
             if category_sub == "employment_income":
                 categorized["income"]["employment_income"].append(entry_data)
@@ -1091,11 +1095,9 @@ def get_categorized_financial_summary(
                 
         elif category_main == "expenses":
             totals["expenses"] += entry.amount
-            # Convert to monthly for cash flow
-            if entry.frequency.value == "annually":
-                totals["monthly_expenses"] += entry.amount / 12
-            elif entry.frequency.value == "monthly":
-                totals["monthly_expenses"] += entry.amount
+            # Convert to monthly for cash flow using centralized function
+            monthly_amount = convert_to_monthly_amount(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
+            totals["monthly_expenses"] += monthly_amount
             
             if category_sub == "housing":
                 categorized["expenses"]["housing"].append(entry_data)
@@ -2015,20 +2017,8 @@ def get_cash_flow_analysis(
         )
     ).all()
     
-    def to_monthly(amount: float, frequency: str) -> float:
-        """Convert any frequency to monthly amount"""
-        if frequency == 'monthly':
-            return amount
-        elif frequency == 'annually' or frequency == 'annual':
-            return amount / 12
-        elif frequency == 'quarterly':
-            return amount / 3
-        elif frequency == 'weekly':
-            return amount * 4.33
-        elif frequency == 'bi_weekly':
-            return amount * 2.17
-        else:  # one_time or unknown
-            return 0
+    # Use the centralized function for consistency
+    to_monthly = convert_to_monthly_amount
     
     # Calculate monthly income
     monthly_income = sum(
@@ -2036,11 +2026,18 @@ def get_cash_flow_analysis(
         for e in entries if e.category == EntryCategory.income
     )
     
-    # Calculate monthly expenses
-    monthly_expenses = sum(
-        to_monthly(float(e.amount), e.frequency.value if e.frequency else 'one_time')
-        for e in entries if e.category == EntryCategory.expenses
-    )
+    # Calculate monthly expenses with debug logging
+    expense_entries = [e for e in entries if e.category == EntryCategory.expenses]
+    print(f"🔍 EXPENSE DEBUG for user {user_id}:")
+    print(f"  - Total expense entries found: {len(expense_entries)}")
+
+    monthly_expenses = 0
+    for e in expense_entries:
+        monthly_amount = to_monthly(float(e.amount), e.frequency.value if e.frequency else 'one_time')
+        monthly_expenses += monthly_amount
+        print(f"  - {e.description}: ${e.amount} {e.frequency.value if e.frequency else 'one_time'} = ${monthly_amount:.2f}/month")
+
+    print(f"  - TOTAL MONTHLY EXPENSES: ${monthly_expenses:.2f}")
     
     # Calculate monthly debt payments from liability entries that have minimum_payment
     # and from expense entries that are debt-related (mortgage, car payments, etc.)
