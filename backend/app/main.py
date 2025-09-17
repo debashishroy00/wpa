@@ -115,30 +115,40 @@ app.add_middleware(
     allowed_hosts=["*"]  # Allow all hosts (fixes Render/Railway host header issues)
 )
 
-# CORS middleware
+# CORS middleware - CRITICAL FOR PRODUCTION
 if settings.ENABLE_CORS:
     # Production CORS configuration for smartfinanceadvisor.net and Vercel deployments
     production_origins = [
         "https://smartfinanceadvisor.net",
-        "https://www.smartfinanceadvisor.net",  # Add www subdomain
+        "https://www.smartfinanceadvisor.net",  # CRITICAL: www subdomain
         "https://wealthpath-app.vercel.app",  # Add Vercel frontend domain
         "http://localhost:3000",
-        "http://localhost:3001", 
+        "http://localhost:3001",
         "http://localhost:3002",
         "http://localhost:3003",
         "http://localhost:3004",
         "http://localhost:3005",
         "http://localhost:3015"  # Add current frontend port
     ]
-    
-    logger.info("CORS enabled with origins", origins=production_origins)
-    
+
+    # For production, add more specific origins if needed
+    if settings.ENVIRONMENT == "production":
+        # Temporary: Allow all origins for debugging CORS issues
+        production_origins = ["*"]
+        logger.warning("PRODUCTION: Using wildcard CORS for debugging")
+
+    logger.info("CORS enabled with origins", origins=production_origins, environment=settings.ENVIRONMENT)
+
+    # Handle wildcard CORS properly
+    allow_credentials = production_origins != ["*"]
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=production_origins,
-        allow_credentials=True,  # Enable credentials for authentication
+        allow_credentials=allow_credentials,  # Disable credentials when using wildcard
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         allow_headers=["*"],
+        expose_headers=["*"],  # Expose all headers
     )
 
 
