@@ -1082,7 +1082,7 @@ def get_categorized_financial_summary(
             totals["income"] += entry.amount
             # Convert to monthly for cash flow using centralized function
             monthly_amount = convert_to_monthly_amount(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
-            totals["monthly_income"] += monthly_amount
+            totals["monthly_income"] += Decimal(str(monthly_amount))
             
             if category_sub == "employment_income":
                 categorized["income"]["employment_income"].append(entry_data)
@@ -1097,7 +1097,7 @@ def get_categorized_financial_summary(
             totals["expenses"] += entry.amount
             # Convert to monthly for cash flow using centralized function
             monthly_amount = convert_to_monthly_amount(float(entry.amount), entry.frequency.value if entry.frequency else 'one_time')
-            totals["monthly_expenses"] += monthly_amount
+            totals["monthly_expenses"] += Decimal(str(monthly_amount))
             
             if category_sub == "housing":
                 categorized["expenses"]["housing"].append(entry_data)
