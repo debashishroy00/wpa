@@ -19,8 +19,10 @@ class CompleteFinancialContextService:
     def build_complete_context(self, user_id: int, db: Session, user_query: str = "", insight_level: str = "balanced") -> str:
         """Build complete context with financial data AND conversation memory"""
         try:
+            logger.info(f"🚀 BUILD_COMPLETE_CONTEXT: Starting for user_id {user_id}, insight_level: {insight_level}")
             # Get complete financial data
             financial_data = self._get_complete_financial_data(user_id, db)
+            logger.info(f"🚀 BUILD_COMPLETE_CONTEXT: Got financial_data type: {type(financial_data)}")
             
             if 'error' in financial_data:
                 return f"Error loading financial data: {financial_data['error']}"
@@ -208,7 +210,9 @@ Example:
             return context
             
         except Exception as e:
+            import traceback
             logger.error(f"Error building complete context for user {user_id}: {str(e)}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return f"Error building financial context: {str(e)}"
     
     def _get_chat_memory(self, user_id: int, db: Session) -> Dict:
@@ -497,6 +501,9 @@ EXPENSE BREAKDOWN (Total: ${total_expenses:,.0f}/month):
 LIABILITIES:
 - Mortgage: ${financial_data.get('mortgage_balance', 0):,.0f}
 - Other Debt: ${financial_data.get('total_liabilities', 0) - financial_data.get('mortgage_balance', 0):,.0f}
+
+INSURANCE COVERAGE:
+{self._format_insurance_policies(financial_data.get('insurance_policies', []))}
 """
 
     def _get_comprehensive_details(self, financial_data: Dict) -> str:
@@ -547,16 +554,20 @@ INSURANCE & ESTATE:
 
     def _get_complete_financial_data(self, user_id: int, db: Session) -> Dict[str, Any]:
         """Get ALL financial data with complete breakdown"""
+        logger.info(f"📊 _get_complete_financial_data START for user_id={user_id}")
         try:
             from .financial_summary_service import financial_summary_service
             from ..models.user import User
             from ..models.user_profile import UserProfile
             from ..models.goals_v2 import Goal
-            
+
             # Get financial summary
+            logger.info(f"📊 Getting financial summary for user_id={user_id}")
             summary = financial_summary_service.get_user_financial_summary(user_id, db)
-            
+            logger.info(f"📊 Financial summary keys: {list(summary.keys()) if summary else 'None'}")
+
             if 'error' in summary:
+                logger.warning(f"📊 Error in summary: {summary['error']}")
                 return {'error': summary['error']}
             
             # Get user info
@@ -809,6 +820,7 @@ INSURANCE & ESTATE:
                 logger.warning(f"Could not retrieve estate planning information: {str(e)}")
             
             try:
+                logger.info(f"🚀 INSURANCE BLOCK START: Processing insurance for user_id {user_id}")
                 from ..models.insurance import UserInsurancePolicy
                 logger.info(f"🔍 Insurance debug: Querying UserInsurancePolicy for user_id {user_id}")
 

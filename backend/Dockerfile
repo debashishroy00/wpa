@@ -29,7 +29,7 @@ COPY alembic.ini .
 COPY start.sh .
 
 # Create necessary directories and make start script executable
-RUN mkdir -p logs && chmod 755 logs && chmod +x start.sh
+RUN mkdir -p logs knowledge_base && chmod 755 logs && chmod +x start.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

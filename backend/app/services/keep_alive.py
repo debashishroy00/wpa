@@ -45,14 +45,20 @@ class KeepAliveService:
     async def _ping_health(self):
         """Ping the health endpoint"""
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 response = await client.get(self.health_url)
                 if response.status_code == 200:
                     logger.debug("Keep-alive ping successful", timestamp=datetime.now().isoformat())
+                elif response.status_code in [301, 302, 307, 308]:
+                    logger.info("Keep-alive ping redirected",
+                               status_code=response.status_code,
+                               location=response.headers.get("location"))
                 else:
-                    logger.warning("Keep-alive ping returned non-200", status_code=response.status_code)
+                    logger.warning("Keep-alive ping returned non-200",
+                                 status_code=response.status_code,
+                                 url=self.health_url)
         except Exception as e:
-            logger.error("Keep-alive ping exception", error=str(e))
+            logger.error("Keep-alive ping exception", error=str(e), url=self.health_url)
 
 # Global instance
 keep_alive_service = KeepAliveService()
