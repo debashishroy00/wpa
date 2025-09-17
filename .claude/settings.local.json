@@ -181,7 +181,8 @@
       "Bash(then sed -i '/console\\.log/d' \"$file\")",
       "Bash(fi)",
       "Bash(for:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(alembic downgrade:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
