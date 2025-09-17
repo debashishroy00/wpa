@@ -86,9 +86,7 @@ PERSONAL PROFILE:
   • Age: {financial_data.get('age', 'unknown')} years old
   • State: {financial_data.get('state', 'Unknown')}
   • Marital Status: {financial_data.get('marital_status', 'Unknown')}
-  • Occupation: {financial_data.get('occupation', 'Unknown')}
-  • Tax Filing Status: {financial_data.get('filing_status', 'Unknown')}
-  • Federal Tax Bracket: {financial_data.get('tax_bracket', 'Unknown')}%"""
+  • Occupation: {financial_data.get('occupation', 'Unknown')}"""
                 
                 # Add family information if available
                 family_members = financial_data.get('family_members', [])
@@ -101,8 +99,12 @@ PERSONAL PROFILE:
                         elif member.get('relationship'):
                             family_info.append(f"{member['relationship']}")
                     context += ", ".join(family_info)
-                
+
                 context += f"""
+
+TAX PROFILE:
+-----------
+{self._format_tax_profile(financial_data)}
 
 ASSETS DETAIL (${financial_data['total_assets']:,.0f} total):
 --------------------------------
@@ -138,6 +140,10 @@ LIABILITIES DETAIL (${financial_data['total_liabilities']:,.0f} total):
 
 NET WORTH: ${financial_data['net_worth']:,.0f}
 ====================
+
+KEY FINANCIAL METRICS:
+----------------------
+{self._format_key_financial_metrics(financial_data)}
 
 MONTHLY CASH FLOW:
 -----------------
@@ -777,11 +783,16 @@ INSURANCE & ESTATE:
             
             try:
                 from ..models.estate_planning import UserEstatePlanning
+                logger.info(f"🏛️ Estate Planning debug: Querying UserEstatePlanning for user_id {user_id}")
+
                 estate_docs = db.query(UserEstatePlanning).filter(
                     UserEstatePlanning.user_id == user_id
                 ).all()
-                
+
+                logger.info(f"🏛️ Estate Planning debug: Found {len(estate_docs)} estate planning documents")
+
                 for doc in estate_docs:
+                    logger.info(f"🏛️ Estate Planning debug: Processing document {doc.document_type} - {doc.document_name}")
                     estate_planning.append({
                         'document_type': doc.document_type,
                         'document_name': doc.document_name,
@@ -791,21 +802,24 @@ INSURANCE & ESTATE:
                         'document_location': doc.document_location,
                         'document_details': doc.document_details
                     })
+
+                logger.info(f"🏛️ Estate Planning debug: Final estate_planning list has {len(estate_planning)} items")
+
             except Exception as e:
                 logger.warning(f"Could not retrieve estate planning information: {str(e)}")
             
             try:
                 from ..models.insurance import UserInsurancePolicy
-                logger.debug(f"🔍 Insurance debug: Querying UserInsurancePolicy for user_id {user_id}")
+                logger.info(f"🔍 Insurance debug: Querying UserInsurancePolicy for user_id {user_id}")
 
                 insurance_docs = db.query(UserInsurancePolicy).filter(
                     UserInsurancePolicy.user_id == user_id
                 ).all()
 
-                logger.debug(f"🔍 Insurance debug: Found {len(insurance_docs)} insurance policies")
+                logger.info(f"🔍 Insurance debug: Found {len(insurance_docs)} insurance policies")
 
                 for policy in insurance_docs:
-                    logger.debug(f"🔍 Insurance debug: Processing policy {policy.policy_type} - {policy.policy_name}")
+                    logger.info(f"🔍 Insurance debug: Processing policy {policy.policy_type} - {policy.policy_name}")
                     insurance_policies.append({
                         'policy_type': policy.policy_type,
                         'policy_name': policy.policy_name,
@@ -816,7 +830,7 @@ INSURANCE & ESTATE:
                         'policy_details': policy.policy_details
                     })
 
-                logger.debug(f"🔍 Insurance debug: Final insurance_policies list has {len(insurance_policies)} items")
+                logger.info(f"🔍 Insurance debug: Final insurance_policies list has {len(insurance_policies)} items")
 
             except Exception as e:
                 logger.warning(f"Could not retrieve insurance information: {str(e)}")
@@ -841,7 +855,13 @@ INSURANCE & ESTATE:
                     }
             except Exception as e:
                 logger.warning(f"Could not retrieve investment preferences: {str(e)}")
-            
+
+            # Debug: Check final data package before returning
+            logger.info(f"📦 Final data package contains {len(estate_planning)} estate planning items")
+            logger.info(f"📦 Final data package contains {len(insurance_policies)} insurance policies")
+            logger.info(f"📦 Estate planning data: {estate_planning}")
+            logger.info(f"📦 Insurance policies data: {insurance_policies}")
+
             return {
                 'name': name,
                 'age': age,
@@ -1402,7 +1422,11 @@ This should be your most detailed, thorough response mode.
 
     def _format_estate_planning(self, estate_planning: List[Dict]) -> str:
         """Format estate planning documents"""
+        logger.info(f"🏛️ Estate Planning format debug: Received {len(estate_planning) if estate_planning else 0} documents")
+        logger.info(f"🏛️ Estate Planning format debug: Documents data: {estate_planning}")
+
         if not estate_planning:
+            logger.info("🏛️ Estate Planning format debug: No documents found, returning default message")
             return "  • No estate planning documents on record"
         
         formatted = []
@@ -1423,11 +1447,11 @@ This should be your most detailed, thorough response mode.
     
     def _format_insurance_policies(self, insurance_policies: List[Dict]) -> str:
         """Format insurance policies"""
-        logger.debug(f"🔍 Insurance format debug: Received {len(insurance_policies) if insurance_policies else 0} policies")
-        logger.debug(f"🔍 Insurance format debug: Policies data: {insurance_policies}")
+        logger.info(f"🔍 Insurance format debug: Received {len(insurance_policies) if insurance_policies else 0} policies")
+        logger.info(f"🔍 Insurance format debug: Policies data: {insurance_policies}")
 
         if not insurance_policies:
-            logger.debug("🔍 Insurance format debug: No policies found, returning default message")
+            logger.info("🔍 Insurance format debug: No policies found, returning default message")
             return "  • No insurance policies on record"
 
         formatted = []
@@ -1511,6 +1535,158 @@ This should be your most detailed, thorough response mode.
                 formatted.append(f"    - {item.get('description', 'Unknown')}: ${item.get('monthly_amount', 0):,.0f}")
         
         return '\n'.join(formatted)
+
+    def _format_key_financial_metrics(self, financial_data: Dict) -> str:
+        """Format key financial health metrics"""
+        try:
+            # Calculate emergency fund coverage (months of expenses)
+            monthly_expenses = financial_data.get('monthly_expenses', 0)
+            cash_total = financial_data.get('cash_accounts', {}).get('total', 0)
+            emergency_months = (cash_total / monthly_expenses) if monthly_expenses > 0 else 0
+
+            # Calculate liquidity ratio (liquid assets / total assets)
+            total_assets = financial_data.get('total_assets', 0)
+            liquidity_ratio = (cash_total / total_assets * 100) if total_assets > 0 else 0
+
+            # Get debt-to-income ratio
+            dti_ratio = financial_data.get('debt_to_income', 0)
+
+            # Calculate financial health score (simple scoring system)
+            health_score = 0
+            # Emergency fund scoring (0-25 points)
+            if emergency_months >= 6:
+                health_score += 25
+            elif emergency_months >= 3:
+                health_score += 20
+            elif emergency_months >= 1:
+                health_score += 15
+            else:
+                health_score += 5
+
+            # DTI scoring (0-25 points)
+            if dti_ratio <= 20:
+                health_score += 25
+            elif dti_ratio <= 30:
+                health_score += 20
+            elif dti_ratio <= 40:
+                health_score += 15
+            else:
+                health_score += 5
+
+            # Savings rate scoring (0-25 points)
+            savings_rate = financial_data.get('savings_rate', 0)
+            if savings_rate >= 20:
+                health_score += 25
+            elif savings_rate >= 15:
+                health_score += 20
+            elif savings_rate >= 10:
+                health_score += 15
+            else:
+                health_score += 5
+
+            # Net worth progress scoring (0-25 points)
+            retirement_progress = financial_data.get('retirement_progress', 0)
+            if retirement_progress >= 75:
+                health_score += 25
+            elif retirement_progress >= 50:
+                health_score += 20
+            elif retirement_progress >= 25:
+                health_score += 15
+            else:
+                health_score += 5
+
+            # Asset allocation score (basic diversification check)
+            total_assets = financial_data.get('total_assets', 0)
+            if total_assets > 0:
+                real_estate_pct = (financial_data.get('real_estate_properties', {}).get('total', 0) / total_assets) * 100
+                investment_pct = (financial_data.get('investment_accounts', {}).get('total', 0) / total_assets) * 100
+                retirement_pct = (financial_data.get('retirement_accounts', {}).get('total', 0) / total_assets) * 100
+
+                # Check for reasonable diversification (not too concentrated)
+                max_allocation = max(real_estate_pct, investment_pct + retirement_pct, cash_total / total_assets * 100)
+                if max_allocation < 80:  # Not overly concentrated
+                    allocation_score = 9
+                elif max_allocation < 90:
+                    allocation_score = 7
+                else:
+                    allocation_score = 5
+            else:
+                allocation_score = 5
+                real_estate_pct = 0
+
+            return f"""  • Debt-to-Income Ratio: {dti_ratio:.1f}% {'(Excellent)' if dti_ratio <= 20 else '(Good)' if dti_ratio <= 30 else '(Fair)' if dti_ratio <= 40 else '(Needs Improvement)'}
+  • Emergency Fund Coverage: {emergency_months:.1f} months {'(Excellent)' if emergency_months >= 6 else '(Good)' if emergency_months >= 3 else '(Fair)' if emergency_months >= 1 else '(Insufficient)'}
+  • Liquidity Ratio: {liquidity_ratio:.1f}% of total assets in cash
+  • Savings Rate: {savings_rate:.1f}% {'(Excellent)' if savings_rate >= 20 else '(Good)' if savings_rate >= 15 else '(Fair)' if savings_rate >= 10 else '(Low)'}
+  • Asset Allocation Score: {allocation_score}/10 (Diversification: RE {real_estate_pct:.1f}%)
+  • Financial Health Score: {health_score}/100 {'(Excellent)' if health_score >= 80 else '(Good)' if health_score >= 65 else '(Fair)' if health_score >= 50 else '(Needs Improvement)'}"""
+
+        except Exception as e:
+            logger.warning(f"Error calculating key financial metrics: {str(e)}")
+            return "  • Key financial metrics calculation error"
+
+    def _format_tax_profile(self, financial_data: Dict) -> str:
+        """Format comprehensive tax profile information"""
+        try:
+            # Get basic tax info
+            federal_bracket = financial_data.get('tax_bracket', 0)
+            filing_status = financial_data.get('filing_status', 'Unknown')
+            state = financial_data.get('state', 'Unknown')
+
+            # Calculate effective tax rate estimate
+            monthly_income = financial_data.get('monthly_income', 0)
+            annual_income = monthly_income * 12
+
+            # State tax rates (simplified lookup - could be enhanced with a proper state tax table)
+            state_tax_rates = {
+                'CA': 9.3, 'NY': 6.8, 'NJ': 8.9, 'CT': 6.9, 'MA': 5.0,
+                'IL': 4.9, 'MD': 5.7, 'VA': 5.75, 'PA': 3.1, 'WA': 0.0,
+                'TX': 0.0, 'FL': 0.0, 'NV': 0.0, 'TN': 0.0, 'NH': 0.0,
+                'WY': 0.0, 'SD': 0.0, 'AK': 0.0, 'MT': 6.9, 'ND': 2.9
+            }
+
+            state_rate = state_tax_rates.get(state, 5.0)  # Default 5% if state not found
+
+            # Estimate effective federal rate (simplified)
+            if annual_income <= 22000:
+                effective_federal = 10
+            elif annual_income <= 89450:
+                effective_federal = 12
+            elif annual_income <= 190750:
+                effective_federal = 16
+            elif annual_income <= 364200:
+                effective_federal = 20
+            else:
+                effective_federal = 24
+
+            combined_marginal = federal_bracket + state_rate
+            estimated_effective = effective_federal + (state_rate * 0.8)  # State effective usually lower
+
+            # SALT limitation impact (for high-tax states)
+            salt_limited = state_rate > 6.0 and annual_income > 100000
+            salt_impact = "SALT deduction limited ($10K cap)" if salt_limited else "Full SALT deduction available"
+
+            # Tax optimization opportunities
+            optimization_tips = []
+            if federal_bracket >= 22:  # Higher bracket taxpayers
+                optimization_tips.append("Consider tax-advantaged retirement contributions")
+            if state_rate > 7:
+                optimization_tips.append("Municipal bonds may provide tax-free income")
+            if annual_income > 200000:
+                optimization_tips.append("Review estimated tax payments to avoid penalties")
+
+            return f"""  • Filing Status: {filing_status}
+  • Federal Marginal Rate: {federal_bracket}%
+  • State: {state} (Est. {state_rate}% rate)
+  • Combined Marginal Rate: {combined_marginal:.1f}%
+  • Estimated Effective Rate: {estimated_effective:.1f}%
+  • SALT Impact: {salt_impact}
+  • Annual Income: ${annual_income:,.0f}
+  • Tax Optimization: {'; '.join(optimization_tips) if optimization_tips else 'Standard deduction likely optimal'}"""
+
+        except Exception as e:
+            logger.warning(f"Error formatting tax profile: {str(e)}")
+            return f"  • Tax Filing Status: {financial_data.get('filing_status', 'Unknown')}\n  • Federal Tax Bracket: {financial_data.get('tax_bracket', 'Unknown')}%"
 
 
 # Global instance

@@ -541,7 +541,47 @@ def _detect_insight_type(message: str) -> str:
         'fire': 1.0, 'target': 0.8, 'independence': 0.9, 'independent': 0.9,
         'ready': 0.7, 'on track': 0.9, 'progress': 0.8, 'timeline': 0.8,
         'enough': 0.7, 'sufficient': 0.7, 'plan': 0.6, 'planning': 0.6,
-        'social security': 1.0, 'ss benefits': 0.95, 'benefits': 0.8
+        'social security': 1.0, 'ss benefits': 0.95
+    }
+
+    insurance_words = {
+        'insurance': 1.0, 'policy': 0.9, 'policies': 0.9, 'coverage': 0.9,
+        'premium': 0.9, 'premiums': 0.9, 'life insurance': 1.0, 'auto insurance': 1.0,
+        'home insurance': 1.0, 'homeowners insurance': 1.0, 'car insurance': 1.0,
+        'health insurance': 1.0, 'disability insurance': 1.0, 'umbrella policy': 1.0,
+        'homeowners': 0.9, 'auto policy': 0.9, 'beneficiary': 0.8, 'beneficiaries': 0.8,
+        'deductible': 0.8, 'claim': 0.7, 'claims': 0.7, 'liability': 0.8,
+        'coverage amount': 0.9, 'insured': 0.7, 'insurer': 0.7, 'underwriting': 0.7
+    }
+
+    estate_words = {
+        'estate': 1.0, 'estate planning': 1.0, 'will': 0.9, 'trust': 0.9, 'trusts': 0.9,
+        'inheritance': 0.9, 'inherit': 0.8, 'probate': 0.9, 'living will': 1.0,
+        'power of attorney': 1.0, 'executor': 0.8, 'trustee': 0.8, 'guardian': 0.8,
+        'living trust': 1.0, 'revocable trust': 1.0, 'irrevocable trust': 1.0,
+        'estate plan': 1.0, 'estate documents': 1.0, 'advance directive': 0.9,
+        'healthcare proxy': 0.9, 'durable power': 0.9, 'estate tax': 0.9,
+        'gift tax': 0.8, 'transfer': 0.7, 'legacy': 0.8, 'heir': 0.8, 'heirs': 0.8
+    }
+
+    benefits_words = {
+        'benefits': 1.0, 'employee benefits': 1.0, 'work benefits': 1.0, 'company benefits': 1.0,
+        'health benefits': 1.0, 'retirement benefits': 1.0, 'pension': 1.0, 'pensions': 1.0,
+        'social security': 1.0, 'ss benefits': 0.95, 'medicare': 1.0, 'medicaid': 0.9,
+        'cobra': 0.9, 'hsa': 1.0, 'fsa': 1.0, 'flexible spending': 1.0,
+        'health savings account': 1.0, 'dependent care': 0.8, 'life insurance benefit': 1.0,
+        'disability benefit': 1.0, 'vacation': 0.6, 'pto': 0.6, 'sick leave': 0.6
+    }
+
+    investment_words = {
+        'investment': 1.0, 'investments': 1.0, 'investing': 1.0, 'invest': 0.9,
+        'preference': 0.9, 'preferences': 0.9, 'investment preference': 1.0,
+        'investment preferences': 1.0, 'investment style': 1.0, 'philosophy': 0.8,
+        'investment philosophy': 1.0, 'approach': 0.7, 'strategy': 0.8, 'strategies': 0.8,
+        'esg': 1.0, 'sustainable investing': 1.0, 'socially responsible': 1.0,
+        'sectors': 0.8, 'sector preference': 1.0, 'rebalancing': 0.9, 'rebalance': 0.9,
+        'alternative investments': 1.0, 'alternatives': 0.8, 'real estate investment': 0.9,
+        'commodities': 0.8, 'crypto': 0.8, 'cryptocurrency': 0.8
     }
     
     # General financial health indicators get routed to comprehensive analysis
@@ -569,6 +609,10 @@ def _detect_insight_type(message: str) -> str:
         'tax': _calculate_phrase_score(msg, tax_words),
         'risk': _calculate_phrase_score(msg, risk_words),
         'goals': _calculate_phrase_score(msg, goal_words),
+        'insurance': _calculate_phrase_score(msg, insurance_words),
+        'estate': _calculate_phrase_score(msg, estate_words),
+        'benefits': _calculate_phrase_score(msg, benefits_words),
+        'investments': _calculate_phrase_score(msg, investment_words),
         'general': _calculate_phrase_score(msg, general_finance_words)
     }
     
