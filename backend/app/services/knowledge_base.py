@@ -9,8 +9,11 @@ from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
+import structlog
 
 from .simple_vector_store import get_vector_store, SimpleDocument
+
+logger = structlog.get_logger()
 # smart_context_selector was removed during cleanup - using simplified context selection
 
 
